@@ -1,0 +1,282 @@
+/* ============================================
+   App Global Styles
+   ============================================ */
+
+.app {
+  min-height: 100vh;
+  transition: background-color 0.5s ease;
+  /* 全局放大 25% */
+  font-size: 125%;
+}
+
+.app.dark {
+  background-color: #050505;
+  color: rgba(255, 255, 255, 0.87);
+}
+
+.app.light {
+  background-color: #ffffff;
+  color: #1a1a1a;
+}
+
+/* ============================================
+   Public Layout
+   ============================================ */
+
+.public-layout {
+  min-height: 100vh;
+  position: relative;
+}
+
+.main-content {
+  padding-top: 80px; /* Height of navbar */
+}
+
+/* ============================================
+   Global Controls (Theme + Language Toggle)
+   ============================================ */
+
+.global-controls {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+
+/* Language Toggle */
+.language-toggle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(217, 70, 239, 0.5);
+  color: #d946ef;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.app.light .language-toggle {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(217, 70, 239, 0.5);
+  color: #d946ef;
+}
+
+.language-toggle:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 20px rgba(217, 70, 239, 0.4);
+}
+
+.lang-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+/* Theme Toggle */
+.theme-toggle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: transparent;
+  border: 2px solid rgba(6, 182, 212, 0.5);
+  color: #06b6d4;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+  transition: all 0.3s ease;
+}
+
+.app.light .theme-toggle {
+  border-color: rgba(0, 0, 0, 0.3);
+  color: #1a1a1a;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.theme-toggle:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 30px rgba(6, 182, 212, 0.6);
+}
+
+.app.light .theme-toggle:hover {
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+}
+
+/* ============================================
+   Common Button Styles
+   ============================================ */
+
+.btn-neon {
+  position: relative;
+  padding: 12px 32px;
+  background: transparent;
+  border: 1px solid rgba(6, 182, 212, 0.5);
+  color: #06b6d4;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-neon:hover {
+  background: rgba(6, 182, 212, 0.1);
+}
+
+.btn-neon.cyan {
+  border-color: rgba(6, 182, 212, 0.5);
+  color: #06b6d4;
+}
+
+.btn-neon.pink {
+  border-color: rgba(217, 70, 239, 0.5);
+  color: #d946ef;
+}
+
+.btn-neon.green {
+  border-color: rgba(52, 211, 153, 0.5);
+  color: #34d399;
+}
+
+/* Corner Accents */
+.btn-neon::before,
+.btn-neon::after {
+  content: '';
+  position: absolute;
+  width: 4px;
+  height: 4px;
+}
+
+.btn-neon::before {
+  top: 0;
+  left: 0;
+  background: currentColor;
+}
+
+.btn-neon::after {
+  bottom: 0;
+  right: 0;
+  background: currentColor;
+}
+
+/* Solid Button */
+.btn-solid {
+  padding: 12px 32px;
+  background: white;
+  border: none;
+  color: black;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-solid:hover {
+  opacity: 0.8;
+}
+
+.app.light .btn-solid {
+  background: black;
+  color: white;
+}
+
+/* ============================================
+   Card Styles
+   ============================================ */
+
+.neon-card {
+  padding: 32px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.app.light .neon-card {
+  background: rgba(255, 255, 255, 0.5);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.neon-card:hover {
+  border-color: rgba(6, 182, 212, 0.5);
+}
+
+.neon-card.cyan {
+  border-color: rgba(6, 182, 212, 0.4);
+}
+
+.neon-card.pink {
+  border-color: rgba(217, 70, 239, 0.4);
+}
+
+.neon-card.green {
+  border-color: rgba(52, 211, 153, 0.4);
+}
+
+/* ============================================
+   Typography
+   ============================================ */
+
+.title-xl {
+  font-size: clamp(48px, 10vw, 120px);
+  font-weight: 900;
+  font-style: italic;
+  letter-spacing: -0.05em;
+  line-height: 1;
+}
+
+.title-lg {
+  font-size: clamp(32px, 5vw, 64px);
+  font-weight: 900;
+  font-style: italic;
+  letter-spacing: -0.03em;
+}
+
+.title-md {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.title-sm {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.text-muted {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.app.light .text-muted {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.text-cyan {
+  color: #06b6d4;
+}
+
+.text-pink {
+  color: #d946ef;
+}
+
+.text-green {
+  color: #34d399;
+}

@@ -1,0 +1,550 @@
+/* 排行榜测试页面样式 */
+.ranking-test-page {
+  min-height: 100vh;
+  background: linear-gradient(to bottom, rgb(1, 3, 20), rgb(10, 10, 39));
+  padding: 20px;
+  color: #fff;
+}
+
+.test-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.test-header h1 {
+  font-size: 32px;
+  margin-bottom: 10px;
+  background: linear-gradient(90deg, #00f2ff, #ff00de);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.test-header p {
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 20px;
+}
+
+/* 登录状态显示 */
+.login-status {
+  margin: 15px 0;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  border: 2px solid;
+}
+
+.status-badge.loading {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.status-badge.success {
+  background: rgba(0, 242, 111, 0.1);
+  border-color: rgba(0, 242, 111, 0.5);
+  color: #00f26f;
+  box-shadow: 0 0 15px rgba(0, 242, 111, 0.3);
+}
+
+.status-badge.error {
+  background: rgba(255, 68, 68, 0.1);
+  border-color: rgba(255, 68, 68, 0.5);
+  color: #ff4444;
+}
+
+/* 操作按钮 */
+.action-buttons {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.btn-login,
+.btn-refresh {
+  padding: 12px 30px;
+  border: none;
+  border-radius: 25px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-login {
+  background: linear-gradient(90deg, #00f26f, #00d4aa);
+  box-shadow: 0 4px 20px rgba(0, 242, 111, 0.4);
+}
+
+.btn-login:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(0, 242, 111, 0.6);
+}
+
+.btn-refresh {
+  background: linear-gradient(90deg, #00c6ff, #b721ff);
+  box-shadow: 0 4px 20px rgba(183, 33, 255, 0.4);
+}
+
+.btn-refresh:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(183, 33, 255, 0.6);
+}
+
+.btn-login:disabled,
+.btn-refresh:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 登录提示 */
+.login-hint {
+  max-width: 800px;
+  margin: 40px auto;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 40px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+}
+
+.login-hint h3 {
+  color: #ffa500;
+  margin-bottom: 15px;
+  font-size: 24px;
+}
+
+.login-hint > p {
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 30px;
+  font-size: 16px;
+}
+
+.setup-hints {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 15px;
+  padding: 25px;
+  text-align: left;
+  margin-top: 25px;
+}
+
+.setup-hints h4 {
+  color: #00f2ff;
+  margin-bottom: 15px;
+  font-size: 16px;
+}
+
+.setup-hints ol {
+  list-style-position: inside;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.8;
+}
+
+.setup-hints li {
+  margin-bottom: 10px;
+}
+
+.setup-hints code {
+  background: rgba(0, 242, 255, 0.1);
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: #00f2ff;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+}
+
+/* 排行榜容器 - 霓虹蓝紫粉风格 */
+.rank-list-container {
+  max-width: 800px;
+  margin: 0 auto 40px;
+  background: linear-gradient(160deg, rgba(20, 30, 80, 0.6) 0%, rgba(50, 20, 60, 0.6) 100%);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-radius: 20px;
+  padding: 30px;
+  border: 1px solid rgba(138, 43, 226, 0.3);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(138, 43, 226, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+/* 氛围背景光斑 */
+.rank-list-container::before {
+  content: '';
+  position: absolute;
+  top: -50px;
+  left: -50px;
+  width: 150px;
+  height: 150px;
+  background: radial-gradient(circle, rgba(0, 242, 255, 0.2), transparent 70%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.rank-list-container::after {
+  content: '';
+  position: absolute;
+  bottom: -50px;
+  right: -50px;
+  width: 150px;
+  height: 150px;
+  background: radial-gradient(circle, rgba(255, 0, 222, 0.15), transparent 70%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* 榜单标题和切换 */
+.rank-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  position: relative;
+  z-index: 1;
+}
+
+.rank-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+}
+
+.rank-title::before {
+  content: '';
+  display: block;
+  width: 4px;
+  height: 20px;
+  background: linear-gradient(to bottom, #00f2ff, #7d00ff);
+  border-radius: 2px;
+  box-shadow: 0 0 8px #00f2ff;
+}
+
+.rank-tabs {
+  display: flex;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 20px;
+  padding: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.rank-tab {
+  padding: 6px 18px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  border-radius: 16px;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.rank-tab.active {
+  background: linear-gradient(90deg, #00c6ff, #b721ff);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 2px 10px rgba(183, 33, 255, 0.4);
+}
+
+/* 领奖台容器 */
+.podium-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  min-height: 300px;
+  gap: 15px;
+  position: relative;
+  z-index: 1;
+  padding-bottom: 15px;
+}
+
+.podium {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  width: 100%;
+  gap: 15px;
+}
+
+/* 领奖台项目 */
+.podium-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 30%;
+  position: relative;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 皇冠图标 */
+.crown-icon {
+  position: absolute;
+  top: -20px;
+  font-size: 20px;
+  filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.8));
+  animation: float-crown 3s ease-in-out infinite;
+  z-index: 3;
+}
+
+@keyframes float-crown {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+/* 头像 */
+.podium-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  margin-bottom: -15px;
+  z-index: 2;
+  background: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s;
+}
+
+.avatar-text {
+  font-size: 20px;
+  font-weight: bold;
+  color: #fff;
+}
+
+/* 领奖台条 - 动态高度 */
+.podium-bar {
+  width: 100%;
+  border-radius: 10px 10px 5px 5px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding-bottom: 10px;
+  font-weight: 800;
+  font-size: 32px;
+  position: relative;
+  color: #fff;
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.05) 0px,
+    rgba(255, 255, 255, 0.05) 2px,
+    transparent 2px,
+    transparent 8px
+  );
+  transition: height 0.5s ease-out;
+}
+
+.bar-rank {
+  opacity: 0.4;
+}
+
+/* 底部信息 */
+.podium-info {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.podium-name {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  max-width: 100px;
+}
+
+.podium-count {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+}
+
+/* 第一名（冠军）: 粉紫霓虹 */
+.rank-1 {
+  animation-delay: 0.2s;
+}
+
+.rank-1 .podium-avatar {
+  border: 2px solid #ff00de;
+  box-shadow: 0 0 15px rgba(255, 0, 222, 0.6);
+  width: 70px;
+  height: 70px;
+}
+
+.rank-1 .avatar-text {
+  font-size: 24px;
+}
+
+.rank-1 .podium-bar {
+  background-color: rgba(255, 0, 222, 0.2);
+  border: 1px solid rgba(255, 0, 222, 0.5);
+  border-bottom: none;
+  box-shadow: 0 0 20px rgba(255, 0, 222, 0.3), inset 0 0 20px rgba(255, 0, 222, 0.2);
+  text-shadow: 0 0 10px rgba(255, 0, 222, 0.8);
+}
+
+.rank-1 .podium-bar::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 10%;
+  width: 80%;
+  height: 2px;
+  background: #ff00de;
+  box-shadow: 0 0 10px #ff00de;
+}
+
+/* 第二名（亚军）: 赛博青蓝 */
+.rank-2 {
+  animation-delay: 0s;
+}
+
+.rank-2 .podium-avatar {
+  border: 2px solid #00f2ff;
+  box-shadow: 0 0 12px rgba(0, 242, 255, 0.5);
+}
+
+.rank-2 .podium-bar {
+  background-color: rgba(0, 242, 255, 0.15);
+  border: 1px solid rgba(0, 242, 255, 0.5);
+  border-bottom: none;
+  box-shadow: 0 0 15px rgba(0, 242, 255, 0.2), inset 0 0 15px rgba(0, 242, 255, 0.1);
+  text-shadow: 0 0 8px rgba(0, 242, 255, 0.8);
+}
+
+.rank-2 .podium-bar::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 10%;
+  width: 80%;
+  height: 2px;
+  background: #00f2ff;
+  box-shadow: 0 0 10px #00f2ff;
+}
+
+/* 第三名（季军）: 深邃电紫 */
+.rank-3 {
+  animation-delay: 0.4s;
+}
+
+.rank-3 .podium-avatar {
+  border: 2px solid #7d00ff;
+  box-shadow: 0 0 12px rgba(125, 0, 255, 0.5);
+}
+
+.rank-3 .podium-bar {
+  background-color: rgba(125, 0, 255, 0.15);
+  border: 1px solid rgba(125, 0, 255, 0.5);
+  border-bottom: none;
+  box-shadow: 0 0 15px rgba(125, 0, 255, 0.2), inset 0 0 15px rgba(125, 0, 255, 0.1);
+  text-shadow: 0 0 8px rgba(125, 0, 255, 0.8);
+}
+
+.rank-3 .podium-bar::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 10%;
+  width: 80%;
+  height: 2px;
+  background: #7d00ff;
+  box-shadow: 0 0 10px #7d00ff;
+}
+
+/* 空状态 */
+.rank-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 0;
+  position: relative;
+  z-index: 1;
+}
+
+.empty-icon {
+  font-size: 60px;
+  margin-bottom: 15px;
+  opacity: 0.5;
+}
+
+.empty-text {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* 加载和错误状态 */
+.loading-state,
+.error-state {
+  text-align: center;
+  padding: 60px 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.error-state button {
+  margin-top: 15px;
+  padding: 8px 20px;
+  background: linear-gradient(90deg, #ff6b6b, #ff00de);
+  border: none;
+  border-radius: 20px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.error-state button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(255, 0, 222, 0.4);
+}
+
+/* 调试信息 */
+.debug-info {
+  max-width: 800px;
+  margin: 0 auto;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 10px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.debug-info h3 {
+  margin-bottom: 10px;
+  color: #00f2ff;
+  font-size: 16px;
+}
+
+.debug-info pre {
+  background: rgba(0, 0, 0, 0.6);
+  padding: 15px;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-size: 12px;
+  color: #00f2ff;
+  font-family: 'Courier New', monospace;
+}

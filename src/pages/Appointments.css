@@ -1,0 +1,271 @@
+.appointments-page {
+  position: relative;
+  overflow: hidden;
+  min-height: calc(100vh - 80px);
+}
+
+.grid-overlay {
+  position: absolute;
+  inset: 0;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.appointments-container {
+  position: relative;
+  z-index: 10;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 80px 24px;
+}
+
+.page-title {
+  font-size: clamp(40px, 8vw, 64px);
+  font-weight: 900;
+  font-style: italic;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.page-subtitle {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 16px;
+  margin-bottom: 64px;
+}
+
+body.light .page-subtitle {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+/* ============================================
+   Services Grid
+   ============================================ */
+
+.services-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  margin-bottom: 80px;
+}
+
+@media (min-width: 640px) {
+  .services-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.service-card {
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+}
+
+body.light .service-card {
+  background: rgba(255, 255, 255, 0.5);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.service-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--service-color, rgba(255, 255, 255, 0.3));
+}
+
+.service-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.service-type {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  color: white;
+}
+
+.service-duration {
+  font-size: 12px;
+  font-family: monospace;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+body.light .service-duration {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.service-desc {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0 0 16px 0;
+  flex: 1;
+}
+
+body.light .service-desc {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.service-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.service-price {
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.price-unit {
+  font-size: 12px;
+  font-weight: 400;
+  opacity: 0.6;
+}
+
+.service-button {
+  padding: 12px 24px;
+  background: white;
+  border: none;
+  color: black;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+body.light .service-button {
+  background: black;
+  color: white;
+}
+
+.service-button:hover {
+  opacity: 0.8;
+}
+
+/* ============================================
+   Form Section
+   ============================================ */
+
+.form-section {
+  margin-bottom: 60px;
+}
+
+.section-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.form-note {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 24px;
+}
+
+body.light .form-note {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.form-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 400px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field-label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.field-label .required {
+  color: #ef4444;
+  margin-left: 4px;
+}
+
+.field-input {
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+body.light .field-input {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: rgba(0, 0, 0, 0.4);
+}
+
+/* ============================================
+   CTA Banner
+   ============================================ */
+
+.cta-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 48px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .cta-banner {
+    flex-direction: row;
+    text-align: left;
+  }
+}
+
+body.light .cta-banner {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.cta-content h2 {
+  font-size: 24px;
+  font-weight: 900;
+  margin: 0 0 8px 0;
+}
+
+.cta-content p {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+}
+
+body.light .cta-content p {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+/* Color utilities */
+.text-cyan {
+  color: #06b6d4;
+}
+
+.text-pink {
+  color: #d946ef;
+}
+
+.text-green {
+  color: #34d399;
+}

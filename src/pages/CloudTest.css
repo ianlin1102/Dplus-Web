@@ -1,0 +1,316 @@
+/* 云数据库测试页面样式 */
+
+.cloud-test {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 40px 20px;
+}
+
+.test-header {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.test-header h1 {
+  margin: 0 0 8px 0;
+  font-size: 32px;
+  color: #333;
+}
+
+.test-header .subtitle {
+  margin: 0 0 20px 0;
+  color: #666;
+  font-size: 16px;
+}
+
+.env-info {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  font-size: 14px;
+  color: #666;
+}
+
+.env-info .status {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.env-info .status.online {
+  background: #d4edda;
+  color: #155724;
+}
+
+.env-info .status.offline {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.test-controls {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.test-controls h2 {
+  margin: 0 0 20px 0;
+  font-size: 24px;
+  color: #333;
+}
+
+.button-group {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.btn-primary, .btn-secondary {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-secondary {
+  background: #f1f1f1;
+  color: #333;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #e1e1e1;
+}
+
+.btn-primary:disabled, .btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.test-info {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  margin-top: 24px;
+}
+
+.test-info h3 {
+  margin: 0 0 12px 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.test-info h4 {
+  margin: 16px 0 8px 0;
+  font-size: 16px;
+  color: #555;
+}
+
+.test-info ol, .test-info ul {
+  margin: 0;
+  padding-left: 24px;
+}
+
+.test-info li {
+  margin: 8px 0;
+  color: #666;
+  line-height: 1.6;
+}
+
+.expected-results {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #dee2e6;
+}
+
+.test-results {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.results-header h2 {
+  margin: 0;
+  font-size: 24px;
+  color: #333;
+}
+
+.result-count {
+  background: #e9ecef;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 14px;
+  color: #666;
+}
+
+.results-console {
+  background: #1e1e1e;
+  color: #d4d4d4;
+  padding: 20px;
+  border-radius: 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  max-height: 400px;
+  overflow-y: auto;
+  line-height: 1.8;
+}
+
+.empty-state {
+  text-align: center;
+  color: #888;
+  padding: 40px 20px;
+  font-style: italic;
+}
+
+.result-item {
+  margin: 4px 0;
+  padding: 4px 0;
+}
+
+.result-item .time {
+  color: #858585;
+  margin-right: 8px;
+}
+
+.result-item.success .message {
+  color: #4ec9b0;
+}
+
+.result-item.error .message {
+  color: #f48771;
+}
+
+.result-item.warning .message {
+  color: #dcdcaa;
+}
+
+.result-item.info .message {
+  color: #9cdcfe;
+}
+
+.test-footer {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  margin-top: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.test-footer h3 {
+  margin: 0 0 20px 0;
+  font-size: 24px;
+  color: #333;
+}
+
+.next-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.step {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+}
+
+.step strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 16px;
+  color: #333;
+}
+
+.step p {
+  margin: 8px 0;
+  color: #666;
+  line-height: 1.6;
+}
+
+.step ol {
+  margin: 8px 0 0 0;
+  padding-left: 20px;
+  color: #666;
+}
+
+.step li {
+  margin: 4px 0;
+  line-height: 1.6;
+}
+
+/* 滚动条样式 */
+.results-console::-webkit-scrollbar {
+  width: 8px;
+}
+
+.results-console::-webkit-scrollbar-track {
+  background: #2d2d2d;
+  border-radius: 4px;
+}
+
+.results-console::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 4px;
+}
+
+.results-console::-webkit-scrollbar-thumb:hover {
+  background: #666;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .cloud-test {
+    padding: 20px 12px;
+  }
+
+  .test-header,
+  .test-controls,
+  .test-results,
+  .test-footer {
+    padding: 20px;
+  }
+
+  .test-header h1 {
+    font-size: 24px;
+  }
+
+  .button-group {
+    flex-direction: column;
+  }
+
+  .btn-primary, .btn-secondary {
+    width: 100%;
+  }
+
+  .next-steps {
+    grid-template-columns: 1fr;
+  }
+}

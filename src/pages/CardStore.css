@@ -1,0 +1,376 @@
+.store-page {
+  position: relative;
+  overflow: hidden;
+  min-height: calc(100vh - 80px);
+}
+
+.grid-overlay {
+  position: absolute;
+  inset: 0;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.store-container {
+  position: relative;
+  z-index: 10;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 80px 24px;
+}
+
+.store-title {
+  font-size: clamp(40px, 8vw, 64px);
+  font-weight: 900;
+  font-style: italic;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+/* Card Type Legend */
+.card-types {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 48px;
+  flex-wrap: wrap;
+}
+
+.type-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+body.light .type-badge {
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.type-badge .type-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.type-badge.cyan .type-dot {
+  background: #06b6d4;
+}
+
+.type-badge.green .type-dot {
+  background: #34d399;
+}
+
+.store-subtitle {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 16px;
+  margin-bottom: 64px;
+}
+
+body.light .store-subtitle {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+/* ============================================
+   Cards Grid
+   ============================================ */
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 48px;
+}
+
+@media (min-width: 768px) {
+  .cards-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.plan-card {
+  position: relative;
+  padding: 40px 32px;
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: transform 0.5s ease;
+}
+
+body.light .plan-card {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.plan-card:hover {
+  transform: scale(1.03);
+}
+
+.plan-card.popular {
+  border-width: 2px;
+}
+
+.popular-badge {
+  position: absolute;
+  top: -12px;
+  right: 20px;
+  background: linear-gradient(to right, #d946ef, #ec4899);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 4px;
+}
+
+.card-type-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 16px;
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.card-type-label.cyan {
+  color: #06b6d4;
+  background: rgba(6, 182, 212, 0.1);
+}
+
+.card-type-label.pink {
+  color: #d946ef;
+  background: rgba(217, 70, 239, 0.1);
+}
+
+.card-type-label.green {
+  color: #34d399;
+  background: rgba(52, 211, 153, 0.1);
+}
+
+.plan-name {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+
+.plan-price {
+  font-size: 48px;
+  font-weight: 900;
+}
+
+.price-currency {
+  font-size: 24px;
+  vertical-align: top;
+  opacity: 0.5;
+}
+
+.plan-count {
+  font-size: 14px;
+  font-family: monospace;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 40px;
+}
+
+body.light .plan-count {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.plan-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 40px 0;
+  width: 100%;
+  text-align: left;
+  padding-left: 16px;
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+body.light .plan-features {
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+.plan-features li {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 8px 0;
+}
+
+body.light .plan-features li {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.plan-features li::before {
+  content: '✓ ';
+  color: #06b6d4;
+}
+
+.plan-button {
+  width: 100%;
+  padding: 16px 32px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+body.light .plan-button {
+  border-color: rgba(0, 0, 0, 0.2);
+  color: #1a1a1a;
+}
+
+.plan-button:hover {
+  background: white;
+  color: black;
+  border-color: transparent;
+}
+
+body.light .plan-button:hover {
+  background: black;
+  color: white;
+}
+
+/* Color utilities */
+.text-cyan {
+  color: #06b6d4;
+}
+
+.text-pink {
+  color: #d946ef;
+}
+
+.text-green {
+  color: #34d399;
+}
+
+/* ============================================
+   FAQ Section
+   ============================================ */
+
+.faq-section {
+  margin-top: 120px;
+  padding-top: 80px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+body.light .faq-section {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 48px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.faq-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+}
+
+@media (min-width: 768px) {
+  .faq-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.faq-item {
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+body.light .faq-item {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.faq-item h4 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: #06b6d4;
+}
+
+.faq-item p {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.6;
+  margin: 0;
+}
+
+body.light .faq-item p {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+/* ============================================
+   Payment Section
+   ============================================ */
+
+.payment-section {
+  margin-top: 80px;
+  padding-top: 60px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+body.light .payment-section {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.payment-info {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 640px) {
+  .payment-info {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.payment-method {
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
+
+body.light .payment-method {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.payment-method h4 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #d946ef;
+}
+
+.payment-method p {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+  line-height: 1.6;
+}
+
+body.light .payment-method p {
+  color: rgba(0, 0, 0, 0.6);
+}

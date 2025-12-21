@@ -1,0 +1,17 @@
+{
+  "envId": "cloud1-6gnd02he13c1ff2e",
+  "hosting": {
+    "routes": [
+      {
+        "path": "/*",
+        "target": "/index.html"
+      }
+    ],
+    "ignore": [
+      ".git",
+      ".gitignore",
+      "node_modules",
+      ".DS_Store"
+    ]
+  }
+}

@@ -1,0 +1,295 @@
+.about-page {
+  position: relative;
+  overflow: hidden;
+  min-height: calc(100vh - 80px);
+}
+
+.grid-overlay {
+  position: absolute;
+  inset: 0;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.about-container {
+  position: relative;
+  z-index: 10;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 80px 24px;
+}
+
+.about-header {
+  text-align: center;
+  margin-bottom: 64px;
+}
+
+.about-title {
+  font-size: clamp(40px, 8vw, 64px);
+  font-weight: 900;
+  font-style: italic;
+  letter-spacing: -0.03em;
+  margin-bottom: 8px;
+}
+
+.about-subtitle {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+body.light .about-subtitle {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+/* ============================================
+   About Section
+   ============================================ */
+
+.about-section {
+  margin-bottom: 64px;
+}
+
+.about-card {
+  padding: 40px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+body.light .about-card {
+  background: rgba(255, 255, 255, 0.5);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.card-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 24px;
+}
+
+.card-text {
+  font-size: 16px;
+  line-height: 1.8;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 16px;
+}
+
+body.light .card-text {
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.card-text:last-child {
+  margin-bottom: 0;
+}
+
+/* ============================================
+   Contact Section
+   ============================================ */
+
+.contact-section {
+  margin-bottom: 64px;
+}
+
+.section-title {
+  font-size: 20px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 640px) {
+  .contact-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.contact-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+body.light .contact-item {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.contact-icon {
+  color: #06b6d4;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.contact-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: rgba(255, 255, 255, 0.5);
+  display: block;
+  margin-bottom: 4px;
+}
+
+body.light .contact-label {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.contact-value {
+  font-size: 16px;
+  margin: 0;
+}
+
+/* ============================================
+   Team Section
+   ============================================ */
+
+.team-section {
+  margin-bottom: 64px;
+}
+
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+@media (min-width: 768px) {
+  .team-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.team-card {
+  padding: 32px 24px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+body.light .team-card {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.team-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(217, 70, 239, 0.5);
+}
+
+.team-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 2px solid rgba(217, 70, 239, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 700;
+  color: #d946ef;
+  background: rgba(217, 70, 239, 0.1);
+  margin: 0 auto 16px;
+}
+
+.team-name {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+}
+
+.team-specialty {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.team-desc {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+}
+
+body.light .team-desc {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+/* ============================================
+   QR Section
+   ============================================ */
+
+.qr-section {
+  text-align: center;
+}
+
+.qr-grid {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.qr-card {
+  padding: 32px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+}
+
+body.light .qr-card {
+  background: rgba(255, 255, 255, 0.5);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.qr-placeholder {
+  width: 120px;
+  height: 120px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px dashed rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  margin-bottom: 16px;
+  border-radius: 8px;
+}
+
+body.light .qr-placeholder {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.2);
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.qr-text {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+}
+
+body.light .qr-text {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+/* Color utilities */
+.text-cyan {
+  color: #06b6d4;
+}
+
+.text-pink {
+  color: #d946ef;
+}

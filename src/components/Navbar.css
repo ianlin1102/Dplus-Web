@@ -1,0 +1,195 @@
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  height: 80px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: rgba(0, 0, 0, 0.7);
+  transition: all 0.3s ease;
+}
+
+body.light .navbar {
+  background: rgba(255, 255, 255, 0.7);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.navbar-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Logo */
+.navbar-logo {
+  cursor: pointer;
+}
+
+.logo-text {
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  font-style: italic;
+  background: linear-gradient(to right, #06b6d4, #3b82f6, #d946ef);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.logo-suffix {
+  font-weight: 200;
+  font-style: normal;
+  margin-left: 8px;
+  font-size: 16px;
+  opacity: 0.8;
+  -webkit-text-fill-color: white;
+}
+
+body.light .logo-suffix {
+  -webkit-text-fill-color: #1a1a1a;
+}
+
+/* Nav Links */
+.navbar-links {
+  display: none;
+  gap: 48px;
+}
+
+@media (min-width: 768px) {
+  .navbar-links {
+    display: flex;
+  }
+}
+
+.nav-link {
+  position: relative;
+  background: none;
+  border: none;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  padding: 8px 0;
+  transition: color 0.3s ease;
+}
+
+body.light .nav-link {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.nav-link:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+body.light .nav-link:hover {
+  color: rgba(0, 0, 0, 0.9);
+}
+
+.nav-link.active {
+  color: #06b6d4;
+}
+
+body.light .nav-link.active {
+  color: #0891b2;
+}
+
+.nav-link-underline {
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #06b6d4;
+  transition: width 0.3s ease;
+}
+
+.nav-link:hover .nav-link-underline,
+.nav-link.active .nav-link-underline {
+  width: 100%;
+}
+
+/* User Portal */
+.user-portal {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 8px;
+  border-radius: 50px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.user-portal:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+body.light .user-portal:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.user-info {
+  text-align: right;
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .user-info {
+    display: block;
+  }
+}
+
+.welcome-text {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+}
+
+body.light .welcome-text {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.user-name {
+  font-size: 12px;
+  font-weight: 900;
+  color: white;
+  margin: 0;
+}
+
+body.light .user-name {
+  color: #1a1a1a;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(6, 182, 212, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: black;
+  color: #06b6d4;
+  transition: transform 0.3s ease;
+}
+
+body.light .user-avatar {
+  background: white;
+  border-color: rgba(6, 182, 212, 0.3);
+}
+
+.user-portal:hover .user-avatar {
+  transform: scale(1.05);
+}

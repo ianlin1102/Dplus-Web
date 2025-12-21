@@ -1,0 +1,185 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #050505;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+/* Light Mode */
+body.light {
+  background-color: #ffffff;
+  color: #1a1a1a;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ============================================
+   NEON FLUX - Breathing Animations
+   ============================================ */
+
+@keyframes breath-cyan {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(6,182,212,0.2), inset 0 0 0px rgba(6,182,212,0);
+    border-color: rgba(6,182,212,0.4);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(6,182,212,0.6), inset 0 0 5px rgba(6,182,212,0.1);
+    border-color: rgba(6,182,212,0.8);
+  }
+}
+
+@keyframes breath-pink {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(217,70,239,0.2);
+    border-color: rgba(217,70,239,0.4);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(217,70,239,0.6);
+    border-color: rgba(217,70,239,0.8);
+  }
+}
+
+@keyframes breath-green {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(52,211,153,0.2);
+    border-color: rgba(52,211,153,0.4);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(52,211,153,0.6);
+    border-color: rgba(52,211,153,0.8);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.neon-border-cyan {
+  animation: breath-cyan 4s infinite ease-in-out;
+}
+
+.neon-border-pink {
+  animation: breath-pink 4s infinite ease-in-out;
+  animation-delay: 1s;
+}
+
+.neon-border-green {
+  animation: breath-green 4s infinite ease-in-out;
+  animation-delay: 2s;
+}
+
+/* ============================================
+   Grid Background Pattern
+   ============================================ */
+
+.bg-grid-pattern {
+  background-size: 40px 40px;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+}
+
+body.light .bg-grid-pattern {
+  background-image:
+    linear-gradient(to right, rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+}
+
+/* ============================================
+   Scrollbar Styling
+   ============================================ */
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(6, 182, 212, 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(6, 182, 212, 0.5);
+}
+
+/* ============================================
+   Utility Classes
+   ============================================ */
+
+.text-gradient-cyan {
+  background: linear-gradient(to right, #06b6d4, #3b82f6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-pink {
+  background: linear-gradient(to right, #d946ef, #f472b6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-main {
+  background: linear-gradient(to right, #06b6d4, #3b82f6, #d946ef);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.backdrop-blur {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+body.light .glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
