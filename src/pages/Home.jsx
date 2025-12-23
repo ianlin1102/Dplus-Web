@@ -59,7 +59,7 @@ function Home() {
         </h1>
 
         <p className="test-deployment" style={{ color: '#4ECDC4', fontSize: '1.2em', marginTop: '10px' }}>
-          🚀 测试 GitHub Actions 自动部署 - Test CI/CD Auto Deploy
+          ✅ GitHub Actions CI/CD 已配置成功 - Deployment Automated!
         </p>
 
         <p className="hero-subtitle">
