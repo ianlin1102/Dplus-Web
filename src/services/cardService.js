@@ -16,19 +16,19 @@ export const getCardList = async (options = {}) => {
   try {
     await initDatabase()
     const db = getDatabase()
-    const { limit = 20, status = '1' } = options
+    const { limit = 20, status = 1 } = options
 
     let query = db.collection('ax_card_item')
 
     // 筛选上架的卡项
-    if (status) {
+    if (status !== undefined) {
       query = query.where({
-        CARD_ITEM_STATUS: status
+        CARD_STATUS: status
       })
     }
 
     // 按排序号排序
-    query = query.orderBy('CARD_ITEM_ORDER', 'asc')
+    query = query.orderBy('CARD_ORDER', 'asc')
 
     // 限制数量
     query = query.limit(limit)
@@ -52,10 +52,11 @@ export const getHomeCardList = async (limit = 6) => {
     const db = getDatabase()
     const res = await db.collection('ax_card_item')
       .where({
-        CARD_ITEM_STATUS: '1',  // 只显示上架的
-        CARD_ITEM_VOUCH: true   // 推荐的卡项
+        CARD_STATUS: 1,  // 只显示上架的
+        CARD_HOME: db.command.gt(0)   // 推荐的卡项（CARD_HOME > 0）
       })
-      .orderBy('CARD_ITEM_ORDER', 'asc')
+      .orderBy('CARD_HOME', 'desc')
+      .orderBy('CARD_ORDER', 'asc')
       .limit(limit)
       .get()
 
@@ -76,7 +77,9 @@ export const getCardDetail = async (cardId) => {
     await initDatabase()
     const db = getDatabase()
     const res = await db.collection('ax_card_item')
-      .doc(cardId)
+      .where({
+        _id: cardId
+      })
       .get()
 
     if (res.data && res.data.length > 0) {

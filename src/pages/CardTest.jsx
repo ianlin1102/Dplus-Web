@@ -44,7 +44,7 @@ export default function CardTest() {
         setCardData(cards)
         cards.forEach((card, index) => {
           addResult(
-            `   ${index + 1}. ${card.CARD_ITEM_TITLE} - ¥${card.CARD_ITEM_PRICE || 0}`,
+            `   ${index + 1}. ${card.CARD_NAME} - ¥${card.CARD_PRICE || 0} - ${card.CARD_TIMES || 0}次`,
             'success'
           )
         })
@@ -71,7 +71,7 @@ export default function CardTest() {
         setCardData(cards)
         cards.forEach((card, index) => {
           addResult(
-            `   ${index + 1}. ${card.CARD_ITEM_TITLE} - ${card.CARD_ITEM_CNT || 0} 次`,
+            `   ${index + 1}. ${card.CARD_NAME} - ${card.CARD_TIMES || 0} 次`,
             'success'
           )
         })
@@ -94,16 +94,16 @@ export default function CardTest() {
 
     setLoading(true)
     const firstCard = cardData[0]
-    addResult(`🔄 正在查询卡项详情: ${firstCard.CARD_ITEM_TITLE}...`, 'info')
+    addResult(`🔄 正在查询卡项详情: ${firstCard.CARD_NAME}...`, 'info')
 
     try {
       const detail = await getCardDetail(firstCard._id)
       addResult('✅ 成功获取卡项详情', 'success')
-      addResult(`   卡项名称: ${detail.CARD_ITEM_TITLE}`, 'success')
-      addResult(`   卡项价格: ¥${detail.CARD_ITEM_PRICE || 0}`, 'success')
-      addResult(`   卡项次数: ${detail.CARD_ITEM_CNT || 0} 次`, 'success')
-      addResult(`   有效期: ${detail.CARD_ITEM_DAYS || 0} 天`, 'success')
-      addResult(`   状态: ${detail.CARD_ITEM_STATUS === '1' ? '上架' : '下架'}`, 'success')
+      addResult(`   卡项名称: ${detail.CARD_NAME}`, 'success')
+      addResult(`   卡项价格: ¥${detail.CARD_PRICE || 0}`, 'success')
+      addResult(`   卡项次数: ${detail.CARD_TIMES || 0} 次`, 'success')
+      addResult(`   有效期: ${detail.CARD_VALIDITY_DAYS || 0} 天`, 'success')
+      addResult(`   状态: ${detail.CARD_STATUS === 1 ? '上架' : '下架'}`, 'success')
     } catch (error) {
       addResult('❌ 获取卡项详情失败: ' + error.message, 'error')
     } finally {
@@ -227,10 +227,10 @@ export default function CardTest() {
           <div className="card-preview">
             {cardData.slice(0, 3).map((card, index) => (
               <div key={index} className="card-item">
-                <h4>{card.CARD_ITEM_TITLE}</h4>
-                <p className="price">¥{card.CARD_ITEM_PRICE || 0}</p>
-                <p className="count">{card.CARD_ITEM_CNT || 0} 次</p>
-                <p className="days">有效期 {card.CARD_ITEM_DAYS || 0} 天</p>
+                <h4>{card.CARD_NAME}</h4>
+                <p className="price">¥{card.CARD_PRICE || 0}</p>
+                <p className="count">{card.CARD_TIMES || 0} 次</p>
+                <p className="days">有效期 {card.CARD_VALIDITY_DAYS || 0} 天</p>
               </div>
             ))}
           </div>
