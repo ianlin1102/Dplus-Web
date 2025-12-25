@@ -3,7 +3,7 @@
  * 使用 CloudBase SDK 直接访问数据库
  */
 
-import { db } from './databaseService'
+import { getDatabase, initDatabase } from './databaseService'
 
 /**
  * 获取卡项列表
@@ -14,6 +14,8 @@ import { db } from './databaseService'
  */
 export const getCardList = async (options = {}) => {
   try {
+    await initDatabase()
+    const db = getDatabase()
     const { limit = 20, status = '1' } = options
 
     let query = db.collection('ax_card_item')
@@ -46,6 +48,8 @@ export const getCardList = async (options = {}) => {
  */
 export const getHomeCardList = async (limit = 6) => {
   try {
+    await initDatabase()
+    const db = getDatabase()
     const res = await db.collection('ax_card_item')
       .where({
         CARD_ITEM_STATUS: '1',  // 只显示上架的
@@ -69,6 +73,8 @@ export const getHomeCardList = async (limit = 6) => {
  */
 export const getCardDetail = async (cardId) => {
   try {
+    await initDatabase()
+    const db = getDatabase()
     const res = await db.collection('ax_card_item')
       .doc(cardId)
       .get()
@@ -90,6 +96,8 @@ export const getCardDetail = async (cardId) => {
  */
 export const getMyCards = async (userId) => {
   try {
+    await initDatabase()
+    const db = getDatabase()
     const res = await db.collection('ax_user_card')
       .where({
         USER_CARD_USER_ID: userId,
@@ -112,6 +120,8 @@ export const getMyCards = async (userId) => {
  */
 export const getMyCardDetail = async (userCardId) => {
   try {
+    await initDatabase()
+    const db = getDatabase()
     const res = await db.collection('ax_user_card')
       .doc(userCardId)
       .get()
@@ -133,6 +143,8 @@ export const getMyCardDetail = async (userCardId) => {
  */
 export const getMyCardRecords = async (userCardId) => {
   try {
+    await initDatabase()
+    const db = getDatabase()
     const res = await db.collection('ax_card_record')
       .where({
         CARD_RECORD_USER_CARD_ID: userCardId
