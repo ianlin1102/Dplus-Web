@@ -9,6 +9,11 @@
 const CLOUD_FUNCTION_HTTP_URL = import.meta.env.VITE_CLOUD_FUNCTION_URL ||
   'https://cloud1-6gnd02he13c1ff2e-1380655578.ap-shanghai.app.tcloudbase.com/cloud'
 
+// 服务端 API Key (从腾讯云控制台获取)
+// 这是一个 JWT token，用于 HTTP 访问服务的认证
+const API_KEY = import.meta.env.VITE_TCB_API_KEY ||
+  'eyJhbGciOiJSUzI1NiIsImtpZCI6IjlkMWRjMzFlLWI0ZDAtNDQ4Yi1hNzZmLWIwY2M2M2Q4MTQ5OCJ9.eyJhdWQiOiJjbG91ZDEtNmduZDAyaGUxM2MxZmYyZSIsImV4cCI6MjUzNDAyMzAwNzk5LCJpYXQiOjE3NjY2MzI0ODgsImF0X2hhc2giOiIzcmdfanVFX0VmQzRqVkpVQUd2TVhRIiwicHJvamVjdF9pZCI6ImNsb3VkMS02Z25kMDJoZTEzYzFmZjJlIiwibWV0YSI6eyJwbGF0Zm9ybSI6IkFwaUtleSJ9LCJhZG1pbmlzdHJhdG9yX2lkIjoiMTk3MTU4NTUwMjcxNTQ2OTgyNiIsInVzZXJfdHlwZSI6IiIsImNsaWVudF90eXBlIjoiY2xpZW50X3NlcnZlciIsImlzX3N5c3RlbV9hZG1pbiI6dHJ1ZX0.iA1icVKlTUK6cOcIYZb9JbCi1lo-l28kTn43nbob5t4e-L1ujbCxstTKkuX1EKyR63BZ5yWqYHZi0tyOZiomSTcKhtFTcXfCG8vKx3499_gNeFU70TzD1Cmd0yIeuxJZSJ5hmccsjk9q1N7ZsrupHGrJSSzaqEaV1Uv6tWi24N12J5J0aBrog2bhXXjseOF0829jK48a6qTAM5B_dw4J-Qu7-Xmw2G_ZsWwdUKx20bqX4-IpRMzzne4xojnFg7mKI-IbWNmDuWm3oIidAnpSEhd0HdhCUvoGCRobTQvbR92lPX22fmt2l0x0poZJYqbjeLnrodXL69_PDaO8hALO1g'
+
 /**
  * 通过 HTTP 调用云路由
  * @param {string} route - 路由路径（例如：'checkin/rank_list'）
@@ -21,6 +26,8 @@ export const callCloudRouteHTTP = async (route, params = {}) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${API_KEY}`,  // 添加认证头
+        'X-CloudBase-Credentials': API_KEY      // CloudBase 认证
       },
       body: JSON.stringify({
         route,
