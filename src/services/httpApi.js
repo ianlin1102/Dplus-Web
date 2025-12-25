@@ -4,9 +4,10 @@
  */
 
 // 云函数 HTTP 访问地址
-// 你需要在云控制台为 'cloud' 云函数开启 HTTP 访问服务，会得到类似这样的地址：
-// https://cloud1-6gnd02he13c1ff2e-1380655578.tcloudbaseapp.com/cloud
-const CLOUD_FUNCTION_HTTP_URL = 'YOUR_CLOUD_FUNCTION_HTTP_URL'
+// 从腾讯云控制台 → 云开发 → 云函数 → cloud → 触发方式 中获取
+// 如果还没有 HTTP 触发器，需要先在控制台创建
+const CLOUD_FUNCTION_HTTP_URL = import.meta.env.VITE_CLOUD_FUNCTION_URL ||
+  'https://cloud1-6gnd02he13c1ff2e-1380655578.service.tcloudbase.com/cloud'
 
 /**
  * 通过 HTTP 调用云路由

@@ -11,6 +11,7 @@ import About from './pages/About'
 import Appointments from './pages/Appointments'
 import RankingTest from './pages/RankingTest'
 import CloudTest from './pages/CloudTest'
+import CloudFunctionTest from './pages/CloudFunctionTest'
 import './styles/App.css'
 
 // Theme Context
@@ -80,6 +81,7 @@ function AppContent() {
       {/* Test Pages */}
       <Route path="/ranking-test" element={<RankingTest />} />
       <Route path="/cloud-test" element={<CloudTest />} />
+      <Route path="/cloud-function-test" element={<CloudFunctionTest />} />
 
       {/* Dashboard (Sidebar Layout) */}
       <Route path="/dashboard/*" element={<Dashboard />} />
