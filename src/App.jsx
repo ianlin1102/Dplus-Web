@@ -13,6 +13,9 @@ import RankingTest from './pages/RankingTest'
 import CloudTest from './pages/CloudTest'
 import CloudFunctionTest from './pages/CloudFunctionTest'
 import CardTest from './pages/CardTest'
+import AdminLogin from './pages/AdminLogin'
+import AdminDashboard from './pages/AdminDashboard'
+import CardManagement from './pages/CardManagement'
 import './styles/App.css'
 
 // Theme Context
@@ -84,6 +87,11 @@ function AppContent() {
       <Route path="/cloud-test" element={<CloudTest />} />
       <Route path="/cloud-function-test" element={<CloudFunctionTest />} />
       <Route path="/card-test" element={<CardTest />} />
+
+      {/* Admin Pages */}
+      <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/admin/dashboard" element={<AdminDashboard />} />
+      <Route path="/admin/cards" element={<CardManagement />} />
 
       {/* Dashboard (Sidebar Layout) */}
       <Route path="/dashboard/*" element={<Dashboard />} />
