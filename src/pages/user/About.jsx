@@ -1,5 +1,5 @@
 import { MapPin, Phone, Clock, MessageCircle } from 'lucide-react'
-import { useLanguage } from '../i18n/LanguageContext'
+import { useLanguage } from '../../i18n/LanguageContext'
 import './About.css'
 
 // Instructors from smartbeauty

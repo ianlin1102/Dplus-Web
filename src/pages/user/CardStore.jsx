@@ -1,4 +1,4 @@
-import { useLanguage } from '../i18n/LanguageContext'
+import { useLanguage } from '../../i18n/LanguageContext'
 import './CardStore.css'
 
 // Card types from smartbeauty: 次数卡 (Times Card) and 余额卡 (Balance Card)

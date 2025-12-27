@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { useLanguage } from '../i18n/LanguageContext'
+import { useLanguage } from '../../i18n/LanguageContext'
 import './Appointments.css'
 
 // Service types from smartbeauty with their colors

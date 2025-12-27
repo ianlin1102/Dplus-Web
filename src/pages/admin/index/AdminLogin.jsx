@@ -4,7 +4,7 @@
 
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { login } from '../services/adminService'
+import { login } from '../../../services/adminService'
 import './AdminLogin.css'
 
 export default function AdminLogin() {

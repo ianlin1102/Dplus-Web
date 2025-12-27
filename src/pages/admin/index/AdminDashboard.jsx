@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from 'react'
-import { getDashboardStats, getRankingList } from '../services/adminService'
+import { getDashboardStats, getRankingList } from '../../../services/adminService'
 import './AdminDashboard.css'
 
 export default function AdminDashboard() {

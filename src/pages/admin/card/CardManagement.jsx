@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from 'react'
-import { getCardList, updateCard, toggleCardStatus } from '../services/adminService'
+import { getCardList, updateCard, toggleCardStatus } from '../../../services/adminService'
 import './CardManagement.css'
 
 export default function CardManagement() {

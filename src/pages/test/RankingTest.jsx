@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { getRankList, clearRankCache } from '../services/api'
-import { loginAnonymously, getLoginState } from '../services/cloudbase'
+import { getRankList, clearRankCache } from '../../services/api'
+import { loginAnonymously, getLoginState } from '../../services/cloudbase'
 import './RankingTest.css'
 
 /**

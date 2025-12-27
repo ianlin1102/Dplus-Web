@@ -4,7 +4,7 @@
  */
 
 import { useState } from 'react'
-import { getRankListHTTP, callCloudRouteHTTP } from '../services/httpApi'
+import { getRankListHTTP, callCloudRouteHTTP } from '../../services/httpApi'
 import './CloudTest.css'
 
 export default function CloudFunctionTest() {

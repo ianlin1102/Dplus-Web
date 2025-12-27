@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Routes, Route } from 'react-router-dom'
 import { Home, Calendar, CreditCard, Settings, Activity, User } from 'lucide-react'
-import { useLanguage } from '../i18n/LanguageContext'
+import { useLanguage } from '../../i18n/LanguageContext'
 import './Dashboard.css'
 
 // Mock user data from smartbeauty structure

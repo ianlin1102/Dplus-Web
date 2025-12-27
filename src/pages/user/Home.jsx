@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { Calendar, CreditCard, BookOpen, Info } from 'lucide-react'
-import { useLanguage } from '../i18n/LanguageContext'
+import { useLanguage } from '../../i18n/LanguageContext'
 import './Home.css'
 
 // Service types from smartbeauty

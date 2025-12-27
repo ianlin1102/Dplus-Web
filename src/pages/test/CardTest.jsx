@@ -8,7 +8,7 @@ import {
   getCardList,
   getHomeCardList,
   getCardDetail
-} from '../services/cardService'
+} from '../../services/cardService'
 import './CloudTest.css'
 
 export default function CardTest() {

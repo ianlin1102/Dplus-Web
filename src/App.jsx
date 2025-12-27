@@ -3,19 +3,26 @@ import { HashRouter as Router, Routes, Route, useNavigate, useLocation } from 'r
 import { Sun, Moon, Globe } from 'lucide-react'
 import { LanguageProvider, useLanguage } from './i18n/LanguageContext'
 import Navbar from './components/Navbar'
-import Home from './pages/Home'
-import CardStore from './pages/CardStore'
-import Calendar from './pages/Calendar'
-import Dashboard from './pages/Dashboard'
-import About from './pages/About'
-import Appointments from './pages/Appointments'
-import RankingTest from './pages/RankingTest'
-import CloudTest from './pages/CloudTest'
-import CloudFunctionTest from './pages/CloudFunctionTest'
-import CardTest from './pages/CardTest'
-import AdminLogin from './pages/AdminLogin'
-import AdminDashboard from './pages/AdminDashboard'
-import CardManagement from './pages/CardManagement'
+
+// User Pages
+import Home from './pages/user/Home'
+import CardStore from './pages/user/CardStore'
+import Calendar from './pages/user/Calendar'
+import Dashboard from './pages/user/Dashboard'
+import About from './pages/user/About'
+import Appointments from './pages/user/Appointments'
+
+// Admin Pages
+import AdminLogin from './pages/admin/index/AdminLogin'
+import AdminDashboard from './pages/admin/index/AdminDashboard'
+import CardManagement from './pages/admin/card/CardManagement'
+
+// Test Pages
+import RankingTest from './pages/test/RankingTest'
+import CloudTest from './pages/test/CloudTest'
+import CloudFunctionTest from './pages/test/CloudFunctionTest'
+import CardTest from './pages/test/CardTest'
+
 import './styles/App.css'
 
 // Theme Context
