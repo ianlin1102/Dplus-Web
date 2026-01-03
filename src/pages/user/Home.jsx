@@ -153,6 +153,14 @@ function Home() {
         </div>
       </section>
 
+      {/* Ranking Section - Check-in Leaderboard (moved to prominent position) */}
+      <section className="ranking-section">
+        <div className="section-header">
+          <h2 className="section-title">{t('home.rankingTitle', language === 'zh' ? '上课排行榜' : 'Check-in Leaderboard')}</h2>
+        </div>
+        <RankingPodium limit={10} />
+      </section>
+
       {/* Instructor Section - matching smartbeauty template */}
       <section className="instructor-section">
         <div className="section-header">
@@ -176,14 +184,6 @@ function Home() {
             ))}
           </div>
         )}
-      </section>
-
-      {/* Ranking Section - Check-in Leaderboard */}
-      <section className="ranking-section">
-        <div className="section-header">
-          <h2 className="section-title">{t('home.rankingTitle', language === 'zh' ? '上课排行榜' : 'Check-in Leaderboard')}</h2>
-        </div>
-        <RankingPodium limit={10} />
       </section>
 
       {/* News Section - matching smartbeauty categories */}

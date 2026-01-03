@@ -2,6 +2,8 @@ import { useState, useEffect, createContext, useContext } from 'react'
 import { HashRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import { Sun, Moon, Globe } from 'lucide-react'
 import { LanguageProvider, useLanguage } from './i18n/LanguageContext'
+import { AuthProvider } from './contexts/AuthContext'
+import { RequireAuth, RequireAdmin, RequireUser, RoleBasedRedirect } from './components/ProtectedRoute'
 import Navbar from './components/Navbar'
 
 // User Pages
@@ -12,8 +14,10 @@ import Dashboard from './pages/user/Dashboard'
 import About from './pages/user/About'
 import Appointments from './pages/user/Appointments'
 
+// Auth Pages
+import Login from './pages/Login'
+
 // Admin Pages
-import AdminLogin from './pages/admin/index/AdminLogin'
 import AdminDashboard from './pages/admin/index/AdminDashboard'
 import CardManagement from './pages/admin/card/CardManagement'
 
@@ -82,12 +86,18 @@ const PublicLayout = ({ children }) => {
 function AppContent() {
   return (
     <Routes>
-      {/* Public Pages */}
+      {/* Public Pages - No auth required */}
       <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
       <Route path="/store" element={<PublicLayout><CardStore /></PublicLayout>} />
       <Route path="/calendar" element={<PublicLayout><Calendar /></PublicLayout>} />
       <Route path="/about" element={<PublicLayout><About /></PublicLayout>} />
       <Route path="/appointments" element={<PublicLayout><Appointments /></PublicLayout>} />
+
+      {/* Auth Pages */}
+      <Route path="/login" element={<Login />} />
+
+      {/* Role-based redirect after login */}
+      <Route path="/redirect" element={<RoleBasedRedirect />} />
 
       {/* Test Pages */}
       <Route path="/ranking-test" element={<RankingTest />} />
@@ -95,13 +105,33 @@ function AppContent() {
       <Route path="/cloud-function-test" element={<CloudFunctionTest />} />
       <Route path="/card-test" element={<CardTest />} />
 
-      {/* Admin Pages */}
-      <Route path="/admin/login" element={<AdminLogin />} />
-      <Route path="/admin/dashboard" element={<AdminDashboard />} />
-      <Route path="/admin/cards" element={<CardManagement />} />
+      {/* Admin Pages - Require admin auth */}
+      <Route path="/admin/dashboard" element={
+        <RequireAdmin>
+          <AdminDashboard />
+        </RequireAdmin>
+      } />
+      <Route path="/admin/cards" element={
+        <RequireAdmin>
+          <CardManagement />
+        </RequireAdmin>
+      } />
+      {/* Placeholder routes for admin features */}
+      <Route path="/admin/*" element={
+        <RequireAdmin>
+          <AdminDashboard />
+        </RequireAdmin>
+      } />
 
-      {/* Dashboard (Sidebar Layout) */}
-      <Route path="/dashboard/*" element={<Dashboard />} />
+      {/* User Dashboard - Require user auth */}
+      <Route path="/dashboard/*" element={
+        <RequireAuth>
+          <Dashboard />
+        </RequireAuth>
+      } />
+
+      {/* Legacy admin login redirect */}
+      <Route path="/admin/login" element={<Login />} />
     </Routes>
   )
 }
@@ -123,13 +153,15 @@ function App() {
     <LanguageProvider>
       <ThemeContext.Provider value={{ isDark, toggleTheme }}>
         <Router>
-          <div className={`app ${isDark ? 'dark' : 'light'}`}>
-            <div className="global-controls">
-              <LanguageToggle />
-              <ThemeToggle />
+          <AuthProvider>
+            <div className={`app ${isDark ? 'dark' : 'light'}`}>
+              <div className="global-controls">
+                <LanguageToggle />
+                <ThemeToggle />
+              </div>
+              <AppContent />
             </div>
-            <AppContent />
-          </div>
+          </AuthProvider>
         </Router>
       </ThemeContext.Provider>
     </LanguageProvider>

@@ -1,11 +1,16 @@
 .ranking-podium {
   width: 100%;
-  background: var(--card-background, rgba(255, 255, 255, 0.03));
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.05) 0%, rgba(217, 70, 239, 0.05) 100%);
   border-radius: 16px;
   padding: 1.5rem;
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+  border: 1px solid rgba(6, 182, 212, 0.2);
   /* 优化滚动性能 */
   contain: layout style paint;
+}
+
+body.light .ranking-podium {
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(217, 70, 239, 0.08) 100%);
+  border-color: rgba(6, 182, 212, 0.3);
 }
 
 /* Tab 切换 */
@@ -178,17 +183,33 @@
   flex-shrink: 0;
 }
 
-/* 奖牌颜色边框 */
+/* 奖牌颜色边框 - 增强视觉效果 */
 .ranking-podium__place--1 {
-  border-color: rgba(255, 215, 0, 0.3); /* 金色 */
+  border-color: rgba(255, 215, 0, 0.5);
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 215, 0, 0.02) 100%);
+}
+
+.ranking-podium__place--1:hover {
+  border-color: rgba(255, 215, 0, 0.7);
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 215, 0, 0.05) 100%);
 }
 
 .ranking-podium__place--2 {
-  border-color: rgba(192, 192, 192, 0.3); /* 银色 */
+  border-color: rgba(192, 192, 192, 0.4);
+  background: linear-gradient(135deg, rgba(192, 192, 192, 0.08) 0%, rgba(192, 192, 192, 0.02) 100%);
+}
+
+.ranking-podium__place--2:hover {
+  border-color: rgba(192, 192, 192, 0.6);
 }
 
 .ranking-podium__place--3 {
-  border-color: rgba(205, 127, 50, 0.3); /* 铜色 */
+  border-color: rgba(205, 127, 50, 0.4);
+  background: linear-gradient(135deg, rgba(205, 127, 50, 0.08) 0%, rgba(205, 127, 50, 0.02) 100%);
+}
+
+.ranking-podium__place--3:hover {
+  border-color: rgba(205, 127, 50, 0.6);
 }
 
 /* 完整列表 */

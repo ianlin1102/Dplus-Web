@@ -1,10 +1,12 @@
 import { useState } from 'react'
-import { User, Menu, X, Home, Calendar, CreditCard, Info, BookOpen } from 'lucide-react'
+import { User, Menu, X, Home, Calendar, CreditCard, Info, BookOpen, LogOut, Shield } from 'lucide-react'
 import { useLanguage } from '../i18n/LanguageContext'
+import { useAuth } from '../contexts/AuthContext'
 import './Navbar.css'
 
 const Navbar = ({ onNavigate, currentPath }) => {
   const { t, language } = useLanguage()
+  const { user, isLoggedIn, isAdmin, logout } = useAuth()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   const navItems = [
@@ -18,6 +20,24 @@ const Navbar = ({ onNavigate, currentPath }) => {
   const handleNavigate = (path) => {
     onNavigate(path)
     setIsMenuOpen(false)
+  }
+
+  const handleLogout = () => {
+    logout()
+    setIsMenuOpen(false)
+    onNavigate('/')
+  }
+
+  const handleUserClick = () => {
+    if (isLoggedIn()) {
+      if (isAdmin()) {
+        handleNavigate('/admin/dashboard')
+      } else {
+        handleNavigate('/dashboard')
+      }
+    } else {
+      handleNavigate('/login')
+    }
   }
 
   return (
@@ -53,16 +73,20 @@ const Navbar = ({ onNavigate, currentPath }) => {
           <div className="navbar-right">
             {/* User Icon - Desktop Only */}
             <button
-              onClick={() => handleNavigate('/dashboard')}
+              onClick={handleUserClick}
               className="user-portal"
-              title={t('nav.dashboard')}
+              title={isLoggedIn() ? (isAdmin() ? '管理后台' : t('nav.dashboard')) : '登录'}
             >
               <div className="user-info">
-                <p className="welcome-text">{t('dashboard.welcome')}</p>
-                <p className="user-name">Login</p>
+                <p className="welcome-text">
+                  {isLoggedIn() ? t('dashboard.welcome') : (language === 'zh' ? '欢迎' : 'Welcome')}
+                </p>
+                <p className="user-name">
+                  {isLoggedIn() ? user?.name : (language === 'zh' ? '登录' : 'Login')}
+                </p>
               </div>
-              <div className="user-avatar neon-border-cyan">
-                <User size={20} />
+              <div className={`user-avatar ${isAdmin() ? 'admin-avatar' : 'neon-border-cyan'}`}>
+                {isAdmin() ? <Shield size={20} /> : <User size={20} />}
               </div>
             </button>
 
@@ -110,18 +134,41 @@ const Navbar = ({ onNavigate, currentPath }) => {
         </nav>
 
         <div className="sidebar-footer">
-          <button
-            onClick={() => handleNavigate('/dashboard')}
-            className="sidebar-user"
-          >
-            <div className="sidebar-user-avatar">
-              <User size={20} />
-            </div>
-            <div className="sidebar-user-info">
-              <p className="sidebar-user-label">{t('dashboard.welcome')}</p>
-              <p className="sidebar-user-name">Login / Register</p>
-            </div>
-          </button>
+          {isLoggedIn() ? (
+            <>
+              <button
+                onClick={handleUserClick}
+                className="sidebar-user"
+              >
+                <div className={`sidebar-user-avatar ${isAdmin() ? 'admin' : ''}`}>
+                  {isAdmin() ? <Shield size={20} /> : <User size={20} />}
+                </div>
+                <div className="sidebar-user-info">
+                  <p className="sidebar-user-label">
+                    {isAdmin() ? (language === 'zh' ? '管理员' : 'Admin') : t('dashboard.welcome')}
+                  </p>
+                  <p className="sidebar-user-name">{user?.name}</p>
+                </div>
+              </button>
+              <button onClick={handleLogout} className="sidebar-logout">
+                <LogOut size={18} />
+                <span>{language === 'zh' ? '退出登录' : 'Logout'}</span>
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => handleNavigate('/login')}
+              className="sidebar-user"
+            >
+              <div className="sidebar-user-avatar">
+                <User size={20} />
+              </div>
+              <div className="sidebar-user-info">
+                <p className="sidebar-user-label">{language === 'zh' ? '欢迎' : 'Welcome'}</p>
+                <p className="sidebar-user-name">{language === 'zh' ? '登录 / 注册' : 'Login / Register'}</p>
+              </div>
+            </button>
+          )}
         </div>
       </aside>
     </>

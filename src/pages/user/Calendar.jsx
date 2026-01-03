@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { CalendarDays, ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { useLanguage } from '../../i18n/LanguageContext'
 import { getMeetListByWeek, dateUtils } from '../../services/meetService'
 import { convertCloudUrl } from '../../utils/cloudUrlHelper'
@@ -163,6 +164,35 @@ function formatDateLabel(dateStr, language) {
   }
 }
 
+// 生成月历数据
+function generateMonthCalendar(year, month) {
+  const firstDay = new Date(year, month, 1)
+  const lastDay = new Date(year, month + 1, 0)
+  const daysInMonth = lastDay.getDate()
+  const startDayOfWeek = firstDay.getDay() // 0=周日
+
+  // 调整为周一开始
+  const adjustedStartDay = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1
+
+  const days = []
+
+  // 上月填充
+  for (let i = 0; i < adjustedStartDay; i++) {
+    days.push({ day: null, isCurrentMonth: false })
+  }
+
+  // 本月日期
+  for (let i = 1; i <= daysInMonth; i++) {
+    days.push({
+      day: i,
+      isCurrentMonth: true,
+      date: new Date(year, month, i)
+    })
+  }
+
+  return days
+}
+
 function Calendar() {
   const { t, language } = useLanguage()
 
@@ -175,8 +205,60 @@ function Calendar() {
   const [loading, setLoading] = useState(true)
   const [useDemo, setUseDemo] = useState(false)
 
+  // 月历弹窗状态
+  const [showMonthPicker, setShowMonthPicker] = useState(false)
+  const [pickerYear, setPickerYear] = useState(new Date().getFullYear())
+  const [pickerMonth, setPickerMonth] = useState(new Date().getMonth())
+
   // 当前选中的周
   const selectedWeek = weekButtons[selectedWeekIndex]
+
+  // 获取周一所在的周索引
+  const findWeekIndexByDate = (date) => {
+    const targetDate = date.toISOString().split('T')[0]
+    for (let i = 0; i < weekButtons.length; i++) {
+      if (targetDate >= weekButtons[i].startDate && targetDate <= weekButtons[i].endDate) {
+        return i
+      }
+    }
+    return 0
+  }
+
+  // 处理月历日期选择
+  const handleDateSelect = (dayInfo) => {
+    if (!dayInfo.day || !dayInfo.isCurrentMonth) return
+    const weekIndex = findWeekIndexByDate(dayInfo.date)
+    setSelectedWeekIndex(weekIndex)
+    setShowMonthPicker(false)
+  }
+
+  // 月份导航
+  const goToPrevMonth = () => {
+    if (pickerMonth === 0) {
+      setPickerMonth(11)
+      setPickerYear(pickerYear - 1)
+    } else {
+      setPickerMonth(pickerMonth - 1)
+    }
+  }
+
+  const goToNextMonth = () => {
+    if (pickerMonth === 11) {
+      setPickerMonth(0)
+      setPickerYear(pickerYear + 1)
+    } else {
+      setPickerMonth(pickerMonth + 1)
+    }
+  }
+
+  // 月历数据
+  const monthDays = generateMonthCalendar(pickerYear, pickerMonth)
+  const monthNames = language === 'zh'
+    ? ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月']
+    : ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+  const weekdayNames = language === 'zh'
+    ? ['一', '二', '三', '四', '五', '六', '日']
+    : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
   // 加载数据
   const loadData = useCallback(async () => {
@@ -248,7 +330,16 @@ function Calendar() {
       <div className="bg-grid-pattern grid-overlay" />
 
       <div className="calendar-container">
-        <h1 className="calendar-title">{t('calendar.title')}</h1>
+        <div className="calendar-header">
+          <h1 className="calendar-title">{t('calendar.title')}</h1>
+          <button
+            className="month-picker-btn"
+            onClick={() => setShowMonthPicker(true)}
+            title={language === 'zh' ? '选择日期' : 'Select Date'}
+          >
+            <CalendarDays size={24} />
+          </button>
+        </div>
 
         {/* 周选择按钮 */}
         <div className="week-buttons-container">
@@ -264,6 +355,55 @@ function Calendar() {
             ))}
           </div>
         </div>
+
+        {/* 月历弹窗 */}
+        {showMonthPicker && (
+          <div className="month-picker-overlay" onClick={() => setShowMonthPicker(false)}>
+            <div className="month-picker-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="month-picker-header">
+                <button className="month-nav-btn" onClick={goToPrevMonth}>
+                  <ChevronLeft size={20} />
+                </button>
+                <span className="month-picker-title">
+                  {monthNames[pickerMonth]} {pickerYear}
+                </span>
+                <button className="month-nav-btn" onClick={goToNextMonth}>
+                  <ChevronRight size={20} />
+                </button>
+                <button className="month-close-btn" onClick={() => setShowMonthPicker(false)}>
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="month-picker-weekdays">
+                {weekdayNames.map((day) => (
+                  <span key={day} className="weekday-label">{day}</span>
+                ))}
+              </div>
+
+              <div className="month-picker-days">
+                {monthDays.map((dayInfo, idx) => {
+                  const isToday = dayInfo.date &&
+                    dayInfo.date.toDateString() === new Date().toDateString()
+                  const isInRange = dayInfo.date &&
+                    dayInfo.date.toISOString().split('T')[0] >= weekButtons[0].startDate &&
+                    dayInfo.date.toISOString().split('T')[0] <= weekButtons[7].endDate
+
+                  return (
+                    <button
+                      key={idx}
+                      className={`month-day ${!dayInfo.day ? 'empty' : ''} ${isToday ? 'today' : ''} ${!isInRange && dayInfo.day ? 'out-of-range' : ''}`}
+                      onClick={() => handleDateSelect(dayInfo)}
+                      disabled={!dayInfo.day || !isInRange}
+                    >
+                      {dayInfo.day}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* 课程列表 */}
         <div className="meet-list">

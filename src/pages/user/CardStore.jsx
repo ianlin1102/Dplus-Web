@@ -195,7 +195,7 @@ function CardStore() {
                   </ul>
                 )}
 
-                <button className="plan-button">
+                <button className={`plan-button btn-${cardTheme}`}>
                   {t('store.buy')}
                 </button>
               </div>
