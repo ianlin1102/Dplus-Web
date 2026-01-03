@@ -17,7 +17,7 @@ let auth = null
  * 初始化数据库连接
  */
 export const initDatabase = async () => {
-  if (app) return app
+  if (app && db) return app
 
   try {
     app = cloudbase.init({
@@ -31,9 +31,18 @@ export const initDatabase = async () => {
     const loginState = await auth.getLoginState()
 
     if (!loginState) {
-      // 匿名登录
-      await auth.anonymousAuthProvider().signIn()
-      console.log('✅ CloudBase 匿名登录成功')
+      // 尝试匿名登录（兼容新旧 API）
+      try {
+        if (auth.signInAnonymously) {
+          await auth.signInAnonymously()
+        } else if (auth.anonymousAuthProvider) {
+          await auth.anonymousAuthProvider().signIn()
+        }
+        console.log('✅ CloudBase 匿名登录成功')
+      } catch (authError) {
+        console.warn('⚠️ 匿名登录失败，尝试继续:', authError.message)
+        // 即使匿名登录失败，也尝试继续（某些操作可能不需要认证）
+      }
     }
 
     console.log('✅ CloudBase 数据库初始化成功')
@@ -66,6 +75,10 @@ export const getAuth = () => {
 
 // ==================== 管理员相关 ====================
 
+// 硬编码管理员账号密码（与小程序 config.js 保持一致）
+const ADMIN_NAME = 'admin'
+const ADMIN_PWD = '123456'
+
 /**
  * 管理员登录
  * @param {string} username - 用户名
@@ -75,11 +88,14 @@ export const getAuth = () => {
 export const adminLogin = async (username, password) => {
   const db = getDatabase()
 
+  // 使用硬编码密码验证（与小程序保持一致）
+  if (username !== ADMIN_NAME || password !== ADMIN_PWD) {
+    throw new Error('用户名或密码错误')
+  }
+
+  // 查询管理员信息
   const result = await db.collection('ax_admin')
     .where({
-      _pid: PROJECT_ID,
-      ADMIN_NAME: username,
-      ADMIN_PASSWORD: password,
       ADMIN_STATUS: 1  // 启用状态
     })
     .get()
@@ -94,7 +110,7 @@ export const adminLogin = async (username, password) => {
     }))
     return admin
   } else {
-    throw new Error('用户名或密码错误')
+    throw new Error('管理员不存在')
   }
 }
 

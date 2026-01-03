@@ -1,0 +1,545 @@
+/**
+ * 活动/预约管理页面样式
+ * Admin - Meet Management Styles
+ */
+
+.meet-management {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #0a0a1a 0%, #1a1a2e 100%);
+  padding: 80px 16px 32px;
+}
+
+@media (min-width: 768px) {
+  .meet-management {
+    padding: 100px 24px 48px;
+  }
+}
+
+/* Page Header */
+.meet-management .page-header {
+  max-width: 1200px;
+  margin: 0 auto 24px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.meet-management .back-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.meet-management .back-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.meet-management .header-content {
+  flex: 1;
+}
+
+.meet-management .header-content h1 {
+  font-size: 28px;
+  font-weight: 800;
+  background: linear-gradient(to right, #3b82f6, #06b6d4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 4px 0;
+}
+
+.meet-management .header-content .subtitle {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
+  margin: 0;
+}
+
+.meet-management .refresh-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.meet-management .refresh-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  color: #3b82f6;
+}
+
+.meet-management .refresh-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Toolbar */
+.meet-management .toolbar {
+  max-width: 1200px;
+  margin: 0 auto 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.meet-management .search-form {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  min-width: 200px;
+  max-width: 400px;
+}
+
+.meet-management .search-input-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  transition: all 0.2s;
+}
+
+.meet-management .search-input-wrapper:focus-within {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.meet-management .search-input-wrapper svg {
+  color: rgba(255, 255, 255, 0.4);
+  flex-shrink: 0;
+}
+
+.meet-management .search-input-wrapper input {
+  flex: 1;
+  padding: 12px 0;
+  background: none;
+  border: none;
+  outline: none;
+  color: white;
+  font-size: 14px;
+}
+
+.meet-management .search-input-wrapper input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.meet-management .search-btn {
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #3b82f6, #06b6d4);
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.meet-management .search-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.meet-management .filter-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.meet-management .filter-select {
+  padding: 10px 32px 10px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.5)' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+}
+
+.meet-management .filter-select option {
+  background: #1a1a2e;
+  color: white;
+}
+
+/* Meet List Container */
+.meet-list-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: 400px;
+}
+
+/* Loading State */
+.meet-management .loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.meet-management .spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(59, 130, 246, 0.2);
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Error State */
+.meet-management .error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  color: #ef4444;
+}
+
+.meet-management .error-state button {
+  margin-top: 16px;
+  padding: 10px 24px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  color: #ef4444;
+  cursor: pointer;
+}
+
+/* Empty State */
+.meet-management .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.meet-management .empty-state svg {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+/* Meet List */
+.meet-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Meet Card */
+.meet-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.meet-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.meet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: rgba(59, 130, 246, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.meet-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  color: white;
+}
+
+.pin-tag {
+  font-size: 12px;
+  color: #f59e0b;
+  font-weight: 600;
+}
+
+.meet-card .status-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.meet-card .status-badge.active {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+
+.meet-card .status-badge.inactive {
+  background: rgba(156, 163, 175, 0.15);
+  color: #9ca3af;
+}
+
+.meet-card .status-badge.stopped {
+  background: rgba(249, 115, 22, 0.15);
+  color: #f97316;
+}
+
+.meet-card .status-badge.closed {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.meet-body {
+  padding: 16px 20px;
+}
+
+.meet-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .meet-info-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.meet-card .info-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.meet-card .info-row .info-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.meet-card .info-row .info-value {
+  font-size: 14px;
+  color: white;
+  font-weight: 500;
+}
+
+.meet-desc {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1.5;
+}
+
+.meet-actions {
+  display: flex;
+  gap: 12px;
+  padding: 12px 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.meet-card .action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.meet-card .action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.meet-card .action-btn.settings {
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+}
+
+.meet-card .action-btn.settings:hover:not(:disabled) {
+  background: rgba(59, 130, 246, 0.25);
+}
+
+.meet-card .action-btn.list {
+  background: rgba(139, 92, 246, 0.15);
+  color: #a78bfa;
+}
+
+.meet-card .action-btn.list:hover:not(:disabled) {
+  background: rgba(139, 92, 246, 0.25);
+}
+
+.status-dropdown {
+  margin-left: auto;
+}
+
+.status-select {
+  padding: 8px 28px 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: white;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.5)' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+}
+
+.status-select option {
+  background: #1a1a2e;
+  color: white;
+}
+
+/* Pagination */
+.meet-management .pagination {
+  max-width: 1200px;
+  margin: 32px auto 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.meet-management .page-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.meet-management .page-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  color: #3b82f6;
+}
+
+.meet-management .page-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.meet-management .page-info {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  min-width: 80px;
+  text-align: center;
+}
+
+/* Light Theme Support */
+body.light .meet-management {
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+body.light .meet-management .back-btn {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: rgba(0, 0, 0, 0.7);
+}
+
+body.light .meet-management .header-content .subtitle {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+body.light .meet-management .search-input-wrapper {
+  background: white;
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+body.light .meet-management .search-input-wrapper input {
+  color: #0a0a0a;
+}
+
+body.light .meet-management .filter-select {
+  background-color: white;
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #0a0a0a;
+}
+
+body.light .meet-card {
+  background: white;
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+body.light .meet-header {
+  background: rgba(59, 130, 246, 0.03);
+  border-bottom-color: rgba(0, 0, 0, 0.05);
+}
+
+body.light .meet-title {
+  color: #0a0a0a;
+}
+
+body.light .meet-card .info-row .info-label {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+body.light .meet-card .info-row .info-value {
+  color: #0a0a0a;
+}
+
+body.light .meet-desc {
+  color: rgba(0, 0, 0, 0.5);
+  border-top-color: rgba(0, 0, 0, 0.05);
+}
+
+body.light .meet-actions {
+  background: rgba(0, 0, 0, 0.02);
+  border-top-color: rgba(0, 0, 0, 0.05);
+}
+
+body.light .status-select {
+  background-color: white;
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #0a0a0a;
+}

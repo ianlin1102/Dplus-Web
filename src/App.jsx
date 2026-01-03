@@ -20,6 +20,9 @@ import Login from './pages/Login'
 // Admin Pages
 import AdminDashboard from './pages/admin/index/AdminDashboard'
 import CardManagement from './pages/admin/card/CardManagement'
+import UserManagement from './pages/admin/user/UserManagement'
+import BookingManagement from './pages/admin/booking/BookingManagement'
+import MeetManagement from './pages/admin/meet/MeetManagement'
 
 // Test Pages
 import RankingTest from './pages/test/RankingTest'
@@ -114,6 +117,21 @@ function AppContent() {
       <Route path="/admin/cards" element={
         <RequireAdmin>
           <CardManagement />
+        </RequireAdmin>
+      } />
+      <Route path="/admin/users" element={
+        <RequireAdmin>
+          <UserManagement />
+        </RequireAdmin>
+      } />
+      <Route path="/admin/bookings" element={
+        <RequireAdmin>
+          <BookingManagement />
+        </RequireAdmin>
+      } />
+      <Route path="/admin/meets" element={
+        <RequireAdmin>
+          <MeetManagement />
         </RequireAdmin>
       } />
       {/* Placeholder routes for admin features */}

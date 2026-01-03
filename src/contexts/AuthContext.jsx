@@ -5,13 +5,6 @@
 
 import { createContext, useContext, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import {
-  initDatabase,
-  getDatabase,
-  adminLogin as dbAdminLogin,
-  adminLogout as dbAdminLogout,
-  getCurrentAdmin
-} from '../services/databaseService'
 
 const AuthContext = createContext(null)
 
@@ -53,17 +46,22 @@ export function AuthProvider({ children }) {
       }
 
       // 检查旧的 admin_info 缓存（兼容）
-      const adminInfo = getCurrentAdmin()
-      if (adminInfo) {
-        const userData = {
-          id: adminInfo.id,
-          name: adminInfo.name,
-          role: 'admin',
-          type: adminInfo.type || 0
+      const adminInfoStr = localStorage.getItem('admin_info')
+      if (adminInfoStr) {
+        try {
+          const adminInfo = JSON.parse(adminInfoStr)
+          const userData = {
+            id: adminInfo.id,
+            name: adminInfo.name,
+            role: 'admin',
+            type: adminInfo.type || 0
+          }
+          setUser(userData)
+          // 迁移到新格式
+          saveAuthToCache(userData)
+        } catch (e) {
+          localStorage.removeItem('admin_info')
         }
-        setUser(userData)
-        // 迁移到新格式
-        saveAuthToCache(userData)
       }
     } catch (error) {
       console.error('检查认证状态失败:', error)
@@ -83,79 +81,50 @@ export function AuthProvider({ children }) {
     }))
   }
 
+  // 硬编码账号密码（与小程序 config.js 保持一致）
+  const ACCOUNTS = {
+    // 管理员账号
+    admin: { pwd: '123456', role: 'admin', type: 1, name: 'Admin' },
+    // 测试用户账号
+    user: { pwd: '123456', role: 'user', type: 0, name: '测试用户' },
+    test: { pwd: '123456', role: 'user', type: 0, name: 'Test User' },
+  }
+
   /**
    * 统一登录接口
-   * 支持管理员和普通用户
+   * 前端硬编码验证（与小程序保持一致）
    */
   const login = async (username, password) => {
     try {
-      await initDatabase()
-      const db = getDatabase()
+      const account = ACCOUNTS[username]
 
-      // 1. 尝试管理员登录
-      const adminResult = await db.collection('ax_admin')
-        .where({
-          ADMIN_NAME: username,
-          ADMIN_PASSWORD: password,
-          ADMIN_STATUS: 1
-        })
-        .get()
-
-      if (adminResult.data && adminResult.data.length > 0) {
-        const admin = adminResult.data[0]
+      // 验证账号密码
+      if (account && account.pwd === password) {
         const userData = {
-          id: admin._id,
-          name: admin.ADMIN_NAME,
-          role: 'admin',
-          type: admin.ADMIN_TYPE || 0, // 0=普通管理员, 1=超级管理员
-          phone: admin.ADMIN_PHONE || ''
+          id: `${account.role}_${username}`,
+          name: account.name,
+          role: account.role,
+          type: account.type,
         }
         setUser(userData)
         saveAuthToCache(userData)
 
-        // 兼容旧的 admin_info 缓存
-        localStorage.setItem('admin_info', JSON.stringify({
-          id: admin._id,
-          name: admin.ADMIN_NAME,
-          type: admin.ADMIN_TYPE
-        }))
+        // 兼容旧的 admin_info 缓存（仅管理员）
+        if (account.role === 'admin') {
+          localStorage.setItem('admin_info', JSON.stringify({
+            id: userData.id,
+            name: userData.name,
+            type: userData.type
+          }))
+        }
 
         return {
           success: true,
-          role: 'admin',
+          role: account.role,
           user: userData
         }
       }
 
-      // 2. 尝试普通用户登录
-      const userResult = await db.collection('ax_user')
-        .where({
-          USER_ACCOUNT: username,
-          USER_PASSWORD: password,
-          USER_STATUS: 1
-        })
-        .get()
-
-      if (userResult.data && userResult.data.length > 0) {
-        const dbUser = userResult.data[0]
-        const userData = {
-          id: dbUser._id,
-          name: dbUser.USER_NAME || dbUser.USER_ACCOUNT,
-          role: 'user',
-          phone: dbUser.USER_PHONE || '',
-          avatar: dbUser.USER_PIC || ''
-        }
-        setUser(userData)
-        saveAuthToCache(userData)
-
-        return {
-          success: true,
-          role: 'user',
-          user: userData
-        }
-      }
-
-      // 登录失败
       return {
         success: false,
         message: '用户名或密码错误'
@@ -176,7 +145,7 @@ export function AuthProvider({ children }) {
     setUser(null)
     localStorage.removeItem(AUTH_CACHE_KEY)
     localStorage.removeItem('admin_info')
-    dbAdminLogout()
+    localStorage.removeItem('jwt_token')
   }
 
   /**

@@ -4,10 +4,27 @@
  */
 
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { getCardList, updateCard, toggleCardStatus } from '../../../services/adminService'
 import './CardManagement.css'
 
+// Icons
+const BackIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M19 12H5M12 19l-7-7 7-7"/>
+  </svg>
+)
+
+const RefreshIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <polyline points="23 4 23 10 17 10"/>
+    <polyline points="1 20 1 14 7 14"/>
+    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+  </svg>
+)
+
 export default function CardManagement() {
+  const navigate = useNavigate()
   const [cards, setCards] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -110,9 +127,16 @@ export default function CardManagement() {
     <div className="card-management">
       {/* 头部 */}
       <div className="page-header">
-        <h1>卡项管理</h1>
+        <button className="back-btn" onClick={() => navigate('/admin/dashboard')}>
+          <BackIcon />
+          <span>返回</span>
+        </button>
+        <div className="header-content">
+          <h1>卡项管理</h1>
+          <p className="subtitle">共 {cards.length} 个卡项</p>
+        </div>
         <button onClick={loadCards} className="refresh-btn">
-          刷新
+          <RefreshIcon />
         </button>
       </div>
 
