@@ -81,18 +81,42 @@ img {
   50% { opacity: 1; }
 }
 
+/* 减少动画以降低 GPU 占用 - 仅在 hover 时启用呼吸效果 */
+.neon-border-cyan:hover {
+  animation: breath-cyan 2s ease-in-out;
+}
+
+.neon-border-pink:hover {
+  animation: breath-pink 2s ease-in-out;
+}
+
+.neon-border-green:hover {
+  animation: breath-green 2s ease-in-out;
+}
+
+/* 为有动画需求的元素添加默认边框光效 */
 .neon-border-cyan {
-  animation: breath-cyan 4s infinite ease-in-out;
+  border: 1px solid rgba(0, 255, 255, 0.5);
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
 }
 
 .neon-border-pink {
-  animation: breath-pink 4s infinite ease-in-out;
-  animation-delay: 1s;
+  border: 1px solid rgba(255, 0, 255, 0.5);
+  box-shadow: 0 0 10px rgba(255, 0, 255, 0.3);
 }
 
 .neon-border-green {
-  animation: breath-green 4s infinite ease-in-out;
-  animation-delay: 2s;
+  border: 1px solid rgba(0, 255, 128, 0.5);
+  box-shadow: 0 0 10px rgba(0, 255, 128, 0.3);
+}
+
+/* 用户偏好：减少动画时完全禁用 */
+@media (prefers-reduced-motion: reduce) {
+  .neon-border-cyan:hover,
+  .neon-border-pink:hover,
+  .neon-border-green:hover {
+    animation: none;
+  }
 }
 
 /* ============================================
@@ -168,18 +192,22 @@ body.light .bg-grid-pattern {
   background-clip: text;
 }
 
+/* GPU 优化：移除 backdrop-filter 以降低滚动时的 GPU 占用 */
 .backdrop-blur {
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  /* backdrop-filter: blur(10px); - 已移除，改用半透明背景 */
+  /* -webkit-backdrop-filter: blur(10px); */
+  background: rgba(0, 0, 0, 0.6);
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.08);
+  /* backdrop-filter: blur(10px); - 已移除，改用更深的半透明背景 */
   border: 1px solid rgba(255, 255, 255, 0.1);
+  /* 添加 CSS containment 优化渲染性能 */
+  contain: layout style;
 }
 
 body.light .glass-card {
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.85);
   border: 1px solid rgba(0, 0, 0, 0.1);
 }

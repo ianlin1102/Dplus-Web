@@ -293,3 +293,122 @@ body.light .qr-text {
 .text-pink {
   color: #d946ef;
 }
+
+/* ============================================
+   Mobile Responsive Optimizations
+   ============================================ */
+
+@media (max-width: 640px) {
+  .about-page {
+    min-height: calc(100vh - 64px);
+  }
+
+  .about-container {
+    padding: 48px 16px;
+  }
+
+  .about-header {
+    margin-bottom: 40px;
+  }
+
+  .about-subtitle {
+    font-size: 14px;
+  }
+
+  .about-section {
+    margin-bottom: 40px;
+  }
+
+  .about-card {
+    padding: 24px;
+  }
+
+  .card-title {
+    font-size: 20px;
+    margin-bottom: 16px;
+  }
+
+  .card-text {
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .contact-section {
+    margin-bottom: 40px;
+  }
+
+  .section-title {
+    font-size: 16px;
+    margin-bottom: 24px;
+  }
+
+  .contact-grid {
+    gap: 16px;
+  }
+
+  .contact-item {
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .contact-label {
+    font-size: 9px;
+  }
+
+  .contact-value {
+    font-size: 14px;
+  }
+
+  .team-section {
+    margin-bottom: 40px;
+  }
+
+  .team-grid {
+    gap: 16px;
+  }
+
+  .team-card {
+    padding: 20px 16px;
+  }
+
+  .team-avatar {
+    width: 64px;
+    height: 64px;
+    font-size: 22px;
+    margin-bottom: 12px;
+  }
+
+  .team-name {
+    font-size: 14px;
+  }
+
+  .team-specialty {
+    font-size: 11px;
+  }
+
+  .team-desc {
+    font-size: 11px;
+  }
+
+  .qr-grid {
+    gap: 20px;
+  }
+
+  .qr-card {
+    padding: 24px;
+  }
+
+  .qr-placeholder {
+    width: 100px;
+    height: 100px;
+  }
+}
+
+/* Touch-friendly elements */
+@media (hover: none) {
+  .contact-item,
+  .team-card,
+  .qr-card {
+    min-height: 44px;
+  }
+}

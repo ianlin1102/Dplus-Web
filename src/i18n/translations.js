@@ -22,6 +22,10 @@ export const translations = {
       ourServices: '我们的课程',
       newsTitle: '最新动态',
       newsMore: '查看更多 →',
+      instructorTitle: '导师团队',
+      rankingTitle: '上课排行榜',
+      totalRank: '总榜',
+      monthRank: '月榜',
     },
     // Store page
     store: {
@@ -144,6 +148,10 @@ export const translations = {
       ourServices: 'Our Classes',
       newsTitle: 'Latest News',
       newsMore: 'View More →',
+      instructorTitle: 'Instructors',
+      rankingTitle: 'Check-in Leaderboard',
+      totalRank: 'All Time',
+      monthRank: 'This Month',
     },
     // Store page
     store: {

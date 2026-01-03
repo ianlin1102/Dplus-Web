@@ -108,8 +108,8 @@
 .login-hint {
   max-width: 800px;
   margin: 40px auto;
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
+  background: rgba(0, 0, 0, 0.6);
+  /* backdrop-filter: blur(10px); - GPU 优化：已移除 */
   border-radius: 20px;
   padding: 40px;
   border: 2px solid rgba(255, 255, 255, 0.1);
@@ -165,9 +165,9 @@
 .rank-list-container {
   max-width: 800px;
   margin: 0 auto 40px;
-  background: linear-gradient(160deg, rgba(20, 30, 80, 0.6) 0%, rgba(50, 20, 60, 0.6) 100%);
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
+  background: linear-gradient(160deg, rgba(20, 30, 80, 0.8) 0%, rgba(50, 20, 60, 0.8) 100%);
+  /* backdrop-filter: blur(15px); - GPU 优化：已移除 */
+  /* -webkit-backdrop-filter: blur(15px); */
   border-radius: 20px;
   padding: 30px;
   border: 1px solid rgba(138, 43, 226, 0.3);

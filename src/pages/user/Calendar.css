@@ -14,157 +14,184 @@
 .calendar-container {
   position: relative;
   z-index: 10;
-  max-width: 1200px;
+  max-width: 900px;
   margin: 0 auto;
-  padding: 48px 24px;
+  padding: 24px 16px;
 }
 
 .calendar-title {
-  font-size: clamp(32px, 6vw, 48px);
+  font-size: clamp(28px, 6vw, 48px);
   font-weight: 900;
   font-style: italic;
   letter-spacing: -0.03em;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
 }
 
 /* ============================================
-   Type Filter
+   Week Buttons (8 weeks)
    ============================================ */
 
-.type-filter {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 32px;
-}
-
-.filter-btn {
-  padding: 8px 16px;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 12px;
-  font-weight: 600;
-  border-radius: 20px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-body.light .filter-btn {
-  border-color: rgba(0, 0, 0, 0.2);
-  color: rgba(0, 0, 0, 0.6);
-}
-
-.filter-btn:hover {
-  border-color: var(--accent-color, rgba(255, 255, 255, 0.5));
-  color: var(--accent-color, white);
-}
-
-.filter-btn.active {
-  background: var(--accent-color, #06b6d4);
-  border-color: var(--accent-color, #06b6d4);
-  color: white;
-}
-
-/* ============================================
-   Date Scroller
-   ============================================ */
-
-.date-scroller {
-  display: flex;
-  gap: 16px;
+.week-buttons-container {
+  margin-bottom: 24px;
   overflow-x: auto;
-  padding-bottom: 24px;
-  margin-bottom: 48px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-bottom: 8px;
 }
 
-.date-item {
-  flex-shrink: 0;
-  width: 80px;
-  height: 100px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: transparent;
+.week-buttons-container::-webkit-scrollbar {
+  display: none;
+}
+
+.week-buttons {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  gap: 8px;
+  min-width: max-content;
+}
+
+.week-button {
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
   cursor: pointer;
-  transition: all 0.3s ease;
-  color: rgba(255, 255, 255, 0.4);
+  transition: all 0.2s;
 }
 
-body.light .date-item {
-  border-color: rgba(0, 0, 0, 0.1);
-  color: rgba(0, 0, 0, 0.4);
+body.light .week-button {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.15);
+  color: rgba(0, 0, 0, 0.7);
 }
 
-.date-item:hover {
-  border-color: rgba(255, 255, 255, 0.3);
-  color: rgba(255, 255, 255, 0.8);
-}
-
-body.light .date-item:hover {
-  border-color: rgba(0, 0, 0, 0.3);
-  color: rgba(0, 0, 0, 0.8);
-}
-
-.date-item.active {
-  border-color: #06b6d4;
+.week-button:hover {
   background: rgba(6, 182, 212, 0.1);
+  border-color: rgba(6, 182, 212, 0.3);
+}
+
+.week-button.current {
+  border-color: rgba(6, 182, 212, 0.5);
+}
+
+.week-button.active {
+  background: rgba(6, 182, 212, 0.2);
+  border-color: #06b6d4;
   color: #06b6d4;
 }
 
-.date-weekday {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  margin-bottom: 4px;
-}
-
-.date-day {
-  font-size: 32px;
-  font-weight: 900;
-  font-style: italic;
-  line-height: 1;
-}
-
-.date-month {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  margin-top: 4px;
+body.light .week-button.active {
+  background: rgba(6, 182, 212, 0.15);
+  border-color: #0891b2;
+  color: #0891b2;
 }
 
 /* ============================================
-   Course List
+   Day Group Headers
    ============================================ */
 
-.course-list {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
+.day-group {
+  margin-bottom: 24px;
 }
 
-.course-card {
+.day-header {
   display: flex;
   align-items: center;
-  gap: 24px;
-  padding: 24px 32px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: all 0.3s ease;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-body.light .course-card {
+body.light .day-header {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.day-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #06b6d4;
+  letter-spacing: 0.05em;
+}
+
+/* ============================================
+   Meet List
+   ============================================ */
+
+.meet-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.meet-card {
+  display: flex;
+  align-items: stretch;
+  gap: 16px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.2s;
+}
+
+body.light .meet-card {
   background: rgba(0, 0, 0, 0.03);
   border-color: rgba(0, 0, 0, 0.1);
 }
 
-.course-card:hover {
-  border-color: var(--course-color, #06b6d4);
+.meet-card:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
 }
 
-.course-type-tag {
+.meet-card-accent {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+}
+
+.meet-card-time {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+  padding-left: 12px;
+}
+
+.time-range {
+  font-size: 14px;
+  font-weight: 700;
+  font-family: monospace;
+  color: #06b6d4;
+  white-space: nowrap;
+}
+
+.time-duration {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  margin-top: 4px;
+}
+
+body.light .time-duration {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.meet-card-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.meet-type-tag {
   display: inline-block;
   padding: 2px 8px;
   border-radius: 4px;
@@ -174,91 +201,82 @@ body.light .course-card {
   margin-bottom: 8px;
 }
 
-.course-time {
-  min-width: 80px;
+.meet-title {
+  font-size: 16px;
+  font-weight: 800;
+  margin: 0 0 4px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.time-value {
-  font-size: 24px;
-  font-weight: 900;
-  font-style: italic;
-  font-family: monospace;
-  color: #06b6d4;
-}
-
-.course-info {
-  flex: 1;
-}
-
-.course-name {
-  font-size: 20px;
-  font-weight: 900;
-  font-style: italic;
-  text-transform: uppercase;
-  margin: 0 0 8px 0;
-  transition: color 0.3s ease;
-}
-
-.course-card:hover .course-name {
-  color: #06b6d4;
-}
-
-.course-meta {
-  font-size: 14px;
-  font-family: monospace;
+.meet-instructor {
+  font-size: 13px;
   color: rgba(255, 255, 255, 0.5);
-  margin: 0;
+  margin: 0 0 8px 0;
 }
 
-body.light .course-meta {
+body.light .meet-instructor {
   color: rgba(0, 0, 0, 0.5);
 }
 
-.course-button {
-  padding: 12px 32px;
-  background: white;
-  border: none;
-  color: black;
-  font-weight: 700;
-  font-size: 13px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all 0.3s ease;
+.meet-spots {
+  margin-top: auto;
 }
 
-body.light .course-button {
-  background: black;
-  color: white;
-}
-
-.course-button:hover:not(:disabled) {
-  opacity: 0.8;
-}
-
-.course-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.course-action {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
-}
-
-.spots-left {
+.spots-count {
   font-size: 12px;
   color: #34d399;
 }
 
-.spots-left.limited {
-  color: #fbbf24;
+.spots-count.full {
+  color: #ef4444;
 }
 
-.spots-left.full {
-  color: #ef4444;
+.meet-card-avatar {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.meet-card-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ============================================
+   Loading & Empty States
+   ============================================ */
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 24px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+body.light .loading-state {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #06b6d4;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 12px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 .empty-state {
@@ -271,16 +289,27 @@ body.light .empty-state {
   color: rgba(0, 0, 0, 0.5);
 }
 
+.demo-notice {
+  text-align: center;
+  padding: 12px;
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: 8px;
+  color: #fbbf24;
+  font-size: 12px;
+  margin-bottom: 24px;
+}
+
 /* ============================================
    Legend
    ============================================ */
 
 .schedule-legend {
   display: flex;
-  gap: 32px;
+  gap: 24px;
   justify-content: center;
-  margin-top: 64px;
-  padding-top: 32px;
+  flex-wrap: wrap;
+  padding-top: 24px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -316,4 +345,119 @@ body.light .legend-item {
 
 .legend-dot.full {
   background: #ef4444;
+}
+
+/* ============================================
+   Mobile Responsive (<= 640px)
+   ============================================ */
+
+@media (max-width: 640px) {
+  .calendar-page {
+    min-height: calc(100vh - 64px);
+  }
+
+  .calendar-container {
+    padding: 16px 12px;
+  }
+
+  .calendar-title {
+    font-size: 24px;
+    margin-bottom: 16px;
+  }
+
+  .week-buttons-container {
+    margin-bottom: 20px;
+  }
+
+  .week-buttons {
+    gap: 6px;
+  }
+
+  .week-button {
+    padding: 8px 12px;
+    font-size: 12px;
+    border-radius: 16px;
+  }
+
+  .day-group {
+    margin-bottom: 20px;
+  }
+
+  .day-header {
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+  }
+
+  .day-label {
+    font-size: 13px;
+  }
+
+  .meet-list {
+    gap: 12px;
+  }
+
+  .meet-card {
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .meet-card-time {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 8px;
+    min-width: auto;
+    padding-left: 8px;
+  }
+
+  .time-range {
+    font-size: 16px;
+  }
+
+  .time-duration {
+    margin-top: 0;
+  }
+
+  .meet-card-content {
+    padding-left: 8px;
+  }
+
+  .meet-title {
+    font-size: 15px;
+    white-space: normal;
+  }
+
+  .meet-card-avatar {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 40px;
+    height: 40px;
+  }
+
+  .schedule-legend {
+    gap: 16px;
+    padding-top: 16px;
+  }
+
+  .legend-item {
+    font-size: 11px;
+  }
+}
+
+/* ============================================
+   Touch-friendly improvements
+   ============================================ */
+
+@media (hover: none) {
+  .week-button {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .meet-card:hover {
+    transform: none;
+  }
 }

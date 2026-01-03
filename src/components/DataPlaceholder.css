@@ -1,0 +1,232 @@
+.data-placeholder-container {
+  width: 100%;
+  padding: 20px 0;
+}
+
+.data-placeholder-item {
+  margin-bottom: 20px;
+}
+
+/* Shimmer 动画 */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* ========== Instructor Placeholder ========== */
+.instructor-placeholder {
+  display: flex;
+  gap: 15px;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.instructor-placeholder__avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.instructor-placeholder__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: center;
+}
+
+.instructor-placeholder__name {
+  width: 120px;
+  height: 20px;
+  border-radius: 4px;
+}
+
+.instructor-placeholder__title {
+  width: 80px;
+  height: 16px;
+  border-radius: 4px;
+}
+
+.instructor-placeholder__desc {
+  width: 100%;
+  height: 14px;
+  border-radius: 4px;
+}
+
+/* ========== Ranking Placeholder ========== */
+.ranking-placeholder {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 12px 15px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ranking-placeholder__avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ranking-placeholder__info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ranking-placeholder__name {
+  width: 100px;
+  height: 18px;
+  border-radius: 4px;
+}
+
+.ranking-placeholder__count {
+  width: 60px;
+  height: 14px;
+  border-radius: 4px;
+}
+
+/* ========== Card Placeholder ========== */
+.card-placeholder {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.card-placeholder__image {
+  width: 100%;
+  height: 200px;
+}
+
+.card-placeholder__content {
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card-placeholder__title {
+  width: 70%;
+  height: 20px;
+  border-radius: 4px;
+}
+
+.card-placeholder__price {
+  width: 40%;
+  height: 24px;
+  border-radius: 4px;
+}
+
+.card-placeholder__desc {
+  width: 100%;
+  height: 14px;
+  border-radius: 4px;
+}
+
+/* ========== List Placeholder ========== */
+.list-placeholder {
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.list-placeholder__line {
+  height: 16px;
+  border-radius: 4px;
+  width: 100%;
+}
+
+.list-placeholder__line.short {
+  width: 60%;
+}
+
+/* ========== 加载提示信息 ========== */
+.data-placeholder-message {
+  text-align: center;
+  padding: 30px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(0, 255, 255, 0.1);
+  border-top-color: rgba(0, 255, 255, 0.8);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.message-text {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
+  margin: 0;
+}
+
+.retry-info {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 12px;
+  margin: 0;
+}
+
+/* ========== 响应式 ========== */
+@media (max-width: 768px) {
+  .instructor-placeholder__avatar {
+    width: 60px;
+    height: 60px;
+  }
+
+  .instructor-placeholder__name {
+    width: 100px;
+  }
+
+  .ranking-placeholder__avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .card-placeholder__image {
+    height: 150px;
+  }
+
+  .loading-spinner {
+    width: 30px;
+    height: 30px;
+    border-width: 2px;
+  }
+}

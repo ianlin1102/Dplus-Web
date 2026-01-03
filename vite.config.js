@@ -8,7 +8,18 @@ export default defineConfig({
   server: {
     port: 5176, // 改用 5176 端口（5173-5175 都被占用）
     strictPort: false, // 如果端口被占用，自动尝试下一个端口
-    open: true // 启动时自动打开浏览器
+    open: true, // 启动时自动打开浏览器
+    hmr: {
+      overlay: false // 禁用错误覆盖层，减少渲染压力
+    },
+    watch: {
+      usePolling: false, // 禁用轮询，使用原生文件系统事件
+      ignored: ['**/node_modules/**', '**/.git/**'] // 忽略不需要监听的目录
+    }
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'react-router-dom'], // 预构建依赖
+    exclude: [] // 排除预构建
   },
   build: {
     outDir: 'dist',

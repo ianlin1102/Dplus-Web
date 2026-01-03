@@ -1,4 +1,7 @@
 import { useLanguage } from '../../i18n/LanguageContext'
+import { useDataWithRetry } from '../../hooks/useDataWithRetry'
+import { getCardListHTTP } from '../../services/httpApi'
+import DataPlaceholder from '../../components/DataPlaceholder'
 import './CardStore.css'
 
 // Card types from smartbeauty: 次数卡 (Times Card) and 余额卡 (Balance Card)
@@ -92,6 +95,31 @@ const cards = {
 function CardStore() {
   const { t, language } = useLanguage()
 
+  // 使用自动重试 Hook 加载卡项数据
+  const {
+    data: apiCards,
+    loading: cardsLoading,
+    hasData: hasCards,
+    retryCount: cardRetryCount
+  } = useDataWithRetry(
+    async () => {
+      const result = await getCardListHTTP(20, 1)
+      if (result.code === 200 && result.data) {
+        return result.data.list || []
+      }
+      return []
+    },
+    {
+      cacheKey: 'card_list',
+      cacheTTL: 24 * 60 * 60 * 1000, // 24小时
+      retryInterval: 60000, // 1分钟
+      enableRetry: true
+    }
+  )
+
+  // 如果 API 返回数据，使用 API 数据；否则使用静态数据作为后备
+  const displayCards = hasCards && apiCards.length > 0 ? apiCards : cards[language]
+
   return (
     <div className="store-page">
       <div className="bg-grid-pattern grid-overlay" />
@@ -112,32 +140,60 @@ function CardStore() {
           </div>
         </div>
 
-        <div className="cards-grid">
-          {cards[language].map((card) => {
-            const neonClass = `neon-border-${card.theme}`
-            const titleColor = card.theme === 'cyan' ? 'text-cyan' : card.theme === 'pink' ? 'text-pink' : 'text-green'
+        {/* 加载状态显示 Placeholder */}
+        {cardsLoading && !hasCards ? (
+          <DataPlaceholder
+            type="card"
+            count={4}
+            message={language === 'zh' ? '正在加载卡项信息...' : 'Loading card information...'}
+            retryCount={cardRetryCount}
+          />
+        ) : (
+          <div className="cards-grid">
+            {displayCards.map((card, index) => {
+            // 处理 API 数据和静态数据的不同结构
+            const cardId = card._id || card.id || index
+            const cardName = card.CARD_TITLE || card.name || ''
+            const cardType = card.CARD_TYPE === 1 ? (language === 'zh' ? '次数卡' : 'Class Pack') :
+                             card.CARD_TYPE === 2 ? (language === 'zh' ? '余额卡' : 'Credit Card') :
+                             (card.type || '')
+            const cardPrice = card.CARD_PRICE || card.price || 0
+            const cardValue = card.CARD_CNT ? `${card.CARD_CNT}${language === 'zh' ? '次' : ' classes'}` :
+                              card.CARD_BALANCE ? `$${card.CARD_BALANCE}${language === 'zh' ? '余额' : ' balance'}` :
+                              (card.value || '')
+
+            // 默认主题颜色
+            const cardTheme = card.theme || (index % 3 === 0 ? 'cyan' : index % 3 === 1 ? 'pink' : 'green')
+            const neonClass = `neon-border-${cardTheme}`
+            const titleColor = cardTheme === 'cyan' ? 'text-cyan' : cardTheme === 'pink' ? 'text-pink' : 'text-green'
+
+            // 特性列表
+            const cardFeatures = card.features || []
+            const isPopular = card.popular || card.CARD_HOME > 0
 
             return (
-              <div key={card.id} className={`plan-card ${neonClass} ${card.popular ? 'popular' : ''}`}>
-                {card.popular && <span className="popular-badge">{language === 'zh' ? '热门' : 'Popular'}</span>}
+              <div key={cardId} className={`plan-card ${neonClass} ${isPopular ? 'popular' : ''}`}>
+                {isPopular && <span className="popular-badge">{language === 'zh' ? '热门' : 'Popular'}</span>}
 
-                <span className={`card-type-label ${card.theme}`}>{card.type}</span>
+                <span className={`card-type-label ${cardTheme}`}>{cardType}</span>
 
                 <h3 className={`plan-name ${titleColor}`}>
-                  {card.name}
+                  {cardName}
                 </h3>
 
                 <div className="plan-price">
                   <span className="price-currency">$</span>
-                  {card.price}
+                  {cardPrice}
                 </div>
-                <p className="plan-count">/ {card.value}</p>
+                <p className="plan-count">/ {cardValue}</p>
 
-                <ul className="plan-features">
-                  {card.features.map((feature, idx) => (
-                    <li key={idx}>{feature}</li>
-                  ))}
-                </ul>
+                {cardFeatures.length > 0 && (
+                  <ul className="plan-features">
+                    {cardFeatures.map((feature, idx) => (
+                      <li key={idx}>{feature}</li>
+                    ))}
+                  </ul>
+                )}
 
                 <button className="plan-button">
                   {t('store.buy')}
@@ -145,7 +201,8 @@ function CardStore() {
               </div>
             )
           })}
-        </div>
+          </div>
+        )}
 
         {/* Payment Info */}
         <section className="payment-section">

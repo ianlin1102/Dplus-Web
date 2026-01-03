@@ -1,58 +1,247 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useLanguage } from '../../i18n/LanguageContext'
+import { getMeetListByWeek, dateUtils } from '../../services/meetService'
+import { convertCloudUrl } from '../../utils/cloudUrlHelper'
 import './Calendar.css'
 
-// Service types from smartbeauty
-const serviceTypes = {
+// 示例数据（当 API 无数据时使用）
+const demoMeets = {
   zh: [
-    { id: 1, name: 'Hip-Hop', color: '#FF6B6B' },
-    { id: 2, name: 'K-Pop', color: '#4ECDC4' },
-    { id: 3, name: 'Jazz Funk', color: '#FFD93D' },
-    { id: 4, name: '古典舞', color: '#A8E6CF' },
+    {
+      _id: 'demo1',
+      MEET_TITLE: 'Hip-Hop 基础班',
+      MEET_INSTRUCTOR_NAME: '导师 Jay',
+      MEET_TYPE_NAME: 'Hip-Hop',
+      day: '',
+      times: [{ start: '10:00', end: '11:30', limit: 20, stat: { succCnt: 5 } }]
+    },
+    {
+      _id: 'demo2',
+      MEET_TITLE: 'K-Pop 编舞课',
+      MEET_INSTRUCTOR_NAME: '导师 Lisa',
+      MEET_TYPE_NAME: 'K-Pop',
+      day: '',
+      times: [{ start: '14:00', end: '15:30', limit: 15, stat: { succCnt: 12 } }]
+    },
+    {
+      _id: 'demo3',
+      MEET_TITLE: 'Jazz Funk 进阶',
+      MEET_INSTRUCTOR_NAME: '导师 Mike',
+      MEET_TYPE_NAME: 'Jazz Funk',
+      day: '',
+      times: [{ start: '19:00', end: '20:30', limit: 10, stat: { succCnt: 10 } }]
+    }
   ],
   en: [
-    { id: 1, name: 'Hip-Hop', color: '#FF6B6B' },
-    { id: 2, name: 'K-Pop', color: '#4ECDC4' },
-    { id: 3, name: 'Jazz Funk', color: '#FFD93D' },
-    { id: 4, name: 'Classical', color: '#A8E6CF' },
-  ],
+    {
+      _id: 'demo1',
+      MEET_TITLE: 'Hip-Hop Basics',
+      MEET_INSTRUCTOR_NAME: 'Jay',
+      MEET_TYPE_NAME: 'Hip-Hop',
+      day: '',
+      times: [{ start: '10:00', end: '11:30', limit: 20, stat: { succCnt: 5 } }]
+    },
+    {
+      _id: 'demo2',
+      MEET_TITLE: 'K-Pop Choreo',
+      MEET_INSTRUCTOR_NAME: 'Lisa',
+      MEET_TYPE_NAME: 'K-Pop',
+      day: '',
+      times: [{ start: '14:00', end: '15:30', limit: 15, stat: { succCnt: 12 } }]
+    },
+    {
+      _id: 'demo3',
+      MEET_TITLE: 'Jazz Funk Advanced',
+      MEET_INSTRUCTOR_NAME: 'Mike',
+      MEET_TYPE_NAME: 'Jazz Funk',
+      day: '',
+      times: [{ start: '19:00', end: '20:30', limit: 10, stat: { succCnt: 10 } }]
+    }
+  ]
 }
 
-// Demo courses for the schedule
-const courses = {
-  zh: [
-    { id: 1, name: 'Hip-Hop 基础班', duration: '60分钟', instructor: '导师 Jay', time: '10:00', type: 'Hip-Hop', color: '#FF6B6B', spots: 8 },
-    { id: 2, name: 'K-Pop 编舞', duration: '90分钟', instructor: '导师 Lisa', time: '14:00', type: 'K-Pop', color: '#4ECDC4', spots: 3 },
-    { id: 3, name: 'Jazz Funk 进阶', duration: '90分钟', instructor: '导师 Mike', time: '16:00', type: 'Jazz Funk', color: '#FFD93D', spots: 0 },
-    { id: 4, name: '古典舞入门', duration: '60分钟', instructor: '导师 小雅', time: '19:00', type: '古典舞', color: '#A8E6CF', spots: 12 },
-  ],
-  en: [
-    { id: 1, name: 'Hip-Hop Basics', duration: '60 min', instructor: 'Jay', time: '10:00', type: 'Hip-Hop', color: '#FF6B6B', spots: 8 },
-    { id: 2, name: 'K-Pop Choreo', duration: '90 min', instructor: 'Lisa', time: '14:00', type: 'K-Pop', color: '#4ECDC4', spots: 3 },
-    { id: 3, name: 'Jazz Funk Advanced', duration: '90 min', instructor: 'Mike', time: '16:00', type: 'Jazz Funk', color: '#FFD93D', spots: 0 },
-    { id: 4, name: 'Classical Intro', duration: '60 min', instructor: 'Xiaoya', time: '19:00', type: 'Classical', color: '#A8E6CF', spots: 12 },
-  ],
+// 类型颜色映射
+const typeColors = {
+  'Hip-Hop': '#FF6B6B',
+  'K-Pop': '#4ECDC4',
+  'Jazz Funk': '#FFD93D',
+  '古典舞': '#A8E6CF',
+  'Classical': '#A8E6CF',
+  'default': '#6366f1'
+}
+
+// 生成 8 周的周范围列表
+function generateWeekButtons(language = 'zh') {
+  const weeks = []
+  const today = new Date()
+
+  // 获取本周一（周一为一周开始）
+  const dayOfWeek = today.getDay()
+  const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek // 周日时回退6天，否则回退到周一
+  const monday = new Date(today)
+  monday.setDate(today.getDate() + diff)
+  monday.setHours(0, 0, 0, 0)
+
+  for (let i = 0; i < 8; i++) {
+    const weekStart = new Date(monday)
+    weekStart.setDate(monday.getDate() + i * 7)
+
+    const weekEnd = new Date(weekStart)
+    weekEnd.setDate(weekStart.getDate() + 6)
+
+    const startDate = weekStart.toISOString().split('T')[0]
+    const endDate = weekEnd.toISOString().split('T')[0]
+
+    // 格式化显示标签
+    const startMonth = weekStart.getMonth() + 1
+    const startDay = weekStart.getDate()
+    const endMonth = weekEnd.getMonth() + 1
+    const endDay = weekEnd.getDate()
+
+    let label
+    if (language === 'zh') {
+      if (startMonth === endMonth) {
+        label = `${startMonth}/${startDay} - ${endDay}`
+      } else {
+        label = `${startMonth}/${startDay} - ${endMonth}/${endDay}`
+      }
+    } else {
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+      if (startMonth === endMonth) {
+        label = `${months[startMonth - 1]} ${startDay}-${endDay}`
+      } else {
+        label = `${months[startMonth - 1]} ${startDay} - ${months[endMonth - 1]} ${endDay}`
+      }
+    }
+
+    weeks.push({
+      startDate,
+      endDate,
+      label,
+      isCurrentWeek: i === 0
+    })
+  }
+
+  return weeks
+}
+
+// 按时间排序课程（周日期 + 时间）
+function sortMeetsByTime(meets) {
+  return [...meets].sort((a, b) => {
+    // 先按日期排序
+    if (a.day !== b.day) {
+      return a.day.localeCompare(b.day)
+    }
+    // 同一天按时间排序
+    const timeA = a.times?.[0]?.start || '00:00'
+    const timeB = b.times?.[0]?.start || '00:00'
+    return timeA.localeCompare(timeB)
+  })
+}
+
+// 获取星期几文字
+function getWeekdayLabel(dateStr, language) {
+  const date = new Date(dateStr)
+  const dayIndex = date.getDay()
+  const weekdaysZh = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+  const weekdaysEn = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  return language === 'zh' ? weekdaysZh[dayIndex] : weekdaysEn[dayIndex]
+}
+
+// 格式化日期显示
+function formatDateLabel(dateStr, language) {
+  const date = new Date(dateStr)
+  const month = date.getMonth() + 1
+  const day = date.getDate()
+  const weekday = getWeekdayLabel(dateStr, language)
+
+  if (language === 'zh') {
+    return `${month}/${day} ${weekday}`
+  } else {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    return `${weekday}, ${months[month - 1]} ${day}`
+  }
 }
 
 function Calendar() {
   const { t, language } = useLanguage()
-  const [selectedDay, setSelectedDay] = useState(17)
-  const [selectedType, setSelectedType] = useState(null)
 
-  // Generate days for the date scroller
-  const weekdaysZh = ['日', '一', '二', '三', '四', '五', '六']
-  const weekdaysEn = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-  const weekdays = language === 'zh' ? weekdaysZh : weekdaysEn
+  // 周按钮列表
+  const [weekButtons] = useState(() => generateWeekButtons(language))
+  const [selectedWeekIndex, setSelectedWeekIndex] = useState(0)
 
-  const days = Array.from({ length: 14 }, (_, i) => ({
-    day: i + 15,
-    weekday: weekdays[(i + 2) % 7]
-  }))
+  // 数据状态
+  const [meets, setMeets] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [useDemo, setUseDemo] = useState(false)
 
-  // Filter courses by type
-  const filteredCourses = selectedType
-    ? courses[language].filter(c => c.type === selectedType)
-    : courses[language]
+  // 当前选中的周
+  const selectedWeek = weekButtons[selectedWeekIndex]
+
+  // 加载数据
+  const loadData = useCallback(async () => {
+    if (!selectedWeek) return
+
+    setLoading(true)
+    try {
+      const weekResult = await getMeetListByWeek(selectedWeek.startDate, selectedWeek.endDate)
+      if (weekResult.code === 200 && weekResult.data && weekResult.data.length > 0) {
+        // 按时间排序
+        const sorted = sortMeetsByTime(weekResult.data)
+        setMeets(sorted)
+        setUseDemo(false)
+      } else {
+        // 使用示例数据
+        const demos = demoMeets[language].map((m, i) => ({
+          ...m,
+          day: selectedWeek.startDate // 放在第一天
+        }))
+        setMeets(demos)
+        setUseDemo(true)
+      }
+    } catch (error) {
+      console.error('加载数据失败:', error)
+      // 使用示例数据
+      const demos = demoMeets[language].map((m) => ({
+        ...m,
+        day: selectedWeek.startDate
+      }))
+      setMeets(demos)
+      setUseDemo(true)
+    } finally {
+      setLoading(false)
+    }
+  }, [selectedWeek, language])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
+
+  // 计算时长
+  const calculateDuration = (start, end) => {
+    if (!start || !end) return ''
+    const [sh, sm] = start.split(':').map(Number)
+    const [eh, em] = end.split(':').map(Number)
+    const diff = (eh * 60 + em) - (sh * 60 + sm)
+    if (diff < 60) return `${diff}${language === 'zh' ? '分钟' : 'min'}`
+    const h = Math.floor(diff / 60)
+    const m = diff % 60
+    if (m === 0) return `${h}${language === 'zh' ? '小时' : 'h'}`
+    return `${h}${language === 'zh' ? '小时' : 'h'}${m}${language === 'zh' ? '分钟' : 'min'}`
+  }
+
+  // 按日期分组课程
+  const groupedMeets = meets.reduce((acc, meet) => {
+    const day = meet.day
+    if (!acc[day]) {
+      acc[day] = []
+    }
+    acc[day].push(meet)
+    return acc
+  }, {})
+
+  // 获取排序后的日期列表
+  const sortedDays = Object.keys(groupedMeets).sort()
 
   return (
     <div className="calendar-page">
@@ -61,85 +250,114 @@ function Calendar() {
       <div className="calendar-container">
         <h1 className="calendar-title">{t('calendar.title')}</h1>
 
-        {/* Service Type Filter */}
-        <div className="type-filter">
-          <button
-            className={`filter-btn ${!selectedType ? 'active' : ''}`}
-            onClick={() => setSelectedType(null)}
-          >
-            {t('calendar.all')}
-          </button>
-          {serviceTypes[language].map((type) => (
-            <button
-              key={type.id}
-              className={`filter-btn ${selectedType === type.name ? 'active' : ''}`}
-              style={{ '--accent-color': type.color }}
-              onClick={() => setSelectedType(type.name)}
-            >
-              {type.name}
-            </button>
-          ))}
+        {/* 周选择按钮 */}
+        <div className="week-buttons-container">
+          <div className="week-buttons">
+            {weekButtons.map((week, index) => (
+              <button
+                key={week.startDate}
+                className={`week-button ${selectedWeekIndex === index ? 'active' : ''} ${week.isCurrentWeek ? 'current' : ''}`}
+                onClick={() => setSelectedWeekIndex(index)}
+              >
+                {week.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Date Scroller */}
-        <div className="date-scroller scrollbar-hide">
-          {days.map(({ day, weekday }) => (
-            <button
-              key={day}
-              onClick={() => setSelectedDay(day)}
-              className={`date-item ${day === selectedDay ? 'active neon-border-cyan' : ''}`}
-            >
-              <span className="date-weekday">{language === 'zh' ? `周${weekday}` : weekday}</span>
-              <span className="date-day">{day}</span>
-              <span className="date-month">{language === 'zh' ? '12月' : 'Dec'}</span>
-            </button>
-          ))}
-        </div>
-
-        {/* Course List */}
-        <div className="course-list">
-          {filteredCourses.length > 0 ? (
-            filteredCourses.map((course) => (
-              <div key={course.id} className="course-card" style={{ '--course-color': course.color }}>
-                <div className="course-time">
-                  <span className="time-value">{course.time}</span>
+        {/* 课程列表 */}
+        <div className="meet-list">
+          {loading ? (
+            <div className="loading-state">
+              <div className="loading-spinner" />
+              <p>{language === 'zh' ? '加载中...' : 'Loading...'}</p>
+            </div>
+          ) : meets.length > 0 ? (
+            sortedDays.map(day => (
+              <div key={day} className="day-group">
+                <div className="day-header">
+                  <span className="day-label">{formatDateLabel(day, language)}</span>
                 </div>
-                <div className="course-info">
-                  <div className="course-type-tag" style={{ background: course.color }}>
-                    {course.type}
+
+                {groupedMeets[day].map((meet) => (
+                  <div key={`${meet._id}-${meet.day}`} className="meet-card">
+                    <div
+                      className="meet-card-accent"
+                      style={{ background: typeColors[meet.MEET_TYPE_NAME] || typeColors.default }}
+                    />
+
+                    <div className="meet-card-time">
+                      {meet.times && meet.times[0] && (
+                        <>
+                          <span className="time-range">
+                            {meet.times[0].start} - {meet.times[0].end}
+                          </span>
+                          <span className="time-duration">
+                            {calculateDuration(meet.times[0].start, meet.times[0].end)}
+                          </span>
+                        </>
+                      )}
+                    </div>
+
+                    <div className="meet-card-content">
+                      <span
+                        className="meet-type-tag"
+                        style={{ background: typeColors[meet.MEET_TYPE_NAME] || typeColors.default }}
+                      >
+                        {meet.MEET_TYPE_NAME}
+                      </span>
+                      <h3 className="meet-title">{meet.MEET_TITLE}</h3>
+                      <p className="meet-instructor">{meet.MEET_INSTRUCTOR_NAME}</p>
+
+                      {meet.times && meet.times[0] && (
+                        <div className="meet-spots">
+                          <span className={`spots-count ${meet.times[0].stat?.succCnt >= meet.times[0].limit ? 'full' : ''}`}>
+                            {language === 'zh'
+                              ? `已约 ${meet.times[0].stat?.succCnt || 0}/${meet.times[0].limit} 人`
+                              : `${meet.times[0].stat?.succCnt || 0}/${meet.times[0].limit} booked`}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {meet.MEET_INSTRUCTOR_PIC && (
+                      <div className="meet-card-avatar">
+                        <img
+                          src={convertCloudUrl(meet.MEET_INSTRUCTOR_PIC)}
+                          alt={meet.MEET_INSTRUCTOR_NAME}
+                          onError={(e) => { e.target.style.display = 'none' }}
+                        />
+                      </div>
+                    )}
                   </div>
-                  <h3 className="course-name">{course.name}</h3>
-                  <p className="course-meta">{course.instructor} • {course.duration}</p>
-                </div>
-                <div className="course-action">
-                  <span className={`spots-left ${course.spots === 0 ? 'full' : course.spots <= 3 ? 'limited' : ''}`}>
-                    {course.spots === 0 ? t('calendar.full') : `${course.spots} ${t('calendar.spots')} ${t('calendar.spotsLeft')}`}
-                  </span>
-                  <button className="course-button" disabled={course.spots === 0}>
-                    {course.spots === 0 ? t('calendar.full') : t('calendar.book')}
-                  </button>
-                </div>
+                ))}
               </div>
             ))
           ) : (
             <div className="empty-state">
-              <p>{t('calendar.noClass')}</p>
+              <p>{language === 'zh' ? '本周暂无课程安排' : 'No classes scheduled for this week'}</p>
             </div>
           )}
         </div>
 
-        {/* Legend */}
+        {useDemo && (
+          <div className="demo-notice">
+            {language === 'zh' ? '当前显示的是示例数据' : 'Showing demo data'}
+          </div>
+        )}
+
+        {/* 状态说明 */}
         <div className="schedule-legend">
           <div className="legend-item">
-            <span className="legend-dot available"></span>
+            <span className="legend-dot available" />
             <span>{t('calendar.legendAvailable')}</span>
           </div>
           <div className="legend-item">
-            <span className="legend-dot limited"></span>
+            <span className="legend-dot limited" />
             <span>{t('calendar.legendLimited')}</span>
           </div>
           <div className="legend-item">
-            <span className="legend-dot full"></span>
+            <span className="legend-dot full" />
             <span>{t('calendar.legendFull')}</span>
           </div>
         </div>

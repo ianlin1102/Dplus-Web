@@ -41,8 +41,9 @@ export const callCloudRouteHTTP = async (route, params = {}) => {
 
     const result = await response.json()
 
-    if (result && result.code === 0) {
-      return result.data
+    // 云函数成功返回 code: 200 (appCode.SUCC)
+    if (result && result.code === 200) {
+      return result
     } else {
       throw new Error(result.msg || '请求失败')
     }
@@ -85,8 +86,55 @@ export const clearRankCacheHTTP = async () => {
   }
 }
 
+/**
+ * 获取卡项列表
+ * 注意: 使用 card/home_list 替代 card/list（后者在 HTTP 调用时有问题）
+ * @param {number} limit - 限制数量，默认 20
+ * @param {number} status - 状态筛选 (1:上架, 0:下架)，默认 1
+ * @returns {Promise} 卡项列表数据
+ */
+export const getCardListHTTP = async (limit = 20, status = 1) => {
+  try {
+    // 使用 card/home_list 替代 card/list
+    // card/home_list 在 HTTP 调用时工作正常，返回相同的字段结构
+    const result = await callCloudRouteHTTP('card/home_list', {
+      limit
+    })
+    // 包装返回数据以保持与 card/list 相同的结构
+    return {
+      ...result,
+      data: {
+        list: result.data || [],
+        total: (result.data || []).length
+      }
+    }
+  } catch (error) {
+    console.error('获取卡项列表失败:', error)
+    throw error
+  }
+}
+
+/**
+ * 获取首页推荐卡项
+ * @param {number} limit - 限制数量，默认 6
+ * @returns {Promise} 推荐卡项数据
+ */
+export const getHomeCardListHTTP = async (limit = 6) => {
+  try {
+    const result = await callCloudRouteHTTP('card/home_list', {
+      limit
+    })
+    return result
+  } catch (error) {
+    console.error('获取首页卡项失败:', error)
+    throw error
+  }
+}
+
 export default {
   callCloudRouteHTTP,
   getRankListHTTP,
-  clearRankCacheHTTP
+  clearRankCacheHTTP,
+  getCardListHTTP,
+  getHomeCardListHTTP
 }

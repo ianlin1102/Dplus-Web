@@ -1,6 +1,14 @@
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Calendar, CreditCard, BookOpen, Info } from 'lucide-react'
 import { useLanguage } from '../../i18n/LanguageContext'
+import { getInstructorList } from '../../services/instructorService'
+import { convertObjectUrls } from '../../utils/cloudUrlHelper'
+import InstructorCard from '../../components/InstructorCard'
+import InstructorModal from '../../components/InstructorModal'
+import RankingPodium from '../../components/RankingPodium'
+import DataPlaceholder from '../../components/DataPlaceholder'
+import { useDataWithRetry } from '../../hooks/useDataWithRetry'
 import './Home.css'
 
 // Service types from smartbeauty
@@ -19,25 +27,51 @@ const serviceTypes = {
   ],
 }
 
-// Demo instructors
-const instructors = {
-  zh: [
-    { id: 1, name: '导师 Jay', specialty: 'Hip-Hop' },
-    { id: 2, name: '导师 Lisa', specialty: 'K-Pop' },
-    { id: 3, name: '导师 Mike', specialty: 'Jazz Funk' },
-    { id: 4, name: '导师 小雅', specialty: '古典舞' },
-  ],
-  en: [
-    { id: 1, name: 'Jay', specialty: 'Hip-Hop' },
-    { id: 2, name: 'Lisa', specialty: 'K-Pop' },
-    { id: 3, name: 'Mike', specialty: 'Jazz Funk' },
-    { id: 4, name: 'Xiaoya', specialty: 'Classical' },
-  ],
-}
-
 function Home() {
   const navigate = useNavigate()
   const { t, language } = useLanguage()
+
+  // 使用自动重试 Hook 加载导师列表
+  const {
+    data: instructors,
+    loading: instructorsLoading,
+    error: instructorsError,
+    hasData: hasInstructors,
+    retryCount: instructorRetryCount
+  } = useDataWithRetry(
+    async () => {
+      const result = await getInstructorList()
+      if (result.code === 200 && result.data && result.data.list) {
+        // 转换 cloud:// URL 为 HTTPS URL
+        return result.data.list.map(instructor =>
+          convertObjectUrls(instructor, ['INSTRUCTOR_PIC'])
+        )
+      }
+      return []
+    },
+    {
+      cacheKey: 'instructor_list',
+      cacheTTL: 7 * 24 * 60 * 60 * 1000, // 7天
+      retryInterval: 60000, // 1分钟
+      enableRetry: true
+    }
+  )
+
+  // 导师弹窗状态
+  const [selectedInstructor, setSelectedInstructor] = useState(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+
+  // 处理导师卡片点击 - 打开弹窗
+  const handleInstructorClick = (instructor) => {
+    setSelectedInstructor(instructor)
+    setIsModalOpen(true)
+  }
+
+  // 关闭弹窗
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setSelectedInstructor(null)
+  }
 
   const menuItems = [
     { icon: Calendar, label: t('home.menuBook'), path: '/appointments', color: 'cyan' },
@@ -57,10 +91,6 @@ function Home() {
           {t('home.brandName')} <br />
           <span className="hero-title-accent">STUDIO</span>
         </h1>
-
-        <p className="test-deployment" style={{ color: '#4ECDC4', fontSize: '1.2em', marginTop: '10px' }}>
-          ✅ GitHub Actions CI/CD 已配置成功 - Deployment Automated!
-        </p>
 
         <p className="hero-subtitle">
           {t('home.subtitle')}
@@ -86,11 +116,11 @@ function Home() {
       {/* Quick Menu - matching smartbeauty structure */}
       <section className="menu-section">
         <div className="menu-grid">
-          {menuItems.map((item, index) => {
+          {menuItems.map((item) => {
             const Icon = item.icon
             return (
               <div
-                key={index}
+                key={item.path}
                 className={`menu-item neon-border-${item.color}`}
                 onClick={() => navigate(item.path)}
               >
@@ -126,24 +156,34 @@ function Home() {
       {/* Instructor Section - matching smartbeauty template */}
       <section className="instructor-section">
         <div className="section-header">
-          <h2 className="section-title">{language === 'zh' ? '导师团队' : 'Instructors'}</h2>
-          <button className="section-more" onClick={() => navigate('/about')}>
-            {language === 'zh' ? '更多' : 'More'}
-          </button>
+          <h2 className="section-title">{t('home.instructorTitle', language === 'zh' ? '导师团队' : 'Instructors')}</h2>
         </div>
-        <div className="instructor-grid">
-          {instructors[language].map((instructor) => (
-            <div key={instructor.id} className="instructor-card">
-              <div className="instructor-avatar neon-border-cyan">
-                {instructor.name.charAt(language === 'zh' ? 3 : 0)}
-              </div>
-              <div className="instructor-info">
-                <span className="instructor-name">{instructor.name}</span>
-                <span className="instructor-specialty">{instructor.specialty}</span>
-              </div>
-            </div>
-          ))}
+        {instructorsLoading || !hasInstructors ? (
+          <DataPlaceholder
+            type="instructor"
+            count={3}
+            message={language === 'zh' ? '正在加载导师信息...' : 'Loading instructors...'}
+            retryCount={instructorRetryCount}
+          />
+        ) : (
+          <div className="instructor-list">
+            {instructors.map((instructor) => (
+              <InstructorCard
+                key={instructor._id}
+                instructor={instructor}
+                onClick={handleInstructorClick}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Ranking Section - Check-in Leaderboard */}
+      <section className="ranking-section">
+        <div className="section-header">
+          <h2 className="section-title">{t('home.rankingTitle', language === 'zh' ? '上课排行榜' : 'Check-in Leaderboard')}</h2>
         </div>
+        <RankingPodium limit={10} />
       </section>
 
       {/* News Section - matching smartbeauty categories */}
@@ -178,6 +218,13 @@ function Home() {
           </button>
         </div>
       </section>
+
+      {/* 导师详情弹窗 */}
+      <InstructorModal
+        instructor={selectedInstructor}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
     </div>
   )
 }
