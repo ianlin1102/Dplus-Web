@@ -1,129 +1,173 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { getCheckInRanking } from '../services/rankingService'
 import { useLanguage } from '../i18n/LanguageContext'
-import { useDataWithRetry } from '../hooks/useDataWithRetry'
-import DataPlaceholder from './DataPlaceholder'
 import './RankingPodium.css'
 
 const RankingPodium = ({ limit = 10 }) => {
-  const { t, language } = useLanguage()
+  const { language } = useLanguage()
   const [type, setType] = useState('all') // 'all' | 'month'
+  const [rankList, setRankList] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [maxCount, setMaxCount] = useState(1)
 
-  // 使用自动重试 Hook 加载排行榜数据
-  const {
-    data: rankList,
-    loading,
-    error,
-    hasData,
-    retry,
-    retryCount
-  } = useDataWithRetry(
-    async () => {
-      const result = await getCheckInRanking(type, limit)
-      if (result.code === 200 && result.data) {
-        return result.data.list || []
+  // 加载排行榜数据
+  const loadRankData = async (rankType) => {
+    setLoading(true)
+    try {
+      const result = await getCheckInRanking(rankType, limit)
+      if (result.code === 200 && result.data && result.data.list) {
+        const list = result.data.list
+        // 计算最大签到次数用于高度比例
+        const max = list.length > 0 ? Math.max(...list.map(i => i.checkinCount)) : 1
+        setMaxCount(max)
+        setRankList(list)
+      } else {
+        setRankList([])
       }
-      return []
-    },
-    {
-      cacheKey: `ranking_${type}_${limit}`,
-      cacheTTL: 30 * 60 * 1000, // 30分钟
-      retryInterval: 60000, // 1分钟
-      enableRetry: true
+    } catch (error) {
+      console.error('加载排行榜失败:', error)
+      setRankList([])
+    } finally {
+      setLoading(false)
     }
-  )
-
-  const handleRefresh = () => {
-    // 清除本地缓存并重新加载
-    localStorage.removeItem(`ranking_${type}_${limit}`)
-    retry()
   }
 
-  const handleTabChange = (newType) => {
-    setType(newType)
+  useEffect(() => {
+    loadRankData(type)
+  }, [type])
+
+  // 切换榜单类型
+  const handleToggle = () => {
+    setType(prev => prev === 'all' ? 'month' : 'all')
   }
 
-  // 获取前三名和其余列表
-  const topThree = rankList ? rankList.slice(0, 3) : []
-  const restList = rankList ? rankList.slice(3) : []
+  // 计算柱子高度（相对于最大值的比例）
+  const getBarHeight = (count) => {
+    const minHeight = 60
+    const maxHeight = 140
+    const ratio = count / maxCount
+    return minHeight + (maxHeight - minHeight) * ratio
+  }
+
+  // 前3名
+  const topThree = rankList.slice(0, 3)
+  // 第4名及以后
+  const restList = rankList.slice(3)
 
   return (
     <div className="ranking-podium">
-      {/* Tab 切换 */}
-      <div className="ranking-podium__tabs">
+      {/* Toggle 切换按钮 */}
+      <div className="ranking-toggle">
         <button
-          className={`ranking-podium__tab ${type === 'all' ? 'active' : ''}`}
-          onClick={() => handleTabChange('all')}
+          className={`toggle-btn ${type === 'all' ? 'active' : ''}`}
+          onClick={() => setType('all')}
         >
-          {t('home.totalRank', '总榜')}
+          {language === 'zh' ? '总榜' : 'All Time'}
         </button>
         <button
-          className={`ranking-podium__tab ${type === 'month' ? 'active' : ''}`}
-          onClick={() => handleTabChange('month')}
+          className={`toggle-btn ${type === 'month' ? 'active' : ''}`}
+          onClick={() => setType('month')}
         >
-          {t('home.monthRank', '月榜')}
-        </button>
-        <button
-          className="ranking-podium__refresh"
-          onClick={handleRefresh}
-          disabled={loading}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
+          {language === 'zh' ? '月榜' : 'Monthly'}
         </button>
       </div>
 
-      {/* 加载状态或无数据显示 Placeholder */}
-      {(loading || !hasData) && (
-        <DataPlaceholder
-          type="ranking"
-          count={5}
-          message={language === 'zh' ? '正在加载排行榜数据...' : 'Loading ranking data...'}
-          retryCount={retryCount}
-        />
+      {/* 加载状态 */}
+      {loading && (
+        <div className="ranking-loading">
+          <div className="spinner"></div>
+          <span>{language === 'zh' ? '加载中...' : 'Loading...'}</span>
+        </div>
       )}
 
-      {/* 颁奖台 - 前三名 */}
-      {hasData && topThree.length > 0 && (
-        <div className="ranking-podium__podium">
-          {topThree.map((item, index) => (
-            <div
-              key={item.userId}
-              className={`ranking-podium__place ranking-podium__place--${index + 1}`}
-            >
-              <div className="ranking-podium__medal">
-                {index === 0 && '🥇'}
-                {index === 1 && '🥈'}
-                {index === 2 && '🥉'}
+      {/* 领奖台 - 前3名 */}
+      {!loading && topThree.length > 0 && (
+        <div className="podium-container">
+          <div className="podium">
+            {/* 第2名 - 左侧 */}
+            {topThree[1] && (
+              <div className="podium-item rank-2">
+                <div className="podium-avatar">
+                  {topThree[1].userName?.substring(0, 1) || '?'}
+                </div>
+                <div
+                  className="podium-bar"
+                  style={{ height: `${getBarHeight(topThree[1].checkinCount)}px` }}
+                >
+                  <span className="bar-rank">2</span>
+                </div>
+                <div className="podium-info">
+                  <div className="podium-name">{topThree[1].userName}</div>
+                  <div className="podium-count">{topThree[1].checkinCount}次</div>
+                </div>
               </div>
-              <div className="ranking-podium__avatar">
-                {item.userName ? item.userName[0] : '?'}
+            )}
+
+            {/* 第1名 - 中间 */}
+            {topThree[0] && (
+              <div className="podium-item rank-1">
+                <div className="crown-icon">👑</div>
+                <div className="podium-avatar">
+                  {topThree[0].userName?.substring(0, 1) || '?'}
+                </div>
+                <div
+                  className="podium-bar"
+                  style={{ height: `${getBarHeight(topThree[0].checkinCount)}px` }}
+                >
+                  <span className="bar-rank">1</span>
+                </div>
+                <div className="podium-info">
+                  <div className="podium-name">{topThree[0].userName}</div>
+                  <div className="podium-count">{topThree[0].checkinCount}次</div>
+                </div>
               </div>
-              <div className="ranking-podium__user">
-                <div className="ranking-podium__rank">#{item.rank}</div>
-                <div className="ranking-podium__username">{item.userName}</div>
-                <div className="ranking-podium__count">{item.checkinCount}次</div>
+            )}
+
+            {/* 第3名 - 右侧 */}
+            {topThree[2] && (
+              <div className="podium-item rank-3">
+                <div className="podium-avatar">
+                  {topThree[2].userName?.substring(0, 1) || '?'}
+                </div>
+                <div
+                  className="podium-bar"
+                  style={{ height: `${getBarHeight(topThree[2].checkinCount)}px` }}
+                >
+                  <span className="bar-rank">3</span>
+                </div>
+                <div className="podium-info">
+                  <div className="podium-name">{topThree[2].userName}</div>
+                  <div className="podium-count">{topThree[2].checkinCount}次</div>
+                </div>
               </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 第4名及以后的列表 */}
+      {!loading && restList.length > 0 && (
+        <div className="rank-list">
+          {restList.map((item) => (
+            <div key={item.userId} className="rank-list-item">
+              <span className="rank-num">#{item.rank}</span>
+              <div className="rank-avatar">
+                {item.userName?.substring(0, 1) || '?'}
+              </div>
+              <span className="rank-name">{item.userName}</span>
+              <span className="rank-count">{item.checkinCount}次</span>
             </div>
           ))}
         </div>
       )}
 
-      {/* 完整列表 - 4-10名 */}
-      {hasData && restList.length > 0 && (
-        <div className="ranking-podium__list">
-          {restList.map((item) => (
-            <div key={item.userId} className="ranking-podium__list-item">
-              <div className="ranking-podium__list-rank">#{item.rank}</div>
-              <div className="ranking-podium__list-avatar">
-                {item.userName ? item.userName[0] : '?'}
-              </div>
-              <div className="ranking-podium__list-name">{item.userName}</div>
-              <div className="ranking-podium__list-count">{item.checkinCount}次</div>
-            </div>
-          ))}
+      {/* 空状态 */}
+      {!loading && rankList.length === 0 && (
+        <div className="ranking-empty">
+          <span className="empty-icon">🏆</span>
+          <span className="empty-text">
+            {language === 'zh' ? '暂无排行数据' : 'No ranking data'}
+          </span>
         </div>
       )}
     </div>

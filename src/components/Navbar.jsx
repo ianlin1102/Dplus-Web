@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { User, Menu, X, Home, Calendar, CreditCard, Info, BookOpen, LogOut, Shield } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { User, Menu, X, Home, Calendar, CreditCard, Info, BookOpen, LogOut, Shield, ChevronDown, LayoutDashboard } from 'lucide-react'
 import { useLanguage } from '../i18n/LanguageContext'
 import { useAuth } from '../contexts/AuthContext'
 import './Navbar.css'
@@ -8,6 +8,19 @@ const Navbar = ({ onNavigate, currentPath }) => {
   const { t, language } = useLanguage()
   const { user, isLoggedIn, isAdmin, logout } = useAuth()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false)
+  const dropdownRef = useRef(null)
+
+  // 点击外部关闭下拉菜单
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsUserDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   const navItems = [
     { path: '/', label: t('nav.home'), icon: Home },
@@ -25,18 +38,24 @@ const Navbar = ({ onNavigate, currentPath }) => {
   const handleLogout = () => {
     logout()
     setIsMenuOpen(false)
+    setIsUserDropdownOpen(false)
     onNavigate('/')
   }
 
   const handleUserClick = () => {
     if (isLoggedIn()) {
-      if (isAdmin()) {
-        handleNavigate('/admin/dashboard')
-      } else {
-        handleNavigate('/dashboard')
-      }
+      setIsUserDropdownOpen(!isUserDropdownOpen)
     } else {
       handleNavigate('/login')
+    }
+  }
+
+  const handleDashboardClick = () => {
+    setIsUserDropdownOpen(false)
+    if (isAdmin()) {
+      handleNavigate('/admin/dashboard')
+    } else {
+      handleNavigate('/dashboard')
     }
   }
 
@@ -71,24 +90,42 @@ const Navbar = ({ onNavigate, currentPath }) => {
 
           {/* Right Side - Desktop: User | Mobile: Hamburger */}
           <div className="navbar-right">
-            {/* User Icon - Desktop Only */}
-            <button
-              onClick={handleUserClick}
-              className="user-portal"
-              title={isLoggedIn() ? (isAdmin() ? '管理后台' : t('nav.dashboard')) : '登录'}
-            >
-              <div className="user-info">
-                <p className="welcome-text">
-                  {isLoggedIn() ? t('dashboard.welcome') : (language === 'zh' ? '欢迎' : 'Welcome')}
-                </p>
-                <p className="user-name">
-                  {isLoggedIn() ? user?.name : (language === 'zh' ? '登录' : 'Login')}
-                </p>
-              </div>
-              <div className={`user-avatar ${isAdmin() ? 'admin-avatar' : 'neon-border-cyan'}`}>
-                {isAdmin() ? <Shield size={20} /> : <User size={20} />}
-              </div>
-            </button>
+            {/* User Portal - Desktop Only */}
+            <div className="user-portal-wrapper" ref={dropdownRef}>
+              <button
+                onClick={handleUserClick}
+                className="user-portal"
+                title={isLoggedIn() ? (isAdmin() ? '管理后台' : t('nav.dashboard')) : '登录'}
+              >
+                <div className="user-info">
+                  <p className="welcome-text">
+                    {isLoggedIn() ? t('dashboard.welcome') : (language === 'zh' ? '欢迎' : 'Welcome')}
+                  </p>
+                  <p className="user-name">
+                    {isLoggedIn() ? user?.name : (language === 'zh' ? '登录' : 'Login')}
+                  </p>
+                </div>
+                <div className={`user-avatar ${isAdmin() ? 'admin-avatar' : 'neon-border-cyan'}`}>
+                  {isAdmin() ? <Shield size={20} /> : <User size={20} />}
+                </div>
+                {isLoggedIn() && <ChevronDown size={16} className={`dropdown-arrow ${isUserDropdownOpen ? 'open' : ''}`} />}
+              </button>
+
+              {/* User Dropdown Menu */}
+              {isLoggedIn() && isUserDropdownOpen && (
+                <div className="user-dropdown">
+                  <button onClick={handleDashboardClick} className="dropdown-item">
+                    <LayoutDashboard size={18} />
+                    <span>{isAdmin() ? (language === 'zh' ? '管理后台' : 'Dashboard') : t('nav.dashboard')}</span>
+                  </button>
+                  <div className="dropdown-divider" />
+                  <button onClick={handleLogout} className="dropdown-item logout">
+                    <LogOut size={18} />
+                    <span>{language === 'zh' ? '退出登录' : 'Logout'}</span>
+                  </button>
+                </div>
+              )}
+            </div>
 
             {/* Hamburger Menu - Mobile Only */}
             <button

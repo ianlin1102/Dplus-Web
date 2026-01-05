@@ -5,7 +5,7 @@
 
 // 云存储 HTTP 访问域名
 // 从腾讯云控制台 → 云开发 → 存储 → 设置 中获取
-const CLOUD_STORAGE_DOMAIN = 'https://cloud1-6gnd02he13c1ff2e-1380655578.tcb.qcloud.la'
+const CLOUD_STORAGE_DOMAIN = 'https://636c-cloud1-6gnd02he13c1ff2e-1380655578.tcb.qcloud.la'
 
 /**
  * 转换 cloud:// URL 为 HTTPS URL

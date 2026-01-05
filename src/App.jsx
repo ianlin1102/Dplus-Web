@@ -29,6 +29,7 @@ import RankingTest from './pages/test/RankingTest'
 import CloudTest from './pages/test/CloudTest'
 import CloudFunctionTest from './pages/test/CloudFunctionTest'
 import CardTest from './pages/test/CardTest'
+import CloudStorageTest from './pages/test/CloudStorageTest'
 
 import './styles/App.css'
 
@@ -107,6 +108,7 @@ function AppContent() {
       <Route path="/cloud-test" element={<CloudTest />} />
       <Route path="/cloud-function-test" element={<CloudFunctionTest />} />
       <Route path="/card-test" element={<CardTest />} />
+      <Route path="/cloud-storage-test" element={<CloudStorageTest />} />
 
       {/* Admin Pages - Require admin auth */}
       <Route path="/admin/dashboard" element={

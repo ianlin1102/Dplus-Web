@@ -17,18 +17,31 @@ const InstructorCard = ({ instructor, onClick }) => {
   return (
     <div className="instructor-card" onClick={handleClick}>
       <div className="instructor-card__avatar">
-        {/* 临时禁用云存储图片，避免 418 错误 */}
-        <div style={{
-          width: '100%',
-          height: '100%',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: 'white',
-          fontSize: '2rem',
-          fontWeight: 'bold'
-        }}>
+        {instructor.INSTRUCTOR_PIC ? (
+          <img
+            src={instructor.INSTRUCTOR_PIC}
+            alt={instructor.INSTRUCTOR_NAME}
+            onError={(e) => {
+              // 图片加载失败时显示占位符
+              e.target.style.display = 'none'
+              e.target.nextSibling.style.display = 'flex'
+            }}
+          />
+        ) : null}
+        <div
+          className="instructor-card__placeholder"
+          style={{
+            display: instructor.INSTRUCTOR_PIC ? 'none' : 'flex',
+            width: '100%',
+            height: '100%',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            fontSize: '2rem',
+            fontWeight: 'bold'
+          }}
+        >
           {instructor.INSTRUCTOR_NAME ? instructor.INSTRUCTOR_NAME[0] : '?'}
         </div>
       </div>

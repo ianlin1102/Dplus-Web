@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Calendar, CreditCard, BookOpen, Info } from 'lucide-react'
 import { useLanguage } from '../../i18n/LanguageContext'
 import { getInstructorList } from '../../services/instructorService'
 import { convertObjectUrls } from '../../utils/cloudUrlHelper'
-import InstructorCard from '../../components/InstructorCard'
+import InstructorCarousel from '../../components/InstructorCarousel'
 import InstructorModal from '../../components/InstructorModal'
 import RankingPodium from '../../components/RankingPodium'
 import DataPlaceholder from '../../components/DataPlaceholder'
@@ -161,7 +161,7 @@ function Home() {
         <RankingPodium limit={10} />
       </section>
 
-      {/* Instructor Section - matching smartbeauty template */}
+      {/* Instructor Section - Horizontal Carousel */}
       <section className="instructor-section">
         <div className="section-header">
           <h2 className="section-title">{t('home.instructorTitle', language === 'zh' ? '导师团队' : 'Instructors')}</h2>
@@ -174,15 +174,10 @@ function Home() {
             retryCount={instructorRetryCount}
           />
         ) : (
-          <div className="instructor-list">
-            {instructors.map((instructor) => (
-              <InstructorCard
-                key={instructor._id}
-                instructor={instructor}
-                onClick={handleInstructorClick}
-              />
-            ))}
-          </div>
+          <InstructorCarousel
+            instructors={instructors}
+            onInstructorClick={handleInstructorClick}
+          />
         )}
       </section>
 
