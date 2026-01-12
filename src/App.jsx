@@ -32,7 +32,7 @@ import CloudTest from './pages/test/CloudTest'
 import CloudFunctionTest from './pages/test/CloudFunctionTest'
 import CardTest from './pages/test/CardTest'
 import CloudStorageTest from './pages/test/CloudStorageTest'
-import PurchaseApiTest from './pages/test/PurchaseApiTest'
+import PurchaseApiTest from './pages/test/PurchaseApiTest.jsx'
 import IntroDemo from './pages/IntroDemo'
 
 import './styles/App.css'
