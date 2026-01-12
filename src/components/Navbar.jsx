@@ -1,12 +1,14 @@
 import { useState, useRef, useEffect } from 'react'
-import { User, Menu, X, Home, Calendar, CreditCard, Info, BookOpen, LogOut, Shield, ChevronDown, LayoutDashboard } from 'lucide-react'
+import { User, Menu, X, Home, Calendar, CreditCard, Info, BookOpen, LogOut, Shield, ChevronDown, LayoutDashboard, Sun, Moon, Globe } from 'lucide-react'
 import { useLanguage } from '../i18n/LanguageContext'
 import { useAuth } from '../contexts/AuthContext'
+import { useTheme } from '../App'
 import './Navbar.css'
 
 const Navbar = ({ onNavigate, currentPath }) => {
-  const { t, language } = useLanguage()
+  const { t, language, toggleLanguage } = useLanguage()
   const { user, isLoggedIn, isAdmin, logout } = useAuth()
+  const { isDark, toggleTheme } = useTheme()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false)
   const dropdownRef = useRef(null)
@@ -21,6 +23,17 @@ const Navbar = ({ onNavigate, currentPath }) => {
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
+
+  // 侧边栏打开时禁用背景滚动
+  useEffect(() => {
+    if (isMenuOpen) {
+      const originalOverflow = document.body.style.overflow
+      document.body.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = originalOverflow
+      }
+    }
+  }, [isMenuOpen])
 
   const navItems = [
     { path: '/', label: t('nav.home'), icon: Home },
@@ -90,6 +103,25 @@ const Navbar = ({ onNavigate, currentPath }) => {
 
           {/* Right Side - Desktop: User | Mobile: Hamburger */}
           <div className="navbar-right">
+            {/* Theme & Language Toggle - Desktop Only */}
+            <div className="navbar-controls">
+              <button
+                onClick={toggleLanguage}
+                className="navbar-control-btn"
+                title={language === 'zh' ? 'Switch to English' : '切换到中文'}
+              >
+                <Globe size={18} />
+                <span>{language === 'zh' ? 'EN' : '中'}</span>
+              </button>
+              <button
+                onClick={toggleTheme}
+                className="navbar-control-btn"
+                title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              >
+                {isDark ? <Sun size={18} /> : <Moon size={18} />}
+              </button>
+            </div>
+
             {/* User Portal - Desktop Only */}
             <div className="user-portal-wrapper" ref={dropdownRef}>
               <button
@@ -170,28 +202,35 @@ const Navbar = ({ onNavigate, currentPath }) => {
           })}
         </nav>
 
+        {/* 语言和主题切换 */}
+        <div className="sidebar-controls">
+          <button onClick={toggleLanguage} className="sidebar-control-btn">
+            <Globe size={20} />
+            <span>{language === 'zh' ? 'English' : '中文'}</span>
+          </button>
+          <button onClick={toggleTheme} className="sidebar-control-btn">
+            {isDark ? <Sun size={20} /> : <Moon size={20} />}
+            <span>{isDark ? (language === 'zh' ? '浅色模式' : 'Light Mode') : (language === 'zh' ? '深色模式' : 'Dark Mode')}</span>
+          </button>
+        </div>
+
         <div className="sidebar-footer">
           {isLoggedIn() ? (
-            <>
-              <button
-                onClick={handleUserClick}
-                className="sidebar-user"
-              >
-                <div className={`sidebar-user-avatar ${isAdmin() ? 'admin' : ''}`}>
-                  {isAdmin() ? <Shield size={20} /> : <User size={20} />}
-                </div>
-                <div className="sidebar-user-info">
-                  <p className="sidebar-user-label">
-                    {isAdmin() ? (language === 'zh' ? '管理员' : 'Admin') : t('dashboard.welcome')}
-                  </p>
-                  <p className="sidebar-user-name">{user?.name}</p>
-                </div>
-              </button>
-              <button onClick={handleLogout} className="sidebar-logout">
-                <LogOut size={18} />
-                <span>{language === 'zh' ? '退出登录' : 'Logout'}</span>
-              </button>
-            </>
+            <button
+              onClick={() => handleNavigate(isAdmin() ? '/admin/dashboard' : '/dashboard')}
+              className="sidebar-user"
+            >
+              <div className={`sidebar-user-avatar ${isAdmin() ? 'admin' : ''}`}>
+                {isAdmin() ? <Shield size={20} /> : <User size={20} />}
+              </div>
+              <div className="sidebar-user-info">
+                <p className="sidebar-user-label">
+                  {isAdmin() ? (language === 'zh' ? '管理员' : 'Admin') : t('dashboard.welcome')}
+                </p>
+                <p className="sidebar-user-name">{user?.name}</p>
+              </div>
+              <LayoutDashboard size={18} className="sidebar-user-arrow" />
+            </button>
           ) : (
             <button
               onClick={() => handleNavigate('/login')}
@@ -207,6 +246,16 @@ const Navbar = ({ onNavigate, currentPath }) => {
             </button>
           )}
         </div>
+
+        {/* 退出登录按钮 - 固定在最底部 */}
+        {isLoggedIn() && (
+          <div className="sidebar-logout-section">
+            <button onClick={handleLogout} className="sidebar-logout">
+              <LogOut size={18} />
+              <span>{language === 'zh' ? '退出登录' : 'Logout'}</span>
+            </button>
+          </div>
+        )}
       </aside>
     </>
   )

@@ -1,7 +1,10 @@
-import { useState } from 'react'
-import { useNavigate, Routes, Route } from 'react-router-dom'
-import { Home, Calendar, CreditCard, Settings, Activity, User } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { useNavigate, Routes, Route, useLocation } from 'react-router-dom'
+import { Home, Calendar, CreditCard, Settings, Activity, User, Menu, X, Edit2, Save, Loader2, Clock, XCircle, AlertCircle, CalendarOff, RefreshCw } from 'lucide-react'
 import { useLanguage } from '../../i18n/LanguageContext'
+import { useAuth } from '../../contexts/AuthContext'
+import { getMyJoinList, cancelMyJoin, canCancelBooking, formatCancelRule } from '../../services/bookingService'
+import { getMyCards } from '../../services/cardService'
 import './Dashboard.css'
 
 // Mock user data from smartbeauty structure
@@ -37,14 +40,81 @@ const userData = {
 // Dashboard Overview Component
 const DashboardOverview = () => {
   const { t, language } = useLanguage()
-  const user = userData[language]
+  const { user: authUser } = useAuth()
+  const mockUser = userData[language]
+  const [cardStats, setCardStats] = useState({ totalTimes: 0, totalBalance: 0 })
+  const [recentBookings, setRecentBookings] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  // 加载卡项汇总和最近预约
+  useEffect(() => {
+    const loadData = async () => {
+      if (!authUser?._id) {
+        setLoading(false)
+        return
+      }
+
+      try {
+        setLoading(true)
+
+        // 并行加载卡项和预约
+        const [cards, bookingsResult] = await Promise.all([
+          getMyCards(authUser._id, { includeExpired: false }),
+          getMyJoinList({ sortType: 'timedesc', page: 1, size: 5 })
+        ])
+
+        // 计算卡项汇总
+        let totalTimes = 0
+        let totalBalance = 0
+        cards.forEach(card => {
+          if (card.USER_CARD_TYPE === 1 || card.USER_CARD_CNT !== undefined) {
+            totalTimes += card.USER_CARD_CNT || 0
+          } else {
+            totalBalance += card.USER_CARD_BALANCE || 0
+          }
+        })
+        setCardStats({ totalTimes, totalBalance })
+
+        // 设置最近预约
+        if (bookingsResult.code === 200) {
+          setRecentBookings(bookingsResult.data?.list || [])
+        }
+      } catch (err) {
+        console.error('加载数据失败:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadData()
+  }, [authUser?._id])
+
+  // 格式化预约为活动项
+  const formatBookingActivity = (booking) => {
+    const statusMap = {
+      1: { zh: '已预约', en: 'Booked', type: 'booking' },
+      10: { zh: '已取消', en: 'Cancelled', type: 'cancelled' },
+      99: { zh: '系统取消', en: 'System Cancelled', type: 'cancelled' },
+    }
+    const isCheckin = booking.JOIN_IS_CHECKIN === 1
+    const status = isCheckin
+      ? { zh: '已签到', en: 'Checked In', type: 'checkin' }
+      : (statusMap[booking.JOIN_STATUS] || statusMap[1])
+
+    return {
+      date: booking.JOIN_MEET_DAY,
+      event: booking.JOIN_MEET_TITLE,
+      status: language === 'zh' ? status.zh : status.en,
+      type: status.type
+    }
+  }
 
   return (
     <div className="dashboard-content">
       <header className="dashboard-header">
         <div>
           <h1 className="dashboard-title">{t('dashboard.title')}</h1>
-          <p className="dashboard-subtitle">{t('dashboard.welcome')}, {user.name}</p>
+          <p className="dashboard-subtitle">{t('dashboard.welcome')}, {authUser?.name || mockUser.name}</p>
         </div>
         <div className="header-date">
           <span className="date-text">{new Date().toLocaleDateString(language === 'zh' ? 'zh-CN' : 'en-US')}</span>
@@ -56,9 +126,9 @@ const DashboardOverview = () => {
         <div className="level-header">
           <div>
             <span className="level-label">{t('dashboard.memberLevel')}</span>
-            <h3 className="level-name">{user.level}</h3>
+            <h3 className="level-name">{mockUser.level}</h3>
           </div>
-          <span className="level-xp">{user.points} {t('dashboard.points')}</span>
+          <span className="level-xp">{mockUser.points} {t('dashboard.points')}</span>
         </div>
         <div className="level-progress">
           <div className="progress-bar">
@@ -74,17 +144,21 @@ const DashboardOverview = () => {
         <div className="stats-grid">
           <div className="stat-card neon-border-cyan">
             <span className="stat-label">{t('dashboard.totalTimes')}</span>
-            <span className="stat-value text-cyan">{user.cards.totalTimes}</span>
+            <span className="stat-value text-cyan">
+              {loading ? '-' : cardStats.totalTimes}
+            </span>
             <span className="stat-unit">{language === 'zh' ? '次' : 'classes'}</span>
           </div>
           <div className="stat-card neon-border-pink">
             <span className="stat-label">{t('dashboard.totalBalance')}</span>
-            <span className="stat-value text-pink">¥{user.cards.totalBalance}</span>
+            <span className="stat-value text-pink">
+              {loading ? '-' : `¥${cardStats.totalBalance}`}
+            </span>
             <span className="stat-unit">{language === 'zh' ? '元' : 'CNY'}</span>
           </div>
           <div className="stat-card neon-border-green">
             <span className="stat-label">{t('dashboard.points')}</span>
-            <span className="stat-value text-green">{user.points}</span>
+            <span className="stat-value text-green">{mockUser.points}</span>
             <span className="stat-unit">{language === 'zh' ? '分' : 'pts'}</span>
           </div>
         </div>
@@ -94,37 +168,41 @@ const DashboardOverview = () => {
       <div className="activity-card">
         <h3 className="activity-title">{t('dashboard.recentActivity')}</h3>
         <div className="activity-list">
-          {user.activities.map((activity, index) => (
-            <div key={index} className="activity-item">
-              <span className="activity-date">{activity.date}</span>
-              <span className="activity-event">{activity.event}</span>
-              <span className={`activity-status ${
-                activity.type === 'checkin' ? 'status-cyan' :
-                activity.type === 'purchase' ? 'status-pink' :
-                activity.type === 'booking' ? 'status-green' :
-                'status-muted'
-              }`}>{activity.status}</span>
+          {loading ? (
+            <div className="activity-item">
+              <span className="activity-event" style={{ opacity: 0.5 }}>
+                {language === 'zh' ? '加载中...' : 'Loading...'}
+              </span>
             </div>
-          ))}
+          ) : recentBookings.length === 0 ? (
+            <div className="activity-item">
+              <span className="activity-event" style={{ opacity: 0.5 }}>
+                {language === 'zh' ? '暂无活动' : 'No recent activity'}
+              </span>
+            </div>
+          ) : (
+            recentBookings.map((booking, index) => {
+              const activity = formatBookingActivity(booking)
+              return (
+                <div key={booking._id || index} className="activity-item">
+                  <span className="activity-date">{activity.date}</span>
+                  <span className="activity-event">{activity.event}</span>
+                  <span className={`activity-status ${
+                    activity.type === 'checkin' ? 'status-cyan' :
+                    activity.type === 'purchase' ? 'status-pink' :
+                    activity.type === 'booking' ? 'status-green' :
+                    'status-muted'
+                  }`}>{activity.status}</span>
+                </div>
+              )
+            })
+          )}
         </div>
       </div>
     </div>
   )
 }
 
-// My bookings data
-const myBookings = {
-  zh: [
-    { id: 1, name: 'Hip-Hop 基础班', date: '12月18日', time: '14:00', instructor: 'Jay', status: 'confirmed' },
-    { id: 2, name: 'K-Pop 编舞课', date: '12月20日', time: '16:00', instructor: 'Lisa', status: 'confirmed' },
-    { id: 3, name: '私教课程', date: '12月22日', time: '10:00', instructor: 'Mike', status: 'pending' },
-  ],
-  en: [
-    { id: 1, name: 'Hip-Hop Basics', date: 'Dec 18', time: '14:00', instructor: 'Jay', status: 'confirmed' },
-    { id: 2, name: 'K-Pop Choreo', date: 'Dec 20', time: '16:00', instructor: 'Lisa', status: 'confirmed' },
-    { id: 3, name: 'Private Lesson', date: 'Dec 22', time: '10:00', instructor: 'Mike', status: 'pending' },
-  ],
-}
 
 // My cards data
 const myCards = {
@@ -138,90 +216,518 @@ const myCards = {
   ],
 }
 
+// 筛选选项
+const FILTER_OPTIONS = [
+  { key: 'timedesc', zh: '全部', en: 'All' },
+  { key: 'today', zh: '今日', en: 'Today' },
+  { key: 'tomorrow', zh: '明日', en: 'Tomorrow' },
+  { key: 'succ', zh: '已预约', en: 'Booked' },
+  { key: 'cancel', zh: '已取消', en: 'Cancelled' },
+]
+
 // Sub-page components
 const MySchedule = () => {
   const { t, language } = useLanguage()
+  const { user } = useAuth()
+  const location = useLocation()
+  const navigate = useNavigate()
+  const [bookings, setBookings] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [cancellingId, setCancellingId] = useState(null)
+  const [filter, setFilter] = useState('timedesc')
+  const [successMessage, setSuccessMessage] = useState(location.state?.success ? (language === 'zh' ? '预约成功！' : 'Booking confirmed!') : null)
+
+  // 加载预约列表
+  const loadBookings = async (sortType = filter) => {
+    if (!user?._id) {
+      setLoading(false)
+      return
+    }
+
+    try {
+      setLoading(true)
+      setError(null)
+      const result = await getMyJoinList({ sortType, page: 1, size: 50 })
+
+      if (result.code === 200) {
+        setBookings(result.data?.list || [])
+      } else {
+        setError(result.msg || (language === 'zh' ? '获取预约列表失败' : 'Failed to load bookings'))
+      }
+    } catch (err) {
+      console.error('加载预约列表失败:', err)
+      setError(language === 'zh' ? '加载失败，请重试' : 'Failed to load, please try again')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadBookings()
+  }, [user?._id])
+
+  // 筛选变化时重新加载
+  const handleFilterChange = (newFilter) => {
+    setFilter(newFilter)
+    loadBookings(newFilter)
+  }
+
+  // 清除成功消息
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => setSuccessMessage(null), 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [successMessage])
+
+  // 取消预约
+  const handleCancel = async (booking) => {
+    // 使用后端返回的 canCancel 字段
+    if (!booking.canCancel) {
+      const msg = language === 'zh' ? '该预约无法取消' : 'This booking cannot be cancelled'
+      alert(msg)
+      return
+    }
+
+    // 检查是否有卡项扣费记录
+    const hasCardDeduct = booking.JOIN_CARD_DEDUCT && !booking.JOIN_CARD_DEDUCT.refunded
+    let confirmMsg = language === 'zh'
+      ? `确定要取消预约「${booking.JOIN_MEET_TITLE}」吗？`
+      : `Are you sure you want to cancel "${booking.JOIN_MEET_TITLE}"?`
+
+    // 如果有卡项扣费，提示会退还
+    if (hasCardDeduct) {
+      const deduct = booking.JOIN_CARD_DEDUCT
+      const refundInfo = deduct.cardType === 'times'
+        ? (language === 'zh' ? `${deduct.deductAmount}次` : `${deduct.deductAmount} class(es)`)
+        : (language === 'zh' ? `¥${deduct.deductAmount}` : `¥${deduct.deductAmount}`)
+      confirmMsg += language === 'zh'
+        ? `\n\n取消后将退还: ${refundInfo}`
+        : `\n\nRefund: ${refundInfo}`
+    }
+
+    if (!window.confirm(confirmMsg)) return
+
+    try {
+      setCancellingId(booking._id)
+      const result = await cancelMyJoin(booking._id)
+
+      if (result.code === 200) {
+        // 根据是否有退还显示不同消息
+        const msg = hasCardDeduct
+          ? (language === 'zh' ? '预约已取消，卡项已退还' : 'Booking cancelled, card refunded')
+          : (language === 'zh' ? '预约已取消' : 'Booking cancelled')
+        setSuccessMessage(msg)
+        loadBookings() // 刷新列表
+      } else {
+        alert(result.msg || (language === 'zh' ? '取消失败' : 'Cancel failed'))
+      }
+    } catch (err) {
+      console.error('取消预约失败:', err)
+      alert(language === 'zh' ? '取消失败，请重试' : 'Cancel failed, please try again')
+    } finally {
+      setCancellingId(null)
+    }
+  }
+
+  // 获取状态显示 - 使用正确的状态值
+  const getStatusDisplay = (status, isCheckin) => {
+    // 已签到
+    if (isCheckin === 1) {
+      return { zh: '已签到', en: 'Checked In', class: 'checkedin' }
+    }
+    // 状态映射：1=预约成功, 10=已取消, 99=系统取消
+    const statusMap = {
+      1: { zh: '已预约', en: 'Booked', class: 'confirmed' },
+      10: { zh: '已取消', en: 'Cancelled', class: 'cancelled' },
+      99: { zh: '系统取消', en: 'System Cancelled', class: 'cancelled' },
+    }
+    return statusMap[status] || { zh: '未知', en: 'Unknown', class: 'pending' }
+  }
+
+  if (loading && bookings.length === 0) {
+    return (
+      <div className="dashboard-content">
+        <h1 className="dashboard-title">{t('dashboard.myBookings')}</h1>
+        <p className="dashboard-subtitle">MY BOOKINGS</p>
+        <div className="loading-state">
+          <Loader2 className="spin" size={32} />
+          <p>{language === 'zh' ? '加载中...' : 'Loading...'}</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="dashboard-content">
-      <h1 className="dashboard-title">{t('dashboard.myBookings')}</h1>
-      <p className="dashboard-subtitle">MY BOOKINGS</p>
+      <div className="schedule-header">
+        <div>
+          <h1 className="dashboard-title">{t('dashboard.myBookings')}</h1>
+          <p className="dashboard-subtitle">MY BOOKINGS</p>
+        </div>
+        <button className="refresh-btn" onClick={() => loadBookings()} disabled={loading}>
+          <RefreshCw size={18} className={loading ? 'spin' : ''} />
+        </button>
+      </div>
 
-      <div className="bookings-list">
-        {myBookings[language].map((booking) => (
-          <div key={booking.id} className="booking-card">
-            <div className="booking-info">
-              <h3 className="booking-name">{booking.name}</h3>
-              <p className="booking-meta">{booking.date} {booking.time} · {booking.instructor}</p>
-            </div>
-            <span className={`booking-status ${booking.status}`}>
-              {booking.status === 'confirmed' ? t('dashboard.confirmed') : t('dashboard.pending')}
-            </span>
-          </div>
+      {/* 筛选菜单 */}
+      <div className="filter-tabs">
+        {FILTER_OPTIONS.map((opt) => (
+          <button
+            key={opt.key}
+            className={`filter-tab ${filter === opt.key ? 'active' : ''}`}
+            onClick={() => handleFilterChange(opt.key)}
+          >
+            {language === 'zh' ? opt.zh : opt.en}
+          </button>
         ))}
       </div>
+
+      {/* 成功消息 */}
+      {successMessage && (
+        <div className="success-message">
+          <AlertCircle size={16} />
+          <span>{successMessage}</span>
+        </div>
+      )}
+
+      {/* 错误消息 */}
+      {error && (
+        <div className="error-message">
+          <AlertCircle size={16} />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {/* 预约列表 */}
+      {bookings.length === 0 ? (
+        <div className="empty-bookings">
+          <CalendarOff size={48} />
+          <p>{language === 'zh' ? '暂无预约' : 'No bookings yet'}</p>
+          <a href="#/calendar" className="book-now-link">
+            {language === 'zh' ? '去预约课程' : 'Book a class'}
+          </a>
+        </div>
+      ) : (
+        <div className="bookings-list">
+          {bookings.map((booking) => {
+            const statusInfo = getStatusDisplay(booking.JOIN_STATUS, booking.JOIN_IS_CHECKIN)
+            const isCancelling = cancellingId === booking._id
+            // 只有预约成功(1)且未签到的才能取消
+            const showCancelBtn = booking.canCancel && booking.JOIN_STATUS === 1 && booking.JOIN_IS_CHECKIN !== 1
+
+            return (
+              <div key={booking._id} className={`booking-card ${statusInfo.class} ${booking.isTimeout ? 'timeout' : ''}`}>
+                <div className="booking-info">
+                  <h3 className="booking-name">{booking.JOIN_MEET_TITLE}</h3>
+                  <p className="booking-meta">
+                    <Calendar size={14} />
+                    <span>{booking.JOIN_MEET_DAY}</span>
+                    <Clock size={14} style={{ marginLeft: '0.5rem' }} />
+                    <span>{booking.JOIN_MEET_TIME_START} - {booking.JOIN_MEET_TIME_END}</span>
+                  </p>
+                  {booking.JOIN_INSTRUCTOR_NAME && (
+                    <p className="booking-instructor">
+                      <User size={14} />
+                      {booking.JOIN_INSTRUCTOR_NAME}
+                    </p>
+                  )}
+                </div>
+                <div className="booking-actions">
+                  <span className={`booking-status ${statusInfo.class}`}>
+                    {language === 'zh' ? statusInfo.zh : statusInfo.en}
+                  </span>
+                  {showCancelBtn && (
+                    <button
+                      className="cancel-btn"
+                      onClick={() => handleCancel(booking)}
+                      disabled={isCancelling}
+                    >
+                      {isCancelling ? (
+                        <Loader2 size={14} className="spin" />
+                      ) : (
+                        <XCircle size={14} />
+                      )}
+                      <span>{language === 'zh' ? '取消' : 'Cancel'}</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }
 
 const Wallet = () => {
   const { t, language } = useLanguage()
+  const { user } = useAuth()
+  const navigate = useNavigate()
+  const [cards, setCards] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  // 加载用户卡项
+  useEffect(() => {
+    const loadCards = async () => {
+      if (!user?._id) {
+        setLoading(false)
+        return
+      }
+
+      try {
+        setLoading(true)
+        setError(null)
+        const result = await getMyCards(user._id, { includeExpired: false })
+        setCards(result || [])
+      } catch (err) {
+        console.error('加载卡项失败:', err)
+        setError(language === 'zh' ? '加载失败，请重试' : 'Failed to load, please try again')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadCards()
+  }, [user?._id])
+
+  // 格式化日期
+  const formatExpiry = (timestamp) => {
+    if (!timestamp) return language === 'zh' ? '永久有效' : 'Never expires'
+    const date = new Date(timestamp)
+    return date.toLocaleDateString(language === 'zh' ? 'zh-CN' : 'en-US')
+  }
+
+  // 获取卡项类型和颜色
+  const getCardTypeInfo = (card) => {
+    // USER_CARD_TYPE: 1=次数卡, 2=余额卡
+    const isTimesCard = card.USER_CARD_TYPE === 1 || card.USER_CARD_CNT !== undefined
+    if (isTimesCard) {
+      return {
+        type: language === 'zh' ? '次数卡' : 'Class Pack',
+        color: '#06b6d4',
+        remaining: card.USER_CARD_CNT || 0,
+        total: card.USER_CARD_TOTAL_CNT || card.USER_CARD_CNT || 0,
+        unit: language === 'zh' ? '次' : 'classes',
+        isBalance: false
+      }
+    } else {
+      return {
+        type: language === 'zh' ? '余额卡' : 'Credit Card',
+        color: '#d946ef',
+        remaining: card.USER_CARD_BALANCE || 0,
+        total: card.USER_CARD_TOTAL_BALANCE || card.USER_CARD_BALANCE || 0,
+        unit: '',
+        isBalance: true
+      }
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="dashboard-content">
+        <h1 className="dashboard-title">{t('dashboard.myCards')}</h1>
+        <p className="dashboard-subtitle">MY CARDS</p>
+        <div className="loading-state">
+          <Loader2 className="spin" size={32} />
+          <p>{language === 'zh' ? '加载中...' : 'Loading...'}</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="dashboard-content">
       <h1 className="dashboard-title">{t('dashboard.myCards')}</h1>
       <p className="dashboard-subtitle">MY CARDS</p>
 
-      <div className="cards-list">
-        {myCards[language].map((card) => (
-          <div key={card.id} className="wallet-card" style={{ '--card-color': card.color }}>
-            <div className="wallet-card-header">
-              <span className="card-type-tag" style={{ background: card.color }}>{card.type}</span>
-              <span className="card-expiry">{t('dashboard.validUntil')} {card.expiry}</span>
-            </div>
-            <h3 className="wallet-card-name">{card.name}</h3>
-            <div className="wallet-card-balance">
-              <span className="balance-value" style={{ color: card.color }}>
-                {card.type === '余额卡' || card.type === 'Credit Card' ? `¥${card.remaining}` : card.remaining}
-              </span>
-              <span className="balance-total">
-                / {card.type === '余额卡' || card.type === 'Credit Card' ? `¥${card.total}` : `${card.total} ${language === 'zh' ? '次' : 'classes'}`}
-              </span>
-            </div>
-            <div className="wallet-progress">
-              <div
-                className="wallet-progress-fill"
-                style={{
-                  width: `${(card.remaining / card.total) * 100}%`,
-                  background: card.color
-                }}
-              ></div>
-            </div>
-          </div>
-        ))}
-      </div>
+      {error && (
+        <div className="error-message">
+          <AlertCircle size={16} />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {cards.length === 0 ? (
+        <div className="empty-bookings">
+          <CreditCard size={48} />
+          <p>{language === 'zh' ? '暂无卡项' : 'No cards yet'}</p>
+          <a href="#/store" className="book-now-link">
+            {language === 'zh' ? '去购买卡项' : 'Buy cards'}
+          </a>
+        </div>
+      ) : (
+        <div className="cards-list">
+          {cards.map((card) => {
+            const cardInfo = getCardTypeInfo(card)
+            const progress = cardInfo.total > 0 ? (cardInfo.remaining / cardInfo.total) * 100 : 0
+
+            return (
+              <div key={card._id} className="wallet-card" style={{ '--card-color': cardInfo.color }}>
+                <div className="wallet-card-header">
+                  <span className="card-type-tag" style={{ background: cardInfo.color }}>{cardInfo.type}</span>
+                  <span className="card-expiry">
+                    {t('dashboard.validUntil')} {formatExpiry(card.USER_CARD_EXPIRE_TIME || card.USER_CARD_END)}
+                  </span>
+                </div>
+                <h3 className="wallet-card-name">{card.USER_CARD_TITLE || card.USER_CARD_NAME || cardInfo.type}</h3>
+                <div className="wallet-card-balance">
+                  <span className="balance-value" style={{ color: cardInfo.color }}>
+                    {cardInfo.isBalance ? `¥${cardInfo.remaining}` : cardInfo.remaining}
+                  </span>
+                  <span className="balance-total">
+                    / {cardInfo.isBalance ? `¥${cardInfo.total}` : `${cardInfo.total} ${cardInfo.unit}`}
+                  </span>
+                </div>
+                <div className="wallet-progress">
+                  <div
+                    className="wallet-progress-fill"
+                    style={{
+                      width: `${progress}%`,
+                      background: cardInfo.color
+                    }}
+                  ></div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }
 
 const SettingsPage = () => {
   const { t, language } = useLanguage()
-  const user = userData[language]
+  const { user: authUser } = useAuth()
+  const mockUser = userData[language]
+  const [isEditing, setIsEditing] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [formData, setFormData] = useState({
+    name: authUser?.name || mockUser.name,
+    phone: authUser?.phone || mockUser.phone,
+    email: authUser?.email || '',
+  })
+
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }))
+  }
+
+  const handleSave = async () => {
+    setIsSaving(true)
+    // 模拟保存
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    setIsSaving(false)
+    setIsEditing(false)
+  }
+
+  const texts = language === 'zh' ? {
+    editProfile: '编辑资料',
+    save: '保存',
+    saving: '保存中...',
+    cancel: '取消',
+    name: '姓名',
+    phone: '手机号码',
+    email: '邮箱',
+    memberLevel: '会员等级',
+    points: '累计积分',
+  } : {
+    editProfile: 'Edit Profile',
+    save: 'Save',
+    saving: 'Saving...',
+    cancel: 'Cancel',
+    name: 'Name',
+    phone: 'Phone Number',
+    email: 'Email',
+    memberLevel: 'Member Level',
+    points: 'Total Points',
+  }
+
   return (
     <div className="dashboard-content">
-      <h1 className="dashboard-title">{t('dashboard.settings')}</h1>
-      <p className="dashboard-subtitle">SETTINGS</p>
+      <div className="settings-header">
+        <div>
+          <h1 className="dashboard-title">{t('dashboard.settings')}</h1>
+          <p className="dashboard-subtitle">SETTINGS</p>
+        </div>
+        {!isEditing ? (
+          <button className="edit-profile-btn" onClick={() => setIsEditing(true)}>
+            <Edit2 size={18} />
+            <span>{texts.editProfile}</span>
+          </button>
+        ) : (
+          <div className="edit-actions">
+            <button className="cancel-btn" onClick={() => setIsEditing(false)} disabled={isSaving}>
+              {texts.cancel}
+            </button>
+            <button className="save-btn" onClick={handleSave} disabled={isSaving}>
+              {isSaving ? (
+                <>
+                  <Loader2 size={18} className="spin" />
+                  {texts.saving}
+                </>
+              ) : (
+                <>
+                  <Save size={18} />
+                  {texts.save}
+                </>
+              )}
+            </button>
+          </div>
+        )}
+      </div>
 
       <div className="settings-list">
         <div className="settings-item">
-          <span className="settings-label">{t('dashboard.phoneNumber')}</span>
-          <span className="settings-value">{user.phone}</span>
+          <span className="settings-label">{texts.name}</span>
+          {isEditing ? (
+            <input
+              type="text"
+              className="settings-input"
+              value={formData.name}
+              onChange={(e) => handleInputChange('name', e.target.value)}
+            />
+          ) : (
+            <span className="settings-value">{formData.name}</span>
+          )}
         </div>
         <div className="settings-item">
-          <span className="settings-label">{t('dashboard.memberLevel')}</span>
-          <span className="settings-value">{user.level}</span>
+          <span className="settings-label">{texts.phone}</span>
+          {isEditing ? (
+            <input
+              type="tel"
+              className="settings-input"
+              value={formData.phone}
+              onChange={(e) => handleInputChange('phone', e.target.value)}
+            />
+          ) : (
+            <span className="settings-value">{formData.phone}</span>
+          )}
         </div>
         <div className="settings-item">
-          <span className="settings-label">{t('dashboard.accumulatedPoints')}</span>
-          <span className="settings-value">{user.points} {language === 'zh' ? '分' : 'pts'}</span>
+          <span className="settings-label">{texts.email}</span>
+          {isEditing ? (
+            <input
+              type="email"
+              className="settings-input"
+              value={formData.email}
+              onChange={(e) => handleInputChange('email', e.target.value)}
+              placeholder={language === 'zh' ? '请输入邮箱' : 'Enter email'}
+            />
+          ) : (
+            <span className="settings-value">{formData.email || (language === 'zh' ? '未设置' : 'Not set')}</span>
+          )}
+        </div>
+        <div className="settings-item">
+          <span className="settings-label">{texts.memberLevel}</span>
+          <span className="settings-value">{mockUser.level}</span>
+        </div>
+        <div className="settings-item">
+          <span className="settings-label">{texts.points}</span>
+          <span className="settings-value">{mockUser.points} {language === 'zh' ? '分' : 'pts'}</span>
         </div>
       </div>
     </div>
@@ -242,11 +748,14 @@ const NavItem = ({ icon: Icon, label, path, isActive, onClick }) => (
 function Dashboard() {
   const navigate = useNavigate()
   const { t, language } = useLanguage()
+  const { user } = useAuth()
   const [currentPath, setCurrentPath] = useState('/dashboard')
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const handleNavigate = (path) => {
     setCurrentPath(path)
     navigate(path)
+    setIsMobileMenuOpen(false)
   }
 
   const navItems = [
@@ -258,7 +767,81 @@ function Dashboard() {
 
   return (
     <div className="dashboard-layout">
-      {/* Sidebar */}
+      {/* Mobile Header - 只在移动端显示 */}
+      <header className="dashboard-mobile-header">
+        <button
+          type="button"
+          className="mobile-home-btn"
+          onClick={() => navigate('/')}
+        >
+          <Home size={20} />
+          <span>{language === 'zh' ? '首页' : 'Home'}</span>
+        </button>
+        <span className="mobile-title">{language === 'zh' ? '个人中心' : 'Dashboard'}</span>
+        <button
+          type="button"
+          className="mobile-menu-btn"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        >
+          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </header>
+
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="mobile-menu-overlay" onClick={() => setIsMobileMenuOpen(false)} />
+      )}
+
+      {/* Mobile Slide Menu */}
+      <aside className={`mobile-slide-menu ${isMobileMenuOpen ? 'open' : ''}`}>
+        <div className="mobile-menu-header">
+          <button
+            type="button"
+            className="mobile-user-info"
+            onClick={() => handleNavigate('/dashboard')}
+          >
+            <div className="mobile-user-avatar">
+              <User size={24} />
+            </div>
+            <div className="mobile-user-details">
+              <span className="mobile-user-greeting">{language === 'zh' ? '欢迎回来' : 'Welcome back'}</span>
+              <span className="mobile-user-name">{user?.name || (language === 'zh' ? '用户' : 'User')}</span>
+            </div>
+            <Activity size={18} className="mobile-user-home-icon" />
+          </button>
+        </div>
+        <nav className="mobile-menu-nav">
+          {navItems.map((item) => {
+            const Icon = item.icon
+            return (
+              <button
+                type="button"
+                key={item.path}
+                className={`mobile-menu-item ${currentPath === item.path ? 'active' : ''}`}
+                onClick={() => handleNavigate(item.path)}
+              >
+                <Icon size={20} />
+                <span>{item.label}</span>
+              </button>
+            )
+          })}
+        </nav>
+        <div className="mobile-menu-footer">
+          <button
+            type="button"
+            className="mobile-home-link"
+            onClick={() => {
+              setIsMobileMenuOpen(false)
+              navigate('/')
+            }}
+          >
+            <Home size={18} />
+            <span>{t('dashboard.backHome')}</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* Desktop Sidebar */}
       <aside className="dashboard-sidebar">
         <div className="sidebar-header" onClick={() => navigate('/')}>
           <Home size={16} />
@@ -282,7 +865,7 @@ function Dashboard() {
           <div className="user-badge neon-border-cyan">
             <User size={14} />
           </div>
-          <span className="user-id">USER.ID</span>
+          <span className="user-id">{user?.name || 'USER'}</span>
         </div>
       </aside>
 

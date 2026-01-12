@@ -1,7 +1,6 @@
 import { useState, useEffect, createContext, useContext } from 'react'
 import { HashRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom'
-import { Sun, Moon, Globe } from 'lucide-react'
-import { LanguageProvider, useLanguage } from './i18n/LanguageContext'
+import { LanguageProvider } from './i18n/LanguageContext'
 import { AuthProvider } from './contexts/AuthContext'
 import { RequireAuth, RequireAdmin, RequireUser, RoleBasedRedirect } from './components/ProtectedRoute'
 import Navbar from './components/Navbar'
@@ -13,6 +12,7 @@ import Calendar from './pages/user/Calendar'
 import Dashboard from './pages/user/Dashboard'
 import About from './pages/user/About'
 import Appointments from './pages/user/Appointments'
+import BookingConfirm from './pages/user/BookingConfirm'
 
 // Auth Pages
 import Login from './pages/Login'
@@ -23,6 +23,8 @@ import CardManagement from './pages/admin/card/CardManagement'
 import UserManagement from './pages/admin/user/UserManagement'
 import BookingManagement from './pages/admin/booking/BookingManagement'
 import MeetManagement from './pages/admin/meet/MeetManagement'
+import MeetEditor from './pages/admin/meet/MeetEditor'
+import UserCardManage from './pages/admin/usercard/UserCardManage'
 
 // Test Pages
 import RankingTest from './pages/test/RankingTest'
@@ -30,6 +32,8 @@ import CloudTest from './pages/test/CloudTest'
 import CloudFunctionTest from './pages/test/CloudFunctionTest'
 import CardTest from './pages/test/CardTest'
 import CloudStorageTest from './pages/test/CloudStorageTest'
+import PurchaseApiTest from './pages/test/PurchaseApiTest'
+import IntroDemo from './pages/IntroDemo'
 
 import './styles/App.css'
 
@@ -37,37 +41,6 @@ import './styles/App.css'
 export const ThemeContext = createContext()
 
 export const useTheme = () => useContext(ThemeContext)
-
-// Theme Toggle Button Component
-const ThemeToggle = () => {
-  const { isDark, toggleTheme } = useTheme()
-
-  return (
-    <button
-      onClick={toggleTheme}
-      className="theme-toggle"
-      title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-    >
-      {isDark ? <Sun size={24} /> : <Moon size={24} />}
-    </button>
-  )
-}
-
-// Language Toggle Button Component
-const LanguageToggle = () => {
-  const { language, toggleLanguage } = useLanguage()
-
-  return (
-    <button
-      onClick={toggleLanguage}
-      className="language-toggle"
-      title={language === 'zh' ? 'Switch to English' : '切换到中文'}
-    >
-      <Globe size={20} />
-      <span className="lang-label">{language === 'zh' ? 'EN' : '中'}</span>
-    </button>
-  )
-}
 
 // Public Layout with Fixed Navbar
 const PublicLayout = ({ children }) => {
@@ -97,6 +70,15 @@ function AppContent() {
       <Route path="/about" element={<PublicLayout><About /></PublicLayout>} />
       <Route path="/appointments" element={<PublicLayout><Appointments /></PublicLayout>} />
 
+      {/* Booking Confirmation - Requires auth */}
+      <Route path="/booking/confirm" element={
+        <RequireAuth>
+          <PublicLayout>
+            <BookingConfirm />
+          </PublicLayout>
+        </RequireAuth>
+      } />
+
       {/* Auth Pages */}
       <Route path="/login" element={<Login />} />
 
@@ -109,6 +91,8 @@ function AppContent() {
       <Route path="/cloud-function-test" element={<CloudFunctionTest />} />
       <Route path="/card-test" element={<CardTest />} />
       <Route path="/cloud-storage-test" element={<CloudStorageTest />} />
+      <Route path="/purchase-api-test" element={<PurchaseApiTest />} />
+      <Route path="/intro" element={<IntroDemo />} />
 
       {/* Admin Pages - Require admin auth */}
       <Route path="/admin/dashboard" element={
@@ -134,6 +118,21 @@ function AppContent() {
       <Route path="/admin/meets" element={
         <RequireAdmin>
           <MeetManagement />
+        </RequireAdmin>
+      } />
+      <Route path="/admin/meet/edit" element={
+        <RequireAdmin>
+          <MeetEditor />
+        </RequireAdmin>
+      } />
+      <Route path="/admin/meet/edit/:meetId" element={
+        <RequireAdmin>
+          <MeetEditor />
+        </RequireAdmin>
+      } />
+      <Route path="/admin/user-cards" element={
+        <RequireAdmin>
+          <UserCardManage />
         </RequireAdmin>
       } />
       {/* Placeholder routes for admin features */}
@@ -175,10 +174,6 @@ function App() {
         <Router>
           <AuthProvider>
             <div className={`app ${isDark ? 'dark' : 'light'}`}>
-              <div className="global-controls">
-                <LanguageToggle />
-                <ThemeToggle />
-              </div>
               <AppContent />
             </div>
           </AuthProvider>

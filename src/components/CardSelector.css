@@ -1,0 +1,157 @@
+/* CardSelector 组件样式 */
+
+.card-selector {
+  width: 100%;
+}
+
+.card-selector.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+}
+
+.card-selector .empty-icon {
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: 1rem;
+}
+
+.card-selector .empty-text {
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.card-selector .buy-card-link {
+  padding: 0.5rem 1.5rem;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-radius: 20px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card-selector .buy-card-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.card-selector .cost-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  color: #a5b4fc;
+  font-size: 0.9rem;
+}
+
+.card-selector .cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.card-selector .card-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.card-selector .card-option:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.card-selector .card-option.selected {
+  background: rgba(102, 126, 234, 0.15);
+  border-color: #667eea;
+}
+
+.card-selector .card-option.expired {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.card-selector .card-radio {
+  flex-shrink: 0;
+}
+
+.card-selector .radio-unchecked {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.card-selector .radio-checked {
+  width: 20px;
+  height: 20px;
+  background: #667eea;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.card-selector .card-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #a5b4fc;
+}
+
+.card-selector .card-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.card-selector .card-name {
+  font-weight: 500;
+  color: white;
+}
+
+.card-selector .card-balance {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.card-selector .card-expire {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.card-selector .card-deduct {
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.card-selector .deduct-label {
+  display: block;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.card-selector .deduct-value {
+  display: block;
+  font-weight: 600;
+  color: #f87171;
+}

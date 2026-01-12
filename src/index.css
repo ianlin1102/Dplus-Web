@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 * {
   margin: 0;
   padding: 0;
@@ -210,4 +212,40 @@ body.light .bg-grid-pattern {
 body.light .glass-card {
   background: rgba(255, 255, 255, 0.85);
   border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* ============================================
+   全局动画偏好控制 - 减少动画
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  /* 保留必要的加载动画，但减少迭代 */
+  .loading-spinner,
+  .btn-spinner,
+  .spinner {
+    animation-duration: 1s !important;
+    animation-iteration-count: 3 !important;
+  }
+}
+
+/* ============================================
+   GPU 渲染性能优化
+   ============================================ */
+
+/* 对包含动画的容器启用硬件加速后自动释放 */
+.animated-element {
+  will-change: auto;
+}
+
+/* 防止滚动时的重绘 */
+.scroll-container {
+  contain: strict;
+  content-visibility: auto;
 }

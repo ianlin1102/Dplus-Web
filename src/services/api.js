@@ -24,20 +24,70 @@ export const callCloudFunction = async (name, data = {}) => {
 }
 
 /**
- * 调用云路由（类似小程序的 cloudHelper.callCloudData）
+ * 获取用户 token（与小程序端保持一致）
+ * 管理员路由使用 admin token，普通路由使用用户 ID
+ */
+const getUserToken = (route) => {
+  // 管理员路由
+  if (route.indexOf('admin/') > -1) {
+    const adminInfo = localStorage.getItem('admin_info')
+    if (adminInfo) {
+      const admin = JSON.parse(adminInfo)
+      return admin.token || admin.id || ''
+    }
+    return ''
+  }
+
+  // 普通用户路由 - 检查 AuthContext 的缓存 (auth_info)
+  const authInfo = localStorage.getItem('auth_info')
+  if (authInfo) {
+    try {
+      const parsed = JSON.parse(authInfo)
+      // auth_info 格式: { user: { id, name, role, type }, expireTime }
+      if (parsed.user && parsed.user.id) {
+        return parsed.user.id
+      }
+    } catch (e) {
+      console.error('解析 auth_info 失败:', e)
+    }
+  }
+
+  // 兼容旧的 auth_user 格式
+  const authData = localStorage.getItem('auth_user')
+  if (authData) {
+    try {
+      const user = JSON.parse(authData)
+      return user._id || user.USER_MINI_OPENID || ''
+    } catch (e) {
+      console.error('解析 auth_user 失败:', e)
+    }
+  }
+
+  return ''
+}
+
+/**
+ * 调用云路由（与小程序端 cloudHelper.callCloudData 保持一致）
  * @param {string} route - 路由路径（例如：'checkin/rank_list'）
  * @param {object} params - 路由参数
  * @returns {Promise} 返回数据
  */
 export const callCloudRoute = async (route, params = {}) => {
   try {
+    const token = getUserToken(route)
+    const PID = 'A00'  // 项目 ID，与小程序端保持一致
+
+    // 参数格式与小程序端保持一致: { route, token, PID, params }
     const result = await callCloudFunction('cloud', {
       route,
-      ...params
+      token,
+      PID,
+      params  // params 作为嵌套对象传递，不是展开
     })
 
-    if (result && result.code === 0) {
-      return result.data
+    // 云函数成功返回 code: 200
+    if (result && result.code === 200) {
+      return result
     } else {
       throw new Error(result.msg || '请求失败')
     }

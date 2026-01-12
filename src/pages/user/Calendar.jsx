@@ -1,65 +1,12 @@
 import { useState, useEffect, useCallback } from 'react'
-import { CalendarDays, ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { CalendarDays, ChevronLeft, ChevronRight, X, CalendarOff } from 'lucide-react'
 import { useLanguage } from '../../i18n/LanguageContext'
 import { getMeetListByWeek, dateUtils } from '../../services/meetService'
-import { convertCloudUrl } from '../../utils/cloudUrlHelper'
+import { getTempDownloadUrl } from '../../utils/cloudUrlHelper'
+import CloudImage from '../../components/CloudImage'
 import './Calendar.css'
 
-// 示例数据（当 API 无数据时使用）
-const demoMeets = {
-  zh: [
-    {
-      _id: 'demo1',
-      MEET_TITLE: 'Hip-Hop 基础班',
-      MEET_INSTRUCTOR_NAME: '导师 Jay',
-      MEET_TYPE_NAME: 'Hip-Hop',
-      day: '',
-      times: [{ start: '10:00', end: '11:30', limit: 20, stat: { succCnt: 5 } }]
-    },
-    {
-      _id: 'demo2',
-      MEET_TITLE: 'K-Pop 编舞课',
-      MEET_INSTRUCTOR_NAME: '导师 Lisa',
-      MEET_TYPE_NAME: 'K-Pop',
-      day: '',
-      times: [{ start: '14:00', end: '15:30', limit: 15, stat: { succCnt: 12 } }]
-    },
-    {
-      _id: 'demo3',
-      MEET_TITLE: 'Jazz Funk 进阶',
-      MEET_INSTRUCTOR_NAME: '导师 Mike',
-      MEET_TYPE_NAME: 'Jazz Funk',
-      day: '',
-      times: [{ start: '19:00', end: '20:30', limit: 10, stat: { succCnt: 10 } }]
-    }
-  ],
-  en: [
-    {
-      _id: 'demo1',
-      MEET_TITLE: 'Hip-Hop Basics',
-      MEET_INSTRUCTOR_NAME: 'Jay',
-      MEET_TYPE_NAME: 'Hip-Hop',
-      day: '',
-      times: [{ start: '10:00', end: '11:30', limit: 20, stat: { succCnt: 5 } }]
-    },
-    {
-      _id: 'demo2',
-      MEET_TITLE: 'K-Pop Choreo',
-      MEET_INSTRUCTOR_NAME: 'Lisa',
-      MEET_TYPE_NAME: 'K-Pop',
-      day: '',
-      times: [{ start: '14:00', end: '15:30', limit: 15, stat: { succCnt: 12 } }]
-    },
-    {
-      _id: 'demo3',
-      MEET_TITLE: 'Jazz Funk Advanced',
-      MEET_INSTRUCTOR_NAME: 'Mike',
-      MEET_TYPE_NAME: 'Jazz Funk',
-      day: '',
-      times: [{ start: '19:00', end: '20:30', limit: 10, stat: { succCnt: 10 } }]
-    }
-  ]
-}
 
 // 类型颜色映射
 const typeColors = {
@@ -69,6 +16,95 @@ const typeColors = {
   '古典舞': '#A8E6CF',
   'Classical': '#A8E6CF',
   'default': '#6366f1'
+}
+
+// 缓存常量
+const CACHE_KEY_WEEK_INDEX = 'calendar_selected_week_index'
+const CACHE_KEY_MEETS_PREFIX = 'calendar_meets_'
+const CACHE_EXPIRE_TIME = 5 * 60 * 1000 // 5分钟
+
+// 缓存工具函数
+const cacheUtils = {
+  // 保存周索引到 sessionStorage
+  saveWeekIndex(index) {
+    try {
+      sessionStorage.setItem(CACHE_KEY_WEEK_INDEX, String(index))
+    } catch (e) {
+      console.warn('保存周索引失败:', e)
+    }
+  },
+
+  // 从 sessionStorage 获取周索引
+  getWeekIndex() {
+    try {
+      const saved = sessionStorage.getItem(CACHE_KEY_WEEK_INDEX)
+      if (saved !== null) {
+        const index = parseInt(saved, 10)
+        // 验证索引有效性（0-7）
+        if (!isNaN(index) && index >= 0 && index <= 7) {
+          return index
+        }
+      }
+    } catch (e) {
+      console.warn('读取周索引失败:', e)
+    }
+    return 0 // 默认第一周
+  },
+
+  // 保存预约数据到 localStorage（带过期时间）
+  saveMeets(startDate, endDate, data) {
+    try {
+      const cacheKey = `${CACHE_KEY_MEETS_PREFIX}${startDate}_${endDate}`
+      const cacheData = {
+        data,
+        expireTime: Date.now() + CACHE_EXPIRE_TIME
+      }
+      localStorage.setItem(cacheKey, JSON.stringify(cacheData))
+    } catch (e) {
+      console.warn('保存预约数据缓存失败:', e)
+    }
+  },
+
+  // 从 localStorage 获取预约数据（检查过期）
+  getMeets(startDate, endDate) {
+    try {
+      const cacheKey = `${CACHE_KEY_MEETS_PREFIX}${startDate}_${endDate}`
+      const cached = localStorage.getItem(cacheKey)
+      if (cached) {
+        const { data, expireTime } = JSON.parse(cached)
+        if (expireTime > Date.now()) {
+          return data
+        }
+        // 已过期，删除缓存
+        localStorage.removeItem(cacheKey)
+      }
+    } catch (e) {
+      console.warn('读取预约数据缓存失败:', e)
+    }
+    return null
+  },
+
+  // 清除所有预约数据缓存
+  clearMeetsCache() {
+    try {
+      const keys = Object.keys(localStorage)
+      keys.forEach(key => {
+        if (key.startsWith(CACHE_KEY_MEETS_PREFIX)) {
+          localStorage.removeItem(key)
+        }
+      })
+    } catch (e) {
+      console.warn('清除预约缓存失败:', e)
+    }
+  }
+}
+
+// 格式化日期为 YYYY-MM-DD（使用本地时间，避免 toISOString 的 UTC 时区问题）
+function formatLocalDate(date) {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
 }
 
 // 生成 8 周的周范围列表
@@ -90,8 +126,9 @@ function generateWeekButtons(language = 'zh') {
     const weekEnd = new Date(weekStart)
     weekEnd.setDate(weekStart.getDate() + 6)
 
-    const startDate = weekStart.toISOString().split('T')[0]
-    const endDate = weekEnd.toISOString().split('T')[0]
+    // 使用本地时间格式化，避免 toISOString 的 UTC 时区问题
+    const startDate = formatLocalDate(weekStart)
+    const endDate = formatLocalDate(weekEnd)
 
     // 格式化显示标签
     const startMonth = weekStart.getMonth() + 1
@@ -195,15 +232,16 @@ function generateMonthCalendar(year, month) {
 
 function Calendar() {
   const { t, language } = useLanguage()
+  const navigate = useNavigate()
 
   // 周按钮列表
   const [weekButtons] = useState(() => generateWeekButtons(language))
-  const [selectedWeekIndex, setSelectedWeekIndex] = useState(0)
+  // 从缓存读取上次选择的周索引
+  const [selectedWeekIndex, setSelectedWeekIndex] = useState(() => cacheUtils.getWeekIndex())
 
   // 数据状态
   const [meets, setMeets] = useState([])
   const [loading, setLoading] = useState(true)
-  const [useDemo, setUseDemo] = useState(false)
 
   // 月历弹窗状态
   const [showMonthPicker, setShowMonthPicker] = useState(false)
@@ -213,9 +251,15 @@ function Calendar() {
   // 当前选中的周
   const selectedWeek = weekButtons[selectedWeekIndex]
 
+  // 保存周索引到缓存（当切换周时）
+  useEffect(() => {
+    cacheUtils.saveWeekIndex(selectedWeekIndex)
+  }, [selectedWeekIndex])
+
   // 获取周一所在的周索引
   const findWeekIndexByDate = (date) => {
-    const targetDate = date.toISOString().split('T')[0]
+    // 使用本地时间格式化，避免 UTC 时区问题
+    const targetDate = formatLocalDate(date)
     for (let i = 0; i < weekButtons.length; i++) {
       if (targetDate >= weekButtons[i].startDate && targetDate <= weekButtons[i].endDate) {
         return i
@@ -228,7 +272,12 @@ function Calendar() {
   const handleDateSelect = (dayInfo) => {
     if (!dayInfo.day || !dayInfo.isCurrentMonth) return
     const weekIndex = findWeekIndexByDate(dayInfo.date)
-    setSelectedWeekIndex(weekIndex)
+    if (selectedWeekIndex !== weekIndex) {
+      // 立即清空数据并显示加载状态
+      setMeets([])
+      setLoading(true)
+      setSelectedWeekIndex(weekIndex)
+    }
     setShowMonthPicker(false)
   }
 
@@ -260,36 +309,47 @@ function Calendar() {
     ? ['一', '二', '三', '四', '五', '六', '日']
     : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
-  // 加载数据
+  // 加载数据（支持缓存）
   const loadData = useCallback(async () => {
     if (!selectedWeek) return
+
+    // 先检查缓存
+    const cachedMeets = cacheUtils.getMeets(selectedWeek.startDate, selectedWeek.endDate)
+    if (cachedMeets) {
+      console.log('使用缓存的预约数据:', selectedWeek.startDate, '-', selectedWeek.endDate)
+      setMeets(cachedMeets)
+      setLoading(false)
+      return
+    }
 
     setLoading(true)
     try {
       const weekResult = await getMeetListByWeek(selectedWeek.startDate, selectedWeek.endDate)
       if (weekResult.code === 200 && weekResult.data && weekResult.data.length > 0) {
+        // 转换导师图片 URL（cloud:// -> https://）
+        const meetsWithPics = await Promise.all(
+          weekResult.data.map(async (meet) => {
+            if (meet.instructorPic && meet.instructorPic.startsWith('cloud://')) {
+              const convertedUrl = await getTempDownloadUrl(meet.instructorPic)
+              return { ...meet, instructorPic: convertedUrl }
+            }
+            return meet
+          })
+        )
         // 按时间排序
-        const sorted = sortMeetsByTime(weekResult.data)
+        const sorted = sortMeetsByTime(meetsWithPics)
         setMeets(sorted)
-        setUseDemo(false)
+        // 保存到缓存
+        cacheUtils.saveMeets(selectedWeek.startDate, selectedWeek.endDate, sorted)
       } else {
-        // 使用示例数据
-        const demos = demoMeets[language].map((m, i) => ({
-          ...m,
-          day: selectedWeek.startDate // 放在第一天
-        }))
-        setMeets(demos)
-        setUseDemo(true)
+        // 无数据时显示空列表
+        setMeets([])
+        // 空数据也缓存，避免重复请求
+        cacheUtils.saveMeets(selectedWeek.startDate, selectedWeek.endDate, [])
       }
     } catch (error) {
       console.error('加载数据失败:', error)
-      // 使用示例数据
-      const demos = demoMeets[language].map((m) => ({
-        ...m,
-        day: selectedWeek.startDate
-      }))
-      setMeets(demos)
-      setUseDemo(true)
+      setMeets([])
     } finally {
       setLoading(false)
     }
@@ -313,17 +373,56 @@ function Calendar() {
   }
 
   // 按日期分组课程
+  // 云函数返回的 times 数组中每个时段有 day 属性，需要按 day 展开
   const groupedMeets = meets.reduce((acc, meet) => {
-    const day = meet.day
-    if (!acc[day]) {
-      acc[day] = []
+    // 遍历每个时间段，按 day 分组
+    if (meet.times && meet.times.length > 0) {
+      meet.times.forEach(timeSlot => {
+        const day = timeSlot.day
+        if (!day) return
+
+        if (!acc[day]) {
+          acc[day] = []
+        }
+
+        // 创建一个包含单个时间段的 meet 副本
+        acc[day].push({
+          ...meet,
+          day: day, // 添加 day 属性方便后续使用
+          times: [timeSlot] // 只包含当天的时间段
+        })
+      })
     }
-    acc[day].push(meet)
     return acc
   }, {})
 
   // 获取排序后的日期列表
   const sortedDays = Object.keys(groupedMeets).sort()
+
+  // 处理课程点击，跳转到预约确认页
+  const handleMeetClick = (meet, day) => {
+    // 获取时段信息
+    const timeSlot = meet.times?.[0]
+    if (!timeSlot) return
+
+    // 检查是否已满（云函数返回 cnt 而不是 stat.succCnt）
+    if (timeSlot.cnt >= timeSlot.limit) {
+      alert(language === 'zh' ? '该时段已满，请选择其他时段' : 'This slot is full, please choose another')
+      return
+    }
+
+    // 生成 timeMark（使用后端返回的 mark 或生成格式）
+    const timeMark = timeSlot.mark || `T${day.replace(/-/g, '')}${Math.random().toString(36).substring(2, 12).toUpperCase()}`
+
+    // 跳转到预约确认页，传递完整的 meet 数据
+    navigate(`/booking/confirm?meetId=${meet._id}&day=${day}&timeMark=${timeMark}&start=${timeSlot.start}&end=${timeSlot.end}`, {
+      state: {
+        meet: meet,
+        day: day,
+        timeSlot: timeSlot
+      }
+    })
+  }
 
   return (
     <div className="calendar-page">
@@ -348,7 +447,14 @@ function Calendar() {
               <button
                 key={week.startDate}
                 className={`week-button ${selectedWeekIndex === index ? 'active' : ''} ${week.isCurrentWeek ? 'current' : ''}`}
-                onClick={() => setSelectedWeekIndex(index)}
+                onClick={() => {
+                  if (selectedWeekIndex !== index) {
+                    // 立即清空数据并显示加载状态
+                    setMeets([]);
+                    setLoading(true);
+                    setSelectedWeekIndex(index);
+                  }
+                }}
               >
                 {week.label}
               </button>
@@ -385,9 +491,11 @@ function Calendar() {
                 {monthDays.map((dayInfo, idx) => {
                   const isToday = dayInfo.date &&
                     dayInfo.date.toDateString() === new Date().toDateString()
+                  // 使用本地时间格式化，避免 UTC 时区问题
+                  const dayDateStr = dayInfo.date ? formatLocalDate(dayInfo.date) : ''
                   const isInRange = dayInfo.date &&
-                    dayInfo.date.toISOString().split('T')[0] >= weekButtons[0].startDate &&
-                    dayInfo.date.toISOString().split('T')[0] <= weekButtons[7].endDate
+                    dayDateStr >= weekButtons[0].startDate &&
+                    dayDateStr <= weekButtons[7].endDate
 
                   return (
                     <button
@@ -420,10 +528,15 @@ function Calendar() {
                 </div>
 
                 {groupedMeets[day].map((meet) => (
-                  <div key={`${meet._id}-${meet.day}`} className="meet-card">
+                  <div
+                    key={`${meet._id}-${meet.day}`}
+                    className={`meet-card ${meet.times?.[0]?.cnt >= meet.times?.[0]?.limit ? 'full' : 'clickable'}`}
+                    onClick={() => handleMeetClick(meet, day)}
+                    style={{ cursor: meet.times?.[0]?.cnt >= meet.times?.[0]?.limit ? 'not-allowed' : 'pointer' }}
+                  >
                     <div
                       className="meet-card-accent"
-                      style={{ background: typeColors[meet.MEET_TYPE_NAME] || typeColors.default }}
+                      style={{ background: typeColors[meet.typeName] || typeColors.default }}
                     />
 
                     <div className="meet-card-time">
@@ -433,7 +546,7 @@ function Calendar() {
                             {meet.times[0].start} - {meet.times[0].end}
                           </span>
                           <span className="time-duration">
-                            {calculateDuration(meet.times[0].start, meet.times[0].end)}
+                            {meet.times[0].duration || calculateDuration(meet.times[0].start, meet.times[0].end)}
                           </span>
                         </>
                       )}
@@ -442,49 +555,50 @@ function Calendar() {
                     <div className="meet-card-content">
                       <span
                         className="meet-type-tag"
-                        style={{ background: typeColors[meet.MEET_TYPE_NAME] || typeColors.default }}
+                        style={{ background: typeColors[meet.typeName] || typeColors.default }}
                       >
-                        {meet.MEET_TYPE_NAME}
+                        {meet.typeName}
                       </span>
-                      <h3 className="meet-title">{meet.MEET_TITLE}</h3>
-                      <p className="meet-instructor">{meet.MEET_INSTRUCTOR_NAME}</p>
+                      <h3 className="meet-title">{meet.title}</h3>
+                      <p className="meet-instructor">{meet.instructorName}</p>
+                      {meet.courseInfo && (
+                        <p className="meet-course-info">{meet.courseInfo}</p>
+                      )}
 
                       {meet.times && meet.times[0] && (
                         <div className="meet-spots">
-                          <span className={`spots-count ${meet.times[0].stat?.succCnt >= meet.times[0].limit ? 'full' : ''}`}>
+                          <span className={`spots-count ${meet.times[0].cnt >= meet.times[0].limit ? 'full' : ''}`}>
                             {language === 'zh'
-                              ? `已约 ${meet.times[0].stat?.succCnt || 0}/${meet.times[0].limit} 人`
-                              : `${meet.times[0].stat?.succCnt || 0}/${meet.times[0].limit} booked`}
+                              ? `已约 ${meet.times[0].cnt || 0}/${meet.times[0].limit} 人`
+                              : `${meet.times[0].cnt || 0}/${meet.times[0].limit} booked`}
                           </span>
                         </div>
                       )}
                     </div>
 
-                    {meet.MEET_INSTRUCTOR_PIC && (
-                      <div className="meet-card-avatar">
-                        <img
-                          src={convertCloudUrl(meet.MEET_INSTRUCTOR_PIC)}
-                          alt={meet.MEET_INSTRUCTOR_NAME}
-                          onError={(e) => { e.target.style.display = 'none' }}
-                        />
-                      </div>
-                    )}
+                    <div className="meet-card-avatar">
+                      <CloudImage
+                        src={meet.instructorPic}
+                        alt={meet.instructorName || ''}
+                        fallbackText={meet.instructorName || '?'}
+                      />
+                    </div>
                   </div>
                 ))}
               </div>
             ))
           ) : (
             <div className="empty-state">
-              <p>{language === 'zh' ? '本周暂无课程安排' : 'No classes scheduled for this week'}</p>
+              <CalendarOff size={48} className="empty-icon" />
+              <p className="empty-title">
+                {language === 'zh' ? '该时间段内没有任何可预约的内容' : 'No bookings available for this period'}
+              </p>
+              <p className="empty-hint">
+                {language === 'zh' ? '请选择其他时间或稍后再来查看' : 'Please select another time or check back later'}
+              </p>
             </div>
           )}
         </div>
-
-        {useDemo && (
-          <div className="demo-notice">
-            {language === 'zh' ? '当前显示的是示例数据' : 'Showing demo data'}
-          </div>
-        )}
 
         {/* 状态说明 */}
         <div className="schedule-legend">

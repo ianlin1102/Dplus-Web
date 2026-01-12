@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Calendar, CreditCard, BookOpen, Info } from 'lucide-react'
 import { useLanguage } from '../../i18n/LanguageContext'
@@ -8,6 +8,7 @@ import InstructorCarousel from '../../components/InstructorCarousel'
 import InstructorModal from '../../components/InstructorModal'
 import RankingPodium from '../../components/RankingPodium'
 import DataPlaceholder from '../../components/DataPlaceholder'
+import IntroOverlay from '../../components/IntroOverlay'
 import { useDataWithRetry } from '../../hooks/useDataWithRetry'
 import './Home.css'
 
@@ -30,6 +31,15 @@ const serviceTypes = {
 function Home() {
   const navigate = useNavigate()
   const { t, language } = useLanguage()
+
+  // 开场动画状态 - 每次会话只显示一次
+  const [showIntro, setShowIntro] = useState(() => {
+    return !sessionStorage.getItem('intro_shown')
+  })
+
+  const handleIntroEnter = () => {
+    sessionStorage.setItem('intro_shown', 'true')
+  }
 
   // 使用自动重试 Hook 加载导师列表
   const {
@@ -82,6 +92,9 @@ function Home() {
 
   return (
     <div className="home-page">
+      {/* 开场动画 */}
+      {showIntro && <IntroOverlay onEnter={handleIntroEnter} />}
+
       {/* Background Grid */}
       <div className="bg-grid-pattern grid-overlay" />
 
@@ -154,7 +167,7 @@ function Home() {
       </section>
 
       {/* Ranking Section - Check-in Leaderboard (moved to prominent position) */}
-      <section className="ranking-section">
+      <section className="home-ranking-section">
         <div className="section-header">
           <h2 className="section-title">{t('home.rankingTitle', language === 'zh' ? '上课排行榜' : 'Check-in Leaderboard')}</h2>
         </div>

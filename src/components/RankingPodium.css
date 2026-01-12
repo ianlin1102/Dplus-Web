@@ -98,12 +98,20 @@ body.light .ranking-toggle {
 .crown-icon {
   font-size: 1.5rem;
   margin-bottom: 0.25rem;
-  animation: float 2s ease-in-out infinite;
+  /* 使用 3 次循环替代无限循环以减少 GPU 使用 */
+  animation: float 2s ease-in-out 3;
 }
 
 @keyframes float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-4px); }
+}
+
+/* 用户偏好：减少动画 */
+@media (prefers-reduced-motion: reduce) {
+  .crown-icon {
+    animation: none;
+  }
 }
 
 /* 头像 */

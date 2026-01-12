@@ -1,0 +1,626 @@
+/**
+ * 用户卡项管理页面样式
+ */
+
+.user-card-manage {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 100%);
+  padding: 20px;
+  padding-bottom: 40px;
+}
+
+/* Header */
+.user-card-manage .page-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.user-card-manage .back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.user-card-manage .back-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.user-card-manage .header-content h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+}
+
+.user-card-manage .header-content .subtitle {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 4px 0 0;
+}
+
+/* Messages */
+.user-card-manage .message {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.user-card-manage .message.error {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #f87171;
+}
+
+.user-card-manage .message.success {
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #4ade80;
+}
+
+.user-card-manage .message button {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 4px;
+}
+
+/* Search Section */
+.user-card-manage .search-section {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.user-card-manage .search-type-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.user-card-manage .search-type-tabs button {
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.user-card-manage .search-type-tabs button.active {
+  background: rgba(6, 182, 212, 0.15);
+  border-color: rgba(6, 182, 212, 0.4);
+  color: #06b6d4;
+}
+
+.user-card-manage .search-form {
+  display: flex;
+  gap: 12px;
+}
+
+.user-card-manage .search-input-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0 16px;
+}
+
+.user-card-manage .search-input-wrapper svg {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.user-card-manage .search-input-wrapper input {
+  flex: 1;
+  background: none;
+  border: none;
+  padding: 12px 0;
+  color: #fff;
+  font-size: 14px;
+  outline: none;
+}
+
+.user-card-manage .search-input-wrapper input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.user-card-manage .search-btn {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.user-card-manage .search-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+}
+
+.user-card-manage .search-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* User Info Section */
+.user-card-manage .user-info-section {
+  margin-bottom: 24px;
+}
+
+.user-card-manage .user-info-section .user-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.user-card-manage .user-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.user-card-manage .user-details {
+  flex: 1;
+}
+
+.user-card-manage .user-details h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 8px;
+}
+
+.user-card-manage .user-details p {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 4px 0;
+}
+
+.user-card-manage .add-card-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.user-card-manage .add-card-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+}
+
+/* Cards Section */
+.user-card-manage .cards-section {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.user-card-manage .cards-section h2 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 16px;
+}
+
+.user-card-manage .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.user-card-manage .empty-state svg {
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+.user-card-manage .cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.user-card-manage .card-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 16px;
+  transition: all 0.2s;
+}
+
+.user-card-manage .card-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.user-card-manage .card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(6, 182, 212, 0.2) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #8b5cf6;
+}
+
+.user-card-manage .card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-card-manage .card-info h4 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-card-manage .card-balance {
+  font-size: 14px;
+  color: #22c55e;
+  margin: 0 0 4px;
+}
+
+.user-card-manage .card-expire {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0;
+}
+
+.user-card-manage .card-expire .expired {
+  color: #f87171;
+}
+
+.user-card-manage .card-unique-id {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.3);
+  margin: 4px 0 0;
+  font-family: monospace;
+}
+
+.user-card-manage .card-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.user-card-manage .action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.user-card-manage .action-btn.adjust {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+}
+
+.user-card-manage .action-btn.adjust:hover {
+  background: rgba(245, 158, 11, 0.25);
+}
+
+.user-card-manage .action-btn.history {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+}
+
+.user-card-manage .action-btn.history:hover {
+  background: rgba(59, 130, 246, 0.25);
+}
+
+/* Modal */
+.user-card-manage .modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.user-card-manage .modal {
+  background: #1e1e3f;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.user-card-manage .modal.wide {
+  max-width: 600px;
+}
+
+.user-card-manage .modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.user-card-manage .modal-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+}
+
+.user-card-manage .close-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  padding: 4px;
+}
+
+.user-card-manage .close-btn:hover {
+  color: #fff;
+}
+
+.user-card-manage .modal-body {
+  padding: 20px;
+}
+
+.user-card-manage .current-info {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.user-card-manage .current-info p {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 4px 0;
+}
+
+.user-card-manage .form-group {
+  margin-bottom: 16px;
+}
+
+.user-card-manage .form-group label {
+  display: block;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 8px;
+}
+
+.user-card-manage .form-group input,
+.user-card-manage .form-group select {
+  width: 100%;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.user-card-manage .form-group input:focus,
+.user-card-manage .form-group select:focus {
+  border-color: rgba(6, 182, 212, 0.5);
+}
+
+.user-card-manage .form-group select option {
+  background: #1e1e3f;
+  color: #fff;
+}
+
+.user-card-manage .radio-group {
+  display: flex;
+  gap: 20px;
+}
+
+.user-card-manage .radio-group label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+}
+
+.user-card-manage .radio-group input[type="radio"] {
+  width: auto;
+  accent-color: #06b6d4;
+}
+
+.user-card-manage .modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.user-card-manage .btn-cancel {
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.user-card-manage .btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.user-card-manage .btn-confirm {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.user-card-manage .btn-confirm:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+}
+
+/* Records List */
+.user-card-manage .empty-records {
+  text-align: center;
+  padding: 40px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.user-card-manage .records-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.user-card-manage .record-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.user-card-manage .record-item:last-child {
+  border-bottom: none;
+}
+
+.user-card-manage .record-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.user-card-manage .record-type {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.user-card-manage .record-change {
+  font-size: 14px;
+  font-weight: 600;
+  color: #22c55e;
+}
+
+.user-card-manage .record-change:first-child:not(:has(-)) {
+  color: #22c55e;
+}
+
+.user-card-manage .record-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.user-card-manage .record-reason {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.user-card-manage .record-time {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .user-card-manage {
+    padding: 16px;
+  }
+
+  .user-card-manage .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .user-card-manage .search-form {
+    flex-direction: column;
+  }
+
+  .user-card-manage .user-info-section .user-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .user-card-manage .cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .user-card-manage .modal {
+    max-width: 100%;
+    margin: 10px;
+  }
+}

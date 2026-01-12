@@ -387,11 +387,22 @@ body.light .time-duration {
 .meet-instructor {
   font-size: 13px;
   color: rgba(255, 255, 255, 0.5);
-  margin: 0 0 8px 0;
+  margin: 0 0 4px 0;
 }
 
 body.light .meet-instructor {
   color: rgba(0, 0, 0, 0.5);
+}
+
+.meet-course-info {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0 0 8px 0;
+  font-style: italic;
+}
+
+body.light .meet-course-info {
+  color: rgba(0, 0, 0, 0.4);
 }
 
 .meet-spots {
@@ -412,9 +423,13 @@ body.light .meet-instructor {
   height: 48px;
   flex-shrink: 0;
   align-self: center;
+  border-radius: 50%;
+  overflow: hidden;
 }
 
-.meet-card-avatar img {
+.meet-card-avatar img,
+.meet-card-avatar .cloud-image-fallback,
+.meet-card-avatar .cloud-image-placeholder {
   width: 100%;
   height: 100%;
   border-radius: 50%;
@@ -648,4 +663,56 @@ body.light .legend-item {
   .meet-card:hover {
     transform: none;
   }
+}
+
+/* ============================================
+   Clickable meet cards
+   ============================================ */
+
+.meet-card.clickable {
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+
+.meet-card.clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+  border-color: rgba(102, 126, 234, 0.5);
+}
+
+.meet-card.full {
+  opacity: 0.6;
+}
+
+.meet-card.full .meet-card-accent {
+  background: #6b7280 !important;
+}
+
+/* ============================================
+   Empty state improvements
+   ============================================ */
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.empty-state .empty-icon {
+  color: rgba(255, 255, 255, 0.3);
+  margin-bottom: 1.5rem;
+}
+
+.empty-state .empty-title {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 0.5rem;
+}
+
+.empty-state .empty-hint {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0;
 }

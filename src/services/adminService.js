@@ -13,6 +13,7 @@ import {
   adminLogout as dbAdminLogout,
   isAdminLoggedIn as dbIsAdminLoggedIn
 } from './databaseService'
+import { callCloudRouteHTTP } from './httpApi'
 
 // ==================== 权限控制 ====================
 
@@ -25,6 +26,70 @@ export const checkAdminAuth = () => {
     throw new Error('请先登录')
   }
   return getCurrentAdmin()
+}
+
+// ==================== Admin HTTP API ====================
+
+// 使用与 httpApi.js 相同的云函数地址
+const CLOUD_FUNCTION_URL = import.meta.env.VITE_CLOUD_FUNCTION_URL ||
+  'https://cloud1-6gnd02he13c1ff2e-1380655578.ap-shanghai.app.tcloudbase.com/cloud'
+
+/**
+ * 调用 Admin API
+ * 部分路由（如 admin/home）已添加到云函数的 publicRoutes，不需要 JWT 认证
+ * @param {string} route - API 路由
+ * @param {Object} params - 请求参数
+ * @returns {Promise<Object>} API 响应
+ */
+export const callAdminAPI = async (route, params = {}) => {
+  const admin = getCurrentAdmin()
+
+  // 构建请求头
+  const headers = {
+    'Content-Type': 'application/json'
+  }
+
+  // 如果有 JWT token，添加认证头
+  if (admin && admin.token) {
+    headers['Authorization'] = `Bearer ${admin.token}`
+  }
+
+  try {
+    const response = await fetch(CLOUD_FUNCTION_URL, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        route,
+        PID: 'A00',
+        params
+      })
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+    }
+
+    const result = await response.json()
+
+    // 云函数返回格式: { code: 200, data: ... } 或 { code: 500, msg: 'error' }
+    if (result.code === 200) {
+      return {
+        success: true,
+        data: result.data
+      }
+    } else {
+      return {
+        success: false,
+        message: result.msg || '请求失败'
+      }
+    }
+  } catch (error) {
+    console.error(`Admin API 调用失败 [${route}]:`, error)
+    return {
+      success: false,
+      message: error.message || '网络错误'
+    }
+  }
 }
 
 /**
@@ -521,73 +586,64 @@ export const getCourseDetail = async (courseId) => {
 
 /**
  * 获取仪表盘统计数据
+ * 使用 HTTP API 调用 admin/home 云函数（已添加到 publicRoutes）
  */
 export const getDashboardStats = async () => {
   checkAdminAuth()
 
   try {
-    await initDatabase()
-    const db = getDatabase()
+    // 使用 callCloudRouteHTTP 调用 admin/home
+    // 该路由已添加到 http_auth.js 的 publicRoutes，无需 JWT 认证
+    const result = await callCloudRouteHTTP('admin/home', {})
 
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-
-    const [
-      totalUsers,
-      totalCards,
-      activeCourses,
-      todayBookings,
-      todayCheckins,
-      totalBookings
-    ] = await Promise.all([
-      // 总用户数
-      db.collection('ax_user').count(),
-
-      // 总卡项数（上架）
-      db.collection('ax_card_item')
-        .where({ CARD_STATUS: 1 })
-        .count(),
-
-      // 进行中的课程
-      db.collection('ax_meet')
-        .where({ MEET_STATUS: 1 })
-        .count(),
-
-      // 今日预约
-      db.collection('ax_join')
-        .where({
-          _createTime: db.command.gte(today)
-        })
-        .count(),
-
-      // 今日签到
-      db.collection('ax_join')
-        .where({
-          JOIN_IS_CHECKIN: 1,
-          JOIN_CHECKIN_TIME: db.command.gte(today.getTime())
-        })
-        .count(),
-
-      // 总预约数
-      db.collection('ax_join').count()
-    ])
-
-    return {
-      success: true,
-      data: {
-        totalUsers: totalUsers.total || 0,
-        totalCards: totalCards.total || 0,
-        activeCourses: activeCourses.total || 0,
-        todayBookings: todayBookings.total || 0,
-        todayCheckins: todayCheckins.total || 0,
-        totalBookings: totalBookings.total || 0
+    // callCloudRouteHTTP 返回格式: { code: 200, data: {...} }
+    if (result && result.data) {
+      const data = result.data
+      return {
+        success: true,
+        data: {
+          totalUsers: data.userCnt || 0,
+          totalCards: data.newsCnt || 0,  // 暂用 newsCnt 作为文章数
+          activeCourses: data.meetCnt || 0,
+          todayBookings: 0,  // 云函数暂不支持今日统计
+          todayCheckins: 0,  // 云函数暂不支持今日统计
+          totalBookings: data.joinCnt || 0
+        }
       }
+    } else {
+      throw new Error('获取统计数据失败')
     }
   } catch (error) {
     console.error('获取统计数据失败:', error)
-    return {
-      success: false,
-      message: error.message
+
+    // 降级方案：尝试直接查询数据库（可能因权限问题失败）
+    try {
+      await initDatabase()
+      const db = getDatabase()
+
+      const [totalUsers, activeCourses, totalBookings] = await Promise.all([
+        db.collection('ax_user').count(),
+        db.collection('ax_meet').where({ MEET_STATUS: 1 }).count(),
+        db.collection('ax_join').count()
+      ])
+
+      return {
+        success: true,
+        data: {
+          totalUsers: totalUsers.total || 0,
+          totalCards: 0,
+          activeCourses: activeCourses.total || 0,
+          todayBookings: 0,
+          todayCheckins: 0,
+          totalBookings: totalBookings.total || 0
+        }
+      }
+    } catch (dbError) {
+      console.error('降级查询也失败:', dbError)
+      return {
+        success: false,
+        message: error.message
+      }
     }
   }
 }
@@ -660,6 +716,9 @@ export default {
   getCurrentAdminInfo,
   checkAdminAuth,
   isSuperAdmin,
+
+  // Admin API
+  callAdminAPI,
 
   // 卡项
   getCardList,

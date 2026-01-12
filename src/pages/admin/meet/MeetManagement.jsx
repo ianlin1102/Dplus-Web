@@ -292,7 +292,11 @@ export default function MeetManagement() {
                   </div>
 
                   <div className="meet-actions">
-                    <button className="action-btn settings" disabled={isProcessing}>
+                    <button
+                      className="action-btn settings"
+                      onClick={() => navigate(`/admin/meet/edit?id=${meet._id}`)}
+                      disabled={isProcessing}
+                    >
                       <SettingsIcon />
                       <span>设置</span>
                     </button>

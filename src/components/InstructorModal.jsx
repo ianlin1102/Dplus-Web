@@ -1,4 +1,5 @@
 import React from 'react'
+import CloudImage from './CloudImage'
 import './InstructorModal.css'
 
 const InstructorModal = ({ instructor, isOpen, onClose }) => {
@@ -29,7 +30,11 @@ const InstructorModal = ({ instructor, isOpen, onClose }) => {
 
         {/* 头像 */}
         <div className="instructor-modal__avatar">
-          {instructor.INSTRUCTOR_NAME ? instructor.INSTRUCTOR_NAME[0] : '?'}
+          <CloudImage
+            src={instructor.INSTRUCTOR_PIC}
+            alt={instructor.INSTRUCTOR_NAME || ''}
+            fallbackText={instructor.INSTRUCTOR_NAME || '?'}
+          />
         </div>
 
         {/* 导师信息 */}

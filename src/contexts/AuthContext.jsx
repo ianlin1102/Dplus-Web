@@ -82,12 +82,33 @@ export function AuthProvider({ children }) {
   }
 
   // 硬编码账号密码（与小程序 config.js 保持一致）
+  // 注意：userId 必须与数据库中的实际用户 ID 匹配，否则 API 查询会返回空数据
   const ACCOUNTS = {
     // 管理员账号
     admin: { pwd: '123456', role: 'admin', type: 1, name: 'Admin' },
-    // 测试用户账号
-    user: { pwd: '123456', role: 'user', type: 0, name: '测试用户' },
-    test: { pwd: '123456', role: 'user', type: 0, name: 'Test User' },
+    // 微信用户账号 - userId 来自 ax_join 中的实际用户
+    user: {
+      pwd: '123456',
+      role: 'user',
+      type: 0,
+      name: '测试用户',
+      userId: 'oi1Jt1yz9SQ8MzgMri3ifVTKnSNk'  // 微信用户 ID，与 ax_join.JOIN_USER_ID 匹配
+    },
+    test: {
+      pwd: '123456',
+      role: 'user',
+      type: 0,
+      name: 'Test User',
+      userId: 'oi1Jt1yz9SQ8MzgMri3ifVTKnSNk'  // 微信用户 ID
+    },
+    // Web 用户账号
+    testuser: {
+      pwd: '123456',
+      role: 'user',
+      type: 0,
+      name: 'Web测试用户',
+      userId: '20260111193257392'  // Web 用户 ID，与 ax_user.USER_ID 匹配
+    },
   }
 
   /**
@@ -100,8 +121,13 @@ export function AuthProvider({ children }) {
 
       // 验证账号密码
       if (account && account.pwd === password) {
+        // 使用真实的 userId（如果配置了），否则生成默认 ID
+        // 这确保 API 调用时 token 与数据库中的用户 ID 匹配
+        const realUserId = account.userId || `${account.role}_${username}`
+
         const userData = {
-          id: `${account.role}_${username}`,
+          id: realUserId,
+          _id: realUserId,  // 兼容性：某些地方使用 _id
           name: account.name,
           role: account.role,
           type: account.type,

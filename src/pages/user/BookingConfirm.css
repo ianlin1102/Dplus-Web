@@ -1,0 +1,341 @@
+/* BookingConfirm 页面样式 */
+
+.booking-confirm-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
+  padding-bottom: 2rem;
+}
+
+/* 加载/成功/错误状态 */
+.booking-confirm-page .loading-state,
+.booking-confirm-page .success-state,
+.booking-confirm-page .error-state {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.booking-confirm-page .loading-spinner {
+  animation: spin 1s linear infinite;
+  color: #667eea;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.booking-confirm-page .success-state {
+  color: #34d399;
+}
+
+.booking-confirm-page .success-icon {
+  margin-bottom: 1rem;
+}
+
+.booking-confirm-page .success-state h2 {
+  color: white;
+  margin-bottom: 0.5rem;
+}
+
+.booking-confirm-page .error-state {
+  color: #f87171;
+}
+
+.booking-confirm-page .back-link {
+  margin-top: 1rem;
+  color: #a5b4fc;
+  text-decoration: underline;
+}
+
+/* 头部 */
+.booking-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  /* 移除 backdrop-filter 以降低 GPU 使用，使用更高不透明度替代 */
+  background: rgba(15, 15, 26, 0.95);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.booking-header .back-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.booking-header .back-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.booking-header h1 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white;
+  margin: 0;
+}
+
+.booking-header .header-spacer {
+  width: 36px;
+}
+
+/* 内容区域 */
+.booking-content {
+  padding: 1rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* 课程信息卡片 */
+.course-info-card {
+  display: flex;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 1rem;
+}
+
+.course-info-card .instructor-avatar {
+  width: 70px;
+  height: 70px;
+  border-radius: 14px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.course-info-card .instructor-avatar img,
+.course-info-card .instructor-avatar .cloud-image-fallback,
+.course-info-card .instructor-avatar .cloud-image-placeholder {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 14px;
+}
+
+.course-info-card .course-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.course-info-card .course-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 0.5rem;
+}
+
+.course-info-card .course-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.course-info-card .meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.course-info-card .type-badge {
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.course-info-card .course-time {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.course-info-card .time-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.course-info-card .time-item svg {
+  color: #a5b4fc;
+}
+
+/* 通用 section */
+.course-section {
+  margin-bottom: 1rem;
+}
+
+.course-section .section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  color: white;
+}
+
+.course-section .section-header h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  flex: 1;
+}
+
+.course-section .section-header.clickable {
+  cursor: pointer;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  margin-bottom: 0;
+  transition: background 0.2s;
+}
+
+.course-section .section-header.clickable:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.course-section .toggle-icon {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.course-section .section-content {
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.course-section .section-content p {
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* 表面信息 */
+.surface-info .section-content {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+  border-color: rgba(102, 126, 234, 0.2);
+}
+
+.surface-info .section-header svg {
+  color: #a5b4fc;
+}
+
+/* 课程须知内容 */
+.notice-content {
+  margin-top: 0.75rem;
+}
+
+.notice-content p {
+  margin-bottom: 0.75rem;
+}
+
+.notice-content p:last-child {
+  margin-bottom: 0;
+}
+
+.notice-content img {
+  max-width: 100%;
+  border-radius: 8px;
+  margin: 0.5rem 0;
+}
+
+/* 卡项选择区 */
+.card-section .section-header {
+  margin-bottom: 0.5rem;
+}
+
+/* 协议区域 */
+.agreement-section {
+  margin-bottom: 1.5rem;
+}
+
+/* 错误消息 */
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  border-radius: 10px;
+  color: #fca5a5;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+/* 提交按钮 */
+.submit-btn {
+  width: 100%;
+  padding: 1rem;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.submit-btn:hover:not(.disabled):not(.loading) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.submit-btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.submit-btn.loading {
+  opacity: 0.8;
+  cursor: wait;
+}
+
+.submit-btn .btn-spinner {
+  animation: spin 1s linear infinite;
+}
+
+/* 响应式 */
+@media (max-width: 480px) {
+  .course-info-card {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .course-info-card .course-meta {
+    justify-content: center;
+  }
+
+  .course-info-card .course-time {
+    align-items: center;
+  }
+}

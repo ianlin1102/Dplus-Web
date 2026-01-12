@@ -1,7 +1,14 @@
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../i18n/LanguageContext'
+import { useAuth } from '../../contexts/AuthContext'
 import { useDataWithRetry } from '../../hooks/useDataWithRetry'
 import { getCardListHTTP } from '../../services/httpApi'
+import { createPurchaseOrder } from '../../services/cardService'
 import DataPlaceholder from '../../components/DataPlaceholder'
+import DisclaimerModal from '../../components/DisclaimerModal'
+import PurchaseModal from '../../components/PurchaseModal'
+import UploadProofModal from '../../components/UploadProofModal'
 import './CardStore.css'
 
 // Card types from smartbeauty: 次数卡 (Times Card) and 余额卡 (Balance Card)
@@ -94,6 +101,17 @@ const cards = {
 
 function CardStore() {
   const { t, language } = useLanguage()
+  const { user, isLoggedIn } = useAuth()
+  const navigate = useNavigate()
+
+  // 弹窗状态
+  const [showDisclaimer, setShowDisclaimer] = useState(false)
+  const [showPurchase, setShowPurchase] = useState(false)
+  const [showUploadProof, setShowUploadProof] = useState(false)
+  const [selectedCard, setSelectedCard] = useState(null)
+  const [agreedDisclaimer, setAgreedDisclaimer] = useState(false)
+  const [isPurchasing, setIsPurchasing] = useState(false)
+  const [currentPurchaseId, setCurrentPurchaseId] = useState(null)
 
   // 使用自动重试 Hook 加载卡项数据
   const {
@@ -119,6 +137,76 @@ function CardStore() {
 
   // 如果 API 返回数据，使用 API 数据；否则使用静态数据作为后备
   const displayCards = hasCards && apiCards.length > 0 ? apiCards : cards[language]
+
+  // 点击购买按钮
+  const handleBuyClick = (card) => {
+    // 检查登录状态
+    if (!isLoggedIn()) {
+      const confirmLogin = window.confirm(
+        language === 'zh'
+          ? '请先登录后再购买卡项。\n\n是否前往登录页面？'
+          : 'Please login before purchasing.\n\nGo to login page?'
+      )
+      if (confirmLogin) {
+        navigate('/login')
+      }
+      return
+    }
+
+    setSelectedCard(card)
+    if (!agreedDisclaimer) {
+      // 未同意协议，先显示协议弹窗
+      setShowDisclaimer(true)
+    } else {
+      // 已同意协议，直接显示购买弹窗
+      setShowPurchase(true)
+    }
+  }
+
+  // 同意协议
+  const handleAgreeDisclaimer = () => {
+    setAgreedDisclaimer(true)
+    setShowDisclaimer(false)
+    // 同意后显示购买弹窗
+    setTimeout(() => {
+      setShowPurchase(true)
+    }, 200)
+  }
+
+  // 确认购买（仅支持 Zelle）
+  const handleConfirmPurchase = async () => {
+    if (!selectedCard) return
+
+    setIsPurchasing(true)
+    try {
+      const result = await createPurchaseOrder({
+        cardId: selectedCard._id || selectedCard.id,
+        paymentMethod: 'zelle',
+        cardInfo: selectedCard,
+        userId: user?.id || '',
+        userName: user?.name || '',
+        userPhone: '',
+      })
+
+      setCurrentPurchaseId(result.purchaseId)
+      setShowPurchase(false)
+
+      // 显示上传凭证弹窗
+      setTimeout(() => {
+        setShowUploadProof(true)
+      }, 300)
+    } catch (error) {
+      console.error('购买失败:', error)
+      alert(language === 'zh' ? '购买失败，请稍后重试' : 'Purchase failed, please try again')
+    } finally {
+      setIsPurchasing(false)
+    }
+  }
+
+  // 上传凭证成功
+  const handleUploadSuccess = (result) => {
+    console.log('凭证上传成功:', result)
+  }
 
   return (
     <div className="store-page">
@@ -195,7 +283,10 @@ function CardStore() {
                   </ul>
                 )}
 
-                <button className={`plan-button btn-${cardTheme}`}>
+                <button
+                  className={`plan-button btn-${cardTheme}`}
+                  onClick={() => handleBuyClick(card)}
+                >
                   {t('store.buy')}
                 </button>
               </div>
@@ -208,13 +299,13 @@ function CardStore() {
         <section className="payment-section">
           <h2 className="section-title">{t('store.paymentTitle')}</h2>
           <div className="payment-info">
-            <div className="payment-method">
+            <div className="payment-method zelle-only">
               <h4>Zelle {language === 'zh' ? '转账' : 'Transfer'}</h4>
-              <p>{language === 'zh' ? '转账后请截图发送至微信，我们会在24小时内为您充值' : 'After transfer, send screenshot to WeChat. We will credit your account within 24 hours.'}</p>
-            </div>
-            <div className="payment-method">
-              <h4>{language === 'zh' ? '现场支付' : 'In-Person Payment'}</h4>
-              <p>{language === 'zh' ? '欢迎到店后使用现金或刷卡支付' : 'Cash or card payment welcome at our studio'}</p>
+              <p>{language === 'zh' ? '转账后上传截图凭证，我们会在24小时内为您充值' : 'Upload screenshot after transfer. We will credit your account within 24 hours.'}</p>
+              <div className="zelle-account-info">
+                <span>{language === 'zh' ? '收款账号' : 'Account'}:</span>
+                <code>smartbeauty@example.com</code>
+              </div>
             </div>
           </div>
         </section>
@@ -238,6 +329,30 @@ function CardStore() {
           </div>
         </section>
       </div>
+
+      {/* 用户协议弹窗 */}
+      <DisclaimerModal
+        isOpen={showDisclaimer}
+        onClose={() => setShowDisclaimer(false)}
+        onAgree={handleAgreeDisclaimer}
+      />
+
+      {/* 购买确认弹窗 */}
+      <PurchaseModal
+        isOpen={showPurchase}
+        onClose={() => setShowPurchase(false)}
+        card={selectedCard}
+        onConfirm={handleConfirmPurchase}
+        isPurchasing={isPurchasing}
+      />
+
+      {/* 上传支付凭证弹窗 */}
+      <UploadProofModal
+        isOpen={showUploadProof}
+        onClose={() => setShowUploadProof(false)}
+        purchaseId={currentPurchaseId}
+        onSuccess={handleUploadSuccess}
+      />
     </div>
   )
 }

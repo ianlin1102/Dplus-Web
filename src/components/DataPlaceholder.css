@@ -192,6 +192,18 @@
   }
 }
 
+/* 用户偏好：减少动画 */
+@media (prefers-reduced-motion: reduce) {
+  .shimmer {
+    animation: none;
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .loading-spinner {
+    animation-iteration-count: 3;
+  }
+}
+
 .message-text {
   color: rgba(255, 255, 255, 0.6);
   font-size: 14px;

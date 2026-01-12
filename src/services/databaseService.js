@@ -75,42 +75,68 @@ export const getAuth = () => {
 
 // ==================== 管理员相关 ====================
 
-// 硬编码管理员账号密码（与小程序 config.js 保持一致）
-const ADMIN_NAME = 'admin'
-const ADMIN_PWD = '123456'
+// 云函数 HTTP 触发器地址 (使用与 httpApi.js 相同的地址)
+const CLOUD_FUNCTION_URL = import.meta.env.VITE_CLOUD_FUNCTION_URL ||
+  'https://cloud1-6gnd02he13c1ff2e-1380655578.ap-shanghai.app.tcloudbase.com/cloud'
 
 /**
  * 管理员登录
+ * 调用云函数 admin/login 获取 JWT token
  * @param {string} username - 用户名
  * @param {string} password - 密码
  * @returns {Promise<Object>} 管理员信息
  */
 export const adminLogin = async (username, password) => {
-  const db = getDatabase()
-
-  // 使用硬编码密码验证（与小程序保持一致）
-  if (username !== ADMIN_NAME || password !== ADMIN_PWD) {
-    throw new Error('用户名或密码错误')
-  }
-
-  // 查询管理员信息
-  const result = await db.collection('ax_admin')
-    .where({
-      ADMIN_STATUS: 1  // 启用状态
+  try {
+    const response = await fetch(CLOUD_FUNCTION_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        route: 'admin/login',
+        PID: 'A00',
+        params: {
+          name: username,
+          pwd: password
+        }
+      })
     })
-    .get()
 
-  if (result.data && result.data.length > 0) {
-    const admin = result.data[0]
-    // 保存登录信息到本地
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+    }
+
+    const result = await response.json()
+
+    // 云函数返回格式: { code: 200, data: { token, jwtToken, name, type, ... } }
+    if (result.code !== 200) {
+      throw new Error(result.msg || '登录失败')
+    }
+
+    const data = result.data
+
+    // 保存登录信息到本地（包含 JWT token 用于后续 Admin API 调用）
     localStorage.setItem('admin_info', JSON.stringify({
-      id: admin._id,
-      name: admin.ADMIN_NAME,
-      type: admin.ADMIN_TYPE
+      id: data.userId,
+      name: data.name,
+      type: data.type,
+      token: data.jwtToken,  // JWT token 用于 HTTP 认证
+      legacyToken: data.token,  // 传统 token（小程序兼容）
+      role: data.role,
+      lastLogin: data.last,
+      loginCount: data.cnt
     }))
-    return admin
-  } else {
-    throw new Error('管理员不存在')
+
+    return {
+      _id: data.userId,
+      ADMIN_NAME: data.name,
+      ADMIN_TYPE: data.type,
+      jwtToken: data.jwtToken
+    }
+  } catch (error) {
+    console.error('管理员登录失败:', error)
+    throw new Error(error.message || '登录失败，请检查账号密码')
   }
 }
 
@@ -369,28 +395,32 @@ export const cancelCheckin = async (bookingId) => {
 
 /**
  * 获取学员列表
+ * 支持所有用户类型：微信用户、Web用户、Google用户
  * @param {Object} options - 查询选项
  * @returns {Promise<Object>} 学员列表
  */
 export const getStudentList = async (options = {}) => {
   const db = getDatabase()
+  const _ = db.command
   const {
     search = '',
     page = 1,
     limit = 20
   } = options
 
+  // 不再强制要求 _pid，这样可以显示所有用户类型
+  // - 微信用户：有 _pid 和 USER_MINI_OPENID
+  // - Web 用户：有 USER_ACCOUNT（可能没有 _pid）
+  // - Google 用户：有 USER_GOOGLE_ID（未来支持）
   let query = db.collection('ax_user')
-    .where({ _pid: PROJECT_ID })
 
-  // 搜索
+  // 搜索条件
   if (search) {
-    query = query.where({
-      USER_NAME: db.RegExp({
-        regexp: search,
-        options: 'i'
-      })
-    })
+    query = query.where(_.or([
+      { USER_NAME: db.RegExp({ regexp: search, options: 'i' }) },
+      { USER_MOBILE: db.RegExp({ regexp: search, options: 'i' }) },
+      { USER_ACCOUNT: db.RegExp({ regexp: search, options: 'i' }) }
+    ]))
   }
 
   const skip = (page - 1) * limit
@@ -403,8 +433,17 @@ export const getStudentList = async (options = {}) => {
     query.count()
   ])
 
+  // 为每个用户添加来源标签
+  const users = (listResult.data || []).map(user => ({
+    ...user,
+    // 用户来源标识
+    USER_SOURCE_TYPE: user.USER_MINI_OPENID ? 'wechat' :
+                      user.USER_GOOGLE_ID ? 'google' :
+                      user.USER_ACCOUNT ? 'web' : 'unknown'
+  }))
+
   return {
-    list: listResult.data || [],
+    list: users,
     total: countResult.total || 0,
     page,
     limit

@@ -4,6 +4,7 @@
  */
 
 import { getDatabase, initDatabase } from './databaseService'
+import { uploadPaymentProofHTTP, createPurchaseOrderHTTP } from './httpApi'
 
 /**
  * 获取卡项列表
@@ -95,12 +96,16 @@ export const getCardDetail = async (cardId) => {
 /**
  * 获取用户的卡项列表
  * @param {string} userId - 用户 ID
+ * @param {Object} options - 查询选项
+ * @param {boolean} options.includeExpired - 是否包含过期卡项，默认 false
  * @returns {Promise<Array>} 用户卡项列表
  */
-export const getMyCards = async (userId) => {
+export const getMyCards = async (userId, options = {}) => {
   try {
     await initDatabase()
     const db = getDatabase()
+    const { includeExpired = false } = options
+
     const res = await db.collection('ax_user_card')
       .where({
         USER_CARD_USER_ID: userId,
@@ -109,11 +114,36 @@ export const getMyCards = async (userId) => {
       .orderBy('USER_CARD_ADD_TIME', 'desc')
       .get()
 
-    return res.data || []
+    let cards = res.data || []
+
+    // 过滤过期卡项
+    if (!includeExpired) {
+      const now = Date.now()
+      cards = cards.filter(card => {
+        // 如果没有设置过期时间，认为永不过期
+        if (!card.USER_CARD_EXPIRE_TIME && !card.USER_CARD_END) {
+          return true
+        }
+        // 检查过期时间
+        const expireTime = card.USER_CARD_EXPIRE_TIME || card.USER_CARD_END
+        return expireTime > now
+      })
+    }
+
+    return cards
   } catch (error) {
     console.error('获取我的卡项失败:', error)
     throw error
   }
+}
+
+/**
+ * 获取用户的卡项历史（包含过期卡项）
+ * @param {string} userId - 用户 ID
+ * @returns {Promise<Array>} 用户卡项列表（含过期）
+ */
+export const getMyCardHistory = async (userId) => {
+  return getMyCards(userId, { includeExpired: true })
 }
 
 /**
@@ -202,12 +232,256 @@ export const getMyCardSummary = async (userId) => {
   }
 }
 
+/**
+ * 生成唯一购买识别码
+ * 格式: 年月日时分秒 + 4位随机数
+ */
+const generatePurchaseId = () => {
+  const now = new Date()
+  const dateStr = now.getFullYear().toString() +
+    String(now.getMonth() + 1).padStart(2, '0') +
+    String(now.getDate()).padStart(2, '0') +
+    String(now.getHours()).padStart(2, '0') +
+    String(now.getMinutes()).padStart(2, '0') +
+    String(now.getSeconds()).padStart(2, '0')
+  const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0')
+  return `PUR${dateStr}${random}`
+}
+
+/**
+ * 创建购买订单
+ * @param {Object} params - 购买参数
+ * @param {string} params.cardId - 卡项 ID
+ * @param {string} params.userId - 用户 ID (可选，匿名用户为空)
+ * @param {string} params.userName - 用户名称
+ * @param {string} params.userPhone - 用户手机号
+ * @param {string} params.paymentMethod - 支付方式 (zelle/cash/card)
+ * @param {Object} params.cardInfo - 卡项信息
+ * @returns {Promise<Object>} 购买订单信息
+ */
+export const createPurchaseOrder = async (params) => {
+  try {
+    await initDatabase()
+    const db = getDatabase()
+
+    const { cardId, userId, userName, userPhone, paymentMethod, cardInfo } = params
+
+    const purchaseId = generatePurchaseId()
+    const now = Date.now()
+
+    // 创建购买记录
+    const purchaseRecord = {
+      PURCHASE_ID: purchaseId,                    // 购买识别码
+      PURCHASE_CARD_ID: cardId,                   // 卡项 ID
+      PURCHASE_CARD_TITLE: cardInfo.CARD_TITLE || cardInfo.name || '',  // 卡项名称
+      PURCHASE_CARD_PRICE: cardInfo.CARD_PRICE || cardInfo.price || 0,  // 卡项价格
+      PURCHASE_CARD_TYPE: cardInfo.CARD_TYPE || 0,                      // 卡项类型
+      PURCHASE_USER_ID: userId || '',              // 用户 ID
+      PURCHASE_USER_NAME: userName || '',          // 用户名称
+      PURCHASE_USER_PHONE: userPhone || '',        // 用户手机号
+      PURCHASE_PAYMENT_METHOD: paymentMethod,      // 支付方式
+      PURCHASE_STATUS: 0,                          // 状态: 0-待支付, 1-已支付待确认, 2-已完成, 3-已取消
+      PURCHASE_PROOF_URL: '',                      // 支付凭证 URL
+      PURCHASE_ADD_TIME: now,                      // 创建时间
+      PURCHASE_UPDATE_TIME: now,                   // 更新时间
+      PURCHASE_CONFIRM_TIME: 0,                    // 确认时间
+      PURCHASE_REMARK: '',                         // 备注
+    }
+
+    // 保存到 ax_purchase_history 集合
+    const result = await db.collection('ax_purchase_history').add(purchaseRecord)
+
+    return {
+      success: true,
+      purchaseId,
+      recordId: result.id,
+      message: paymentMethod === 'zelle'
+        ? '订单已创建，请完成 Zelle 转账后上传凭证'
+        : '订单已创建，请到店完成支付',
+    }
+  } catch (error) {
+    console.error('创建购买订单失败:', error)
+    throw error
+  }
+}
+
+/**
+ * 将文件转换为 Base64
+ * @param {File} file - 文件对象
+ * @returns {Promise<string>} Base64 字符串（含前缀）
+ */
+const fileToBase64 = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result)
+    reader.onerror = (error) => reject(error)
+    reader.readAsDataURL(file)
+  })
+}
+
+/**
+ * 压缩图片
+ * @param {string} base64 - Base64 字符串
+ * @param {number} maxWidth - 最大宽度
+ * @param {number} quality - 压缩质量 0-1
+ * @returns {Promise<string>} 压缩后的 Base64（含前缀）
+ */
+const compressImage = (base64, maxWidth = 800, quality = 0.7) => {
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      let width = img.width
+      let height = img.height
+
+      // 计算缩放比例
+      if (width > maxWidth) {
+        height = (height * maxWidth) / width
+        width = maxWidth
+      }
+
+      canvas.width = width
+      canvas.height = height
+
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(img, 0, 0, width, height)
+
+      // 转为 JPEG 并压缩
+      const compressed = canvas.toDataURL('image/jpeg', quality)
+      resolve(compressed)
+    }
+    img.src = base64
+  })
+}
+
+/**
+ * 上传支付凭证到云存储
+ * @param {string} purchaseId - 购买识别码
+ * @param {File} file - 凭证文件
+ * @param {Function} onProgress - 上传进度回调
+ * @returns {Promise<Object>} 上传结果
+ */
+export const uploadPaymentProof = async (purchaseId, file, onProgress) => {
+  try {
+    // 开始读取文件
+    onProgress?.(10)
+
+    // 将文件转换为 Base64
+    const base64WithPrefix = await fileToBase64(file)
+    onProgress?.(30)
+
+    // 压缩图片
+    const compressedBase64 = await compressImage(base64WithPrefix, 800, 0.7)
+    onProgress?.(50)
+
+    // 提取纯 base64 数据（去掉 data:image/xxx;base64, 前缀）
+    const base64Data = compressedBase64.split(',')[1]
+
+    // 通过 HTTP API 上传到云存储
+    onProgress?.(70)
+    const result = await uploadPaymentProofHTTP(purchaseId, base64Data, 'jpg')
+    onProgress?.(100)
+
+    console.log('凭证上传成功:', result)
+
+    return {
+      success: true,
+      fileID: result.data?.fileID || '',
+      message: '凭证上传成功，请等待工作人员确认'
+    }
+  } catch (error) {
+    console.error('上传支付凭证失败:', error)
+    throw error
+  }
+}
+
+/**
+ * 更新购买记录的支付凭证
+ * @param {string} purchaseId - 购买识别码
+ * @param {string} proofUrl - 凭证 URL
+ */
+export const updatePurchaseProof = async (purchaseId, proofUrl) => {
+  try {
+    await initDatabase()
+    const db = getDatabase()
+
+    await db.collection('ax_purchase_history')
+      .where({ PURCHASE_ID: purchaseId })
+      .update({
+        PURCHASE_PROOF_URL: proofUrl,
+        PURCHASE_STATUS: 1,  // 更新状态为已支付待确认
+        PURCHASE_UPDATE_TIME: Date.now()
+      })
+  } catch (error) {
+    console.error('更新支付凭证失败:', error)
+    throw error
+  }
+}
+
+/**
+ * 获取用户的购买记录
+ * @param {string} userId - 用户 ID
+ * @returns {Promise<Array>} 购买记录列表
+ */
+export const getPurchaseHistory = async (userId) => {
+  try {
+    await initDatabase()
+    const db = getDatabase()
+
+    const res = await db.collection('ax_purchase_history')
+      .where({
+        PURCHASE_USER_ID: userId
+      })
+      .orderBy('PURCHASE_ADD_TIME', 'desc')
+      .limit(50)
+      .get()
+
+    return res.data || []
+  } catch (error) {
+    console.error('获取购买记录失败:', error)
+    throw error
+  }
+}
+
+/**
+ * 获取购买记录详情
+ * @param {string} purchaseId - 购买识别码
+ * @returns {Promise<Object>} 购买记录详情
+ */
+export const getPurchaseDetail = async (purchaseId) => {
+  try {
+    await initDatabase()
+    const db = getDatabase()
+
+    const res = await db.collection('ax_purchase_history')
+      .where({
+        PURCHASE_ID: purchaseId
+      })
+      .get()
+
+    if (res.data && res.data.length > 0) {
+      return res.data[0]
+    }
+    throw new Error('购买记录不存在')
+  } catch (error) {
+    console.error('获取购买记录详情失败:', error)
+    throw error
+  }
+}
+
 export default {
   getCardList,
   getHomeCardList,
   getCardDetail,
   getMyCards,
+  getMyCardHistory,
   getMyCardDetail,
   getMyCardRecords,
-  getMyCardSummary
+  getMyCardSummary,
+  // 购买相关
+  createPurchaseOrder,
+  uploadPaymentProof,
+  updatePurchaseProof,
+  getPurchaseHistory,
+  getPurchaseDetail,
 }

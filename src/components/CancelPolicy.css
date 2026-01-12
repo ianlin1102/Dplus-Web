@@ -1,0 +1,110 @@
+/* CancelPolicy 组件样式 */
+
+.cancel-policy {
+  border-radius: 12px;
+  padding: 1rem;
+  transition: all 0.2s;
+}
+
+/* 灵活取消 - 绿色 */
+.cancel-policy.flexible {
+  background: rgba(52, 211, 153, 0.1);
+  border: 1px solid rgba(52, 211, 153, 0.3);
+}
+
+.cancel-policy.flexible .policy-icon {
+  color: #34d399;
+}
+
+.cancel-policy.flexible .policy-text {
+  color: #6ee7b7;
+}
+
+/* 有时间限制 - 黄色 */
+.cancel-policy.limited {
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.cancel-policy.limited .policy-icon {
+  color: #fbbf24;
+}
+
+.cancel-policy.limited .policy-text {
+  color: #fcd34d;
+}
+
+/* 严格不可取消 - 红色 */
+.cancel-policy.strict {
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+}
+
+.cancel-policy.strict .policy-icon {
+  color: #f87171;
+}
+
+.cancel-policy.strict .policy-text {
+  color: #fca5a5;
+}
+
+/* 头部 */
+.cancel-policy .policy-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.cancel-policy .policy-icon {
+  flex-shrink: 0;
+}
+
+.cancel-policy .policy-label {
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+}
+
+/* 内容 */
+.cancel-policy .policy-content {
+  padding-left: 1.75rem;
+}
+
+.cancel-policy .policy-text {
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.cancel-policy .policy-note,
+.cancel-policy .policy-warning {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+}
+
+/* 紧凑模式 */
+.cancel-policy.compact {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+.cancel-policy.compact.flexible {
+  background: rgba(52, 211, 153, 0.15);
+}
+
+.cancel-policy.compact.limited {
+  background: rgba(251, 191, 36, 0.15);
+}
+
+.cancel-policy.compact.strict {
+  background: rgba(248, 113, 113, 0.15);
+}
+
+.cancel-policy.compact span {
+  color: rgba(255, 255, 255, 0.8);
+}
