@@ -275,8 +275,9 @@
 /* User Card */
 .user-card {
   display: flex;
-  gap: 16px;
-  padding: 20px;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
@@ -284,10 +285,40 @@
   position: relative;
 }
 
+@media (min-width: 640px) {
+  .user-card {
+    padding: 20px;
+  }
+}
+
 .user-card:hover {
   background: rgba(255, 255, 255, 0.06);
   border-color: rgba(6, 182, 212, 0.3);
   transform: translateY(-2px);
+}
+
+/* User Card Tags Row */
+.user-card-tags {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* User Card Body (Avatar + Info) */
+.user-card-body {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+@media (min-width: 640px) {
+  .user-card-body {
+    gap: 16px;
+  }
 }
 
 .user-avatar {
@@ -354,22 +385,21 @@
   color: rgba(255, 255, 255, 0.6);
 }
 
-.user-status {
-  position: absolute;
-  top: 16px;
-  right: 16px;
+/* Status Tag (in tags row) */
+.status-tag {
   padding: 4px 10px;
   border-radius: 12px;
   font-size: 11px;
   font-weight: 600;
+  flex-shrink: 0;
 }
 
-.user-status.active {
+.status-tag.active {
   background: rgba(34, 197, 94, 0.15);
   color: #22c55e;
 }
 
-.user-status.inactive {
+.status-tag.inactive {
   background: rgba(239, 68, 68, 0.15);
   color: #ef4444;
 }
@@ -525,13 +555,14 @@ body.light .page-info {
 
 /* User Source Tags */
 .source-tag {
-  display: inline-block;
-  margin-left: 8px;
-  padding: 2px 8px;
-  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 12px;
   font-size: 11px;
   font-weight: 600;
-  vertical-align: middle;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .source-wechat {
@@ -573,4 +604,129 @@ body.light .source-web {
 body.light .source-unknown {
   background: rgba(156, 163, 175, 0.1);
   color: #6b7280;
+}
+
+/* ==================== Mobile Responsive ==================== */
+
+/* Small screens (< 480px) */
+@media (max-width: 479px) {
+  .user-management {
+    padding: 70px 12px 24px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .back-btn {
+    align-self: flex-start;
+  }
+
+  .header-content h1 {
+    font-size: 24px;
+  }
+
+  .toolbar {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .search-form {
+    min-width: 100%;
+    max-width: 100%;
+  }
+
+  .filter-group {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .sort-select {
+    flex: 1;
+  }
+
+  .user-card {
+    padding: 14px;
+    gap: 10px;
+  }
+
+  .user-card-body {
+    gap: 10px;
+  }
+
+  .user-avatar {
+    width: 44px;
+    height: 44px;
+    font-size: 16px;
+  }
+
+  .user-name {
+    font-size: 14px;
+  }
+
+  .detail-item {
+    font-size: 12px;
+  }
+
+  .source-tag,
+  .status-tag {
+    font-size: 10px;
+    padding: 3px 8px;
+  }
+}
+
+/* Medium screens (480px - 767px) */
+@media (min-width: 480px) and (max-width: 767px) {
+  .user-management {
+    padding: 80px 16px 32px;
+  }
+
+  .user-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .user-card {
+    padding: 16px;
+  }
+
+  .user-avatar {
+    width: 48px;
+    height: 48px;
+    font-size: 18px;
+  }
+}
+
+/* Tablet (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .user-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+}
+
+/* Large screens with zoom (around 1056px at 125% zoom) */
+@media (min-width: 1024px) and (max-width: 1100px) {
+  .user-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .user-card {
+    padding: 16px;
+    gap: 12px;
+  }
+}
+
+/* Light theme responsive adjustments */
+body.light .user-card-tags {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  padding-bottom: 10px;
+  margin-bottom: 4px;
+}
+
+/* Ensure tags always visible */
+.user-card-tags .source-tag,
+.user-card-tags .status-tag {
+  min-width: fit-content;
+  overflow: visible;
 }

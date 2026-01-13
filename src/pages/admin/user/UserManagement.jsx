@@ -222,35 +222,41 @@ export default function UserManagement() {
 
               return (
                 <div key={user._id || index} className="user-card">
-                  <div className="user-avatar">
-                    {user.USER_NAME?.charAt(0)?.toUpperCase() || 'U'}
+                  {/* 标签行：来源 + 状态 */}
+                  <div className="user-card-tags">
+                    <span className={`source-tag ${sourceLabel.className}`}>
+                      {sourceLabel.text}
+                    </span>
+                    <span className={`status-tag ${user.USER_STATUS === 1 || user.USER_STATUS === '1' ? 'active' : 'inactive'}`}>
+                      {user.USER_STATUS === 1 || user.USER_STATUS === '1' ? '正常' : '禁用'}
+                    </span>
                   </div>
-                  <div className="user-info">
-                    <h3 className="user-name">
-                      {user.USER_NAME || user.USER_ACCOUNT || '未设置昵称'}
-                      <span className={`source-tag ${sourceLabel.className}`}>
-                        {sourceLabel.text}
-                      </span>
-                    </h3>
-                    <div className="user-details">
-                      <div className="detail-item">
-                        <PhoneIcon />
-                        <span>{user.USER_MOBILE || '未绑定手机'}</span>
-                      </div>
-                      <div className="detail-item">
-                        <CalendarIcon />
-                        <span>注册: {formatDate(user.USER_ADD_TIME || user._createTime)}</span>
-                      </div>
+                  {/* 用户信息主体 */}
+                  <div className="user-card-body">
+                    <div className="user-avatar">
+                      {user.USER_NAME?.charAt(0)?.toUpperCase() || 'U'}
                     </div>
-                    {(user.USER_CITY || user.USER_WORK) && (
-                      <div className="user-extra">
-                        {user.USER_CITY && <span className="tag">{user.USER_CITY}</span>}
-                        {user.USER_WORK && <span className="tag">{user.USER_WORK}</span>}
+                    <div className="user-info">
+                      <h3 className="user-name">
+                        {user.USER_NAME || user.USER_ACCOUNT || '未设置昵称'}
+                      </h3>
+                      <div className="user-details">
+                        <div className="detail-item">
+                          <PhoneIcon />
+                          <span>{user.USER_MOBILE || '未绑定手机'}</span>
+                        </div>
+                        <div className="detail-item">
+                          <CalendarIcon />
+                          <span>注册: {formatDate(user.USER_ADD_TIME || user._createTime)}</span>
+                        </div>
                       </div>
-                    )}
-                  </div>
-                  <div className={`user-status ${user.USER_STATUS === 1 || user.USER_STATUS === '1' ? 'active' : 'inactive'}`}>
-                    {user.USER_STATUS === 1 || user.USER_STATUS === '1' ? '正常' : '禁用'}
+                      {(user.USER_CITY || user.USER_WORK) && (
+                        <div className="user-extra">
+                          {user.USER_CITY && <span className="tag">{user.USER_CITY}</span>}
+                          {user.USER_WORK && <span className="tag">{user.USER_WORK}</span>}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               )
