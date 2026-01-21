@@ -6,7 +6,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../contexts/AuthContext'
-import { getCourseList, updateCourse } from '../../../services/databaseService'
+import { callCloudRouteHTTP } from '../../../services/httpApi'
 import './MeetManagement.css'
 
 // Icons
@@ -90,20 +90,22 @@ export default function MeetManagement() {
       setLoading(true)
       setError(null)
 
-      const options = {
-        search,
+      const params = {
+        search: search || undefined,
         page,
-        limit
+        size: limit,
+        sortType: 'sort',
+        sortVal: 'sort'
       }
 
       // 状态筛选
       if (filterStatus !== 'all') {
-        options.status = parseInt(filterStatus)
+        params.status = parseInt(filterStatus)
       }
 
-      const result = await getCourseList(options)
-      setMeets(result.list || [])
-      setTotal(result.total || 0)
+      const result = await callCloudRouteHTTP('admin/meet_list', params)
+      setMeets(result.data?.list || [])
+      setTotal(result.data?.total || 0)
     } catch (err) {
       console.error('加载活动列表失败:', err)
       setError(err.message || '加载失败')
@@ -140,7 +142,7 @@ export default function MeetManagement() {
 
     try {
       setProcessing(meetId)
-      await updateCourse(meetId, { MEET_STATUS: newStatus })
+      await callCloudRouteHTTP('admin/meet_status', { id: meetId, status: newStatus })
       setMeets(prev => prev.map(m =>
         m._id === meetId ? { ...m, MEET_STATUS: newStatus } : m
       ))
@@ -253,11 +255,11 @@ export default function MeetManagement() {
                   <div className="meet-header">
                     <div className="meet-title">
                       {meet.MEET_ORDER === 0 && <span className="pin-tag">[置顶]</span>}
+                      <span className={`status-badge ${status.class}`}>
+                        {status.text}
+                      </span>
                       <span>{meet.MEET_TITLE || '未命名活动'}</span>
                     </div>
-                    <span className={`status-badge ${status.class}`}>
-                      {status.text}
-                    </span>
                   </div>
 
                   <div className="meet-body">

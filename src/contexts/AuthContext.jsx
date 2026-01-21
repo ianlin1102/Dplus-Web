@@ -6,6 +6,9 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+// 云函数 HTTP 地址
+const CLOUD_FUNCTION_URL = 'https://cloud1-6gnd02he13c1ff2e-1380655578.ap-shanghai.app.tcloudbase.com/cloud'
+
 const AuthContext = createContext(null)
 
 // 缓存 key
@@ -113,7 +116,8 @@ export function AuthProvider({ children }) {
 
   /**
    * 统一登录接口
-   * 前端硬编码验证（与小程序保持一致）
+   * 管理员登录调用云函数获取真实 token
+   * 普通用户使用前端硬编码验证
    */
   const login = async (username, password) => {
     try {
@@ -121,28 +125,62 @@ export function AuthProvider({ children }) {
 
       // 验证账号密码
       if (account && account.pwd === password) {
-        // 使用真实的 userId（如果配置了），否则生成默认 ID
-        // 这确保 API 调用时 token 与数据库中的用户 ID 匹配
-        const realUserId = account.userId || `${account.role}_${username}`
+        // 管理员登录：调用云函数获取真实 token
+        if (account.role === 'admin') {
+          try {
+            const response = await fetch(CLOUD_FUNCTION_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                route: 'admin/login',
+                PID: 'A00',
+                params: { name: username, pwd: password }
+              })
+            })
+            const result = await response.json()
 
+            if (result.code === 200 && result.data) {
+              const data = result.data
+              const userData = {
+                id: data.userId,
+                _id: data.userId,
+                name: data.name,
+                role: 'admin',
+                type: data.type,
+              }
+              setUser(userData)
+              saveAuthToCache(userData)
+
+              // 保存 admin_info（包含 token）
+              localStorage.setItem('admin_info', JSON.stringify({
+                id: data.userId,
+                name: data.name,
+                type: data.type,
+                token: data.jwtToken,
+                legacyToken: data.token  // 云函数 ADMIN_TOKEN
+              }))
+
+              return { success: true, role: 'admin', user: userData }
+            } else {
+              return { success: false, message: result.msg || '登录失败' }
+            }
+          } catch (err) {
+            console.error('管理员登录云函数调用失败:', err)
+            return { success: false, message: '网络错误，请重试' }
+          }
+        }
+
+        // 普通用户登录：前端硬编码验证
+        const realUserId = account.userId || `${account.role}_${username}`
         const userData = {
           id: realUserId,
-          _id: realUserId,  // 兼容性：某些地方使用 _id
+          _id: realUserId,
           name: account.name,
           role: account.role,
           type: account.type,
         }
         setUser(userData)
         saveAuthToCache(userData)
-
-        // 兼容旧的 admin_info 缓存（仅管理员）
-        if (account.role === 'admin') {
-          localStorage.setItem('admin_info', JSON.stringify({
-            id: userData.id,
-            name: userData.name,
-            type: userData.type
-          }))
-        }
 
         return {
           success: true,

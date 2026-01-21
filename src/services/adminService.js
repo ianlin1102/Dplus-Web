@@ -603,11 +603,13 @@ export const getDashboardStats = async () => {
         success: true,
         data: {
           totalUsers: data.userCnt || 0,
-          totalCards: data.newsCnt || 0,  // 暂用 newsCnt 作为文章数
-          activeCourses: data.meetCnt || 0,
-          todayBookings: 0,  // 云函数暂不支持今日统计
-          todayCheckins: 0,  // 云函数暂不支持今日统计
-          totalBookings: data.joinCnt || 0
+          totalCards: data.newsCnt || 0,  // 文章数
+          activeCourses: data.activeMeetCnt || data.meetCnt || 0,  // 启用中的活动数
+          totalCourses: data.meetCnt || 0,  // 活动总数
+          todayBookings: data.todayJoinCnt || 0,  // 今日预约数
+          todayCheckins: data.todayCheckinCnt || 0,  // 今日签到数
+          activeBookings: data.activeJoinCnt || 0,  // 有效预约数
+          totalBookings: data.joinCnt || 0  // 预约总数
         }
       }
     } else {
@@ -633,8 +635,10 @@ export const getDashboardStats = async () => {
           totalUsers: totalUsers.total || 0,
           totalCards: 0,
           activeCourses: activeCourses.total || 0,
+          totalCourses: activeCourses.total || 0,
           todayBookings: 0,
           todayCheckins: 0,
+          activeBookings: 0,
           totalBookings: totalBookings.total || 0
         }
       }

@@ -31,6 +31,7 @@ import {
   calculateDuration,
   formatDuration
 } from '../../services/bookingService';
+import { getMyCards } from '../../services/cardService';
 import CloudImage from '../../components/CloudImage';
 import './BookingConfirm.css';
 
@@ -56,7 +57,8 @@ const BookingConfirm = () => {
   // 状态
   const [loading, setLoading] = useState(true);
   const [meetDetail, setMeetDetail] = useState(null);
-  const [availableCards, setAvailableCards] = useState([]);
+  const [availableCards, setAvailableCards] = useState([]);  // 余额充足的卡项
+  const [allUserCards, setAllUserCards] = useState([]);       // 用户所有卡项
   const [selectedCardId, setSelectedCardId] = useState('');
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -132,12 +134,26 @@ const BookingConfirm = () => {
         // 如果需要卡项，加载可用卡项
         const costSet = meetData.MEET_COST_SET || {};
         if (costSet.isEnabled && costSet.costType !== 'free') {
-          const cards = await getAvailableCardsForBooking(costSet);
-          setAvailableCards(cards);
+          // 获取用户 ID
+          const authData = localStorage.getItem('auth_user');
+          let userId = null;
+          if (authData) {
+            const userData = JSON.parse(authData);
+            userId = userData._id || userData.USER_MINI_OPENID;
+          }
 
-          // 自动选择第一张卡
-          if (cards.length > 0) {
-            setSelectedCardId(cards[0]._id);
+          // 同时获取所有卡项和可用卡项
+          const [allCards, availableCardList] = await Promise.all([
+            userId ? getMyCards(userId, { includeExpired: false }) : [],
+            getAvailableCardsForBooking(costSet)
+          ]);
+
+          setAllUserCards(allCards || []);
+          setAvailableCards(availableCardList || []);
+
+          // 自动选择第一张可用卡
+          if (availableCardList.length > 0) {
+            setSelectedCardId(availableCardList[0]._id);
           }
         }
       } catch (err) {
@@ -360,6 +376,7 @@ const BookingConfirm = () => {
             </div>
             <CardSelector
               cards={availableCards}
+              allUserCards={allUserCards}
               selectedId={selectedCardId}
               onSelect={setSelectedCardId}
               costSet={costSet}
@@ -368,9 +385,9 @@ const BookingConfirm = () => {
           </section>
         )}
 
-        {/* 取消政策 */}
+        {/* 取消政策 - 传递 costSet 以显示返还说明 */}
         <section className="course-section">
-          <CancelPolicy cancelSet={cancelSet} language={language} />
+          <CancelPolicy cancelSet={cancelSet} costSet={costSet} language={language} />
         </section>
 
         {/* 预约协议 */}

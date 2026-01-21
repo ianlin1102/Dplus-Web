@@ -7,11 +7,12 @@ import { callAdminAPI } from './adminService'
 
 /**
  * 通过手机号搜索用户
- * @param {string} phone - 手机号
+ * @param {string} phone - 手机号（不含国家代码）
+ * @param {string} countryCode - 国家代码（如 +1, +86）
  * @returns {Promise<Object>} 用户信息和卡项列表
  */
-export const searchUserByPhone = async (phone) => {
-  return callAdminAPI('admin/user_card_search', { phone })
+export const searchUserByPhone = async (phone, countryCode = '+1') => {
+  return callAdminAPI('admin/user_card_search', { phone, countryCode })
 }
 
 /**

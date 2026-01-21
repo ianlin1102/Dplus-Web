@@ -28,7 +28,8 @@ const getUserToken = (route) => {
     const adminInfo = localStorage.getItem('admin_info')
     if (adminInfo) {
       const admin = JSON.parse(adminInfo)
-      return admin.token || admin.id || ''
+      // 优先使用 legacyToken（云函数 ADMIN_TOKEN），兼容 token 或 id
+      return admin.legacyToken || admin.token || admin.id || ''
     }
     return ''
   }

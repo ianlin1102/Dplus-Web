@@ -339,6 +339,7 @@
 .user-info {
   flex: 1;
   min-width: 0;
+  overflow: hidden;
 }
 
 .user-name {
@@ -349,6 +350,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .user-details {
@@ -365,9 +367,74 @@
   color: rgba(255, 255, 255, 0.5);
 }
 
+.detail-item.full-width {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.detail-item.full-width .label {
+  color: rgba(255, 255, 255, 0.3);
+  font-weight: 500;
+  min-width: 32px;
+  flex-shrink: 0;
+}
+
+.detail-item.full-width span:not(.label) {
+  flex: 1;
+  white-space: normal;
+  word-break: break-all;
+  overflow: visible;
+}
+
+body.light .detail-item .label {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+/* Mobile & Tablet Optimizations (max-width: 1024px) */
+@media (max-width: 1024px) {
+  .user-info {
+    overflow: visible;
+  }
+
+  .user-name {
+    white-space: normal;
+    overflow: visible;
+    word-break: break-all;
+  }
+
+  .user-details {
+    width: 100%;
+  }
+
+  .detail-item {
+    white-space: normal;
+  }
+
+  .detail-item span {
+    white-space: normal;
+    overflow: visible;
+    word-break: break-all;
+  }
+
+  .detail-item.full-width {
+    font-size: 13px;
+  }
+}
+
 .detail-item svg {
   flex-shrink: 0;
   opacity: 0.6;
+  min-width: 16px;
+}
+
+.detail-item span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .user-extra {
@@ -653,26 +720,46 @@ body.light .source-unknown {
 
   .user-card-body {
     gap: 10px;
+    flex-wrap: nowrap;
   }
 
   .user-avatar {
     width: 44px;
     height: 44px;
     font-size: 16px;
+    min-width: 44px;
   }
 
   .user-name {
     font-size: 14px;
   }
 
+  .user-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
   .detail-item {
     font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
   }
 
   .source-tag,
   .status-tag {
     font-size: 10px;
     padding: 3px 8px;
+  }
+
+  .user-extra {
+    margin-top: 8px;
+  }
+
+  .user-extra .tag {
+    font-size: 10px;
+    padding: 2px 6px;
   }
 }
 

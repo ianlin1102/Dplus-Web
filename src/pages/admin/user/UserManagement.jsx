@@ -234,18 +234,36 @@ export default function UserManagement() {
                   {/* 用户信息主体 */}
                   <div className="user-card-body">
                     <div className="user-avatar">
-                      {user.USER_NAME?.charAt(0)?.toUpperCase() || 'U'}
+                      {(user.USER_NAME || user.USER_ID || 'U').charAt(0).toUpperCase()}
                     </div>
                     <div className="user-info">
                       <h3 className="user-name">
-                        {user.USER_NAME || user.USER_ACCOUNT || '未设置昵称'}
+                        {user.USER_NAME || user.USER_ID || user._id}
                       </h3>
                       <div className="user-details">
-                        <div className="detail-item">
+                        {user.USER_NAME && user.USER_NAME !== (user.USER_ID || user._id) && (
+                           <div className="detail-item full-width">
+                            <span className="label">姓名:</span>
+                            <span>{user.USER_NAME}</span>
+                          </div>
+                        )}
+                        <div className="detail-item full-width">
                           <PhoneIcon />
                           <span>{user.USER_MOBILE || '未绑定手机'}</span>
                         </div>
-                        <div className="detail-item">
+                        {user.USER_COMPANY && (
+                          <div className="detail-item full-width">
+                             <span className="label">公司:</span>
+                             <span>{user.USER_COMPANY}</span>
+                          </div>
+                        )}
+                        {user.USER_TRADE && (
+                          <div className="detail-item full-width">
+                             <span className="label">行业:</span>
+                             <span>{user.USER_TRADE}</span>
+                          </div>
+                        )}
+                         <div className="detail-item full-width">
                           <CalendarIcon />
                           <span>注册: {formatDate(user.USER_ADD_TIME || user._createTime)}</span>
                         </div>

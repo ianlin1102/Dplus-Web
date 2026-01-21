@@ -184,6 +184,35 @@ export const getMeetList = async (options = {}) => {
   }
 }
 
+/**
+ * 获取用户详情
+ * @returns {Promise} 用户详细信息
+ */
+export const getMyDetail = async () => {
+  try {
+    const result = await callCloudRoute('my/detail', {})
+    return result
+  } catch (error) {
+    console.error('获取用户详情失败:', error)
+    throw error
+  }
+}
+
+/**
+ * 编辑用户基本信息
+ * @param {object} data - 用户信息 { name, mobile, city, work, trade }
+ * @returns {Promise}
+ */
+export const editUserBase = async (data) => {
+  try {
+    const result = await callCloudRoute('my/edit_base', data)
+    return result
+  } catch (error) {
+    console.error('编辑用户信息失败:', error)
+    throw error
+  }
+}
+
 export default {
   callCloudFunction,
   callCloudRoute,
@@ -191,5 +220,7 @@ export default {
   clearRankCache,
   getDatabaseCollection,
   getUsers,
-  getMeetList
+  getMeetList,
+  getMyDetail,
+  editUserBase
 }

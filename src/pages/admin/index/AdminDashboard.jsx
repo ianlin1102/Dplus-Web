@@ -42,6 +42,7 @@ export default function AdminDashboard() {
     activeCourses: 0,
     todayBookings: 0,
     todayCheckins: 0,
+    activeBookings: 0,
     totalBookings: 0
   })
   const [allRanking, setAllRanking] = useState([])
@@ -234,15 +235,15 @@ export default function AdminDashboard() {
           <div className="stat-icon"><Activity size={28} /></div>
           <div className="stat-content">
             <div className="stat-value">{stats.activeCourses}</div>
-            <div className="stat-label">{language === 'zh' ? '活动/预约数' : 'Active Courses'}</div>
+            <div className="stat-label">{language === 'zh' ? '启用中活动' : 'Active Courses'}</div>
           </div>
         </div>
 
         <div className="stat-card" onClick={() => navigate('/admin/bookings')}>
           <div className="stat-icon"><Calendar size={28} /></div>
           <div className="stat-content">
-            <div className="stat-value">{stats.totalBookings}</div>
-            <div className="stat-label">{language === 'zh' ? '预约数' : 'Bookings'}</div>
+            <div className="stat-value">{stats.activeBookings || stats.totalBookings}</div>
+            <div className="stat-label">{language === 'zh' ? '有效预约' : 'Active Bookings'}</div>
           </div>
         </div>
 

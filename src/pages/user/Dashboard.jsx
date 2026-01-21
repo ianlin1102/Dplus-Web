@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Routes, Route, useLocation } from 'react-router-dom'
-import { Home, Calendar, CreditCard, Settings, Activity, User, Menu, X, Edit2, Save, Loader2, Clock, XCircle, AlertCircle, CalendarOff, RefreshCw } from 'lucide-react'
+import { Home, Calendar, CreditCard, Settings, Activity, User, Menu, X, Edit2, Save, Loader2, Clock, XCircle, AlertCircle, CalendarOff, RefreshCw, Info, Coins, CheckCircle, LogOut } from 'lucide-react'
 import { useLanguage } from '../../i18n/LanguageContext'
 import { useAuth } from '../../contexts/AuthContext'
 import { getMyJoinList, cancelMyJoin, canCancelBooking, formatCancelRule } from '../../services/bookingService'
 import { getMyCards } from '../../services/cardService'
+import { getMyDetail, editUserBase } from '../../services/api'
 import './Dashboard.css'
 
 // Mock user data from smartbeauty structure
@@ -226,6 +227,36 @@ const FILTER_OPTIONS = [
 ]
 
 // Sub-page components
+// 检查预约是否已过期
+const isBookingExpired = (booking) => {
+  if (!booking.JOIN_MEET_DAY || !booking.JOIN_MEET_TIME_END) return false
+  try {
+    // 组合日期和结束时间，格式如 "2026-01-20 18:00"
+    const endDateTimeStr = `${booking.JOIN_MEET_DAY} ${booking.JOIN_MEET_TIME_END}`
+    const endDateTime = new Date(endDateTimeStr.replace(/-/g, '/')) // 兼容 Safari
+    return endDateTime < new Date()
+  } catch {
+    return false
+  }
+}
+
+// 截断显示名字（中英文混合计算）
+const truncateName = (name, maxLength = 8) => {
+  if (!name) return ''
+  // 计算字符宽度：中文算2，英文算1
+  let width = 0
+  let result = ''
+  for (const char of name) {
+    const charWidth = /[\u4e00-\u9fa5]/.test(char) ? 2 : 1
+    if (width + charWidth > maxLength * 2) {
+      return result + '...'
+    }
+    width += charWidth
+    result += char
+  }
+  return result
+}
+
 const MySchedule = () => {
   const { t, language } = useLanguage()
   const { user } = useAuth()
@@ -332,10 +363,14 @@ const MySchedule = () => {
   }
 
   // 获取状态显示 - 使用正确的状态值
-  const getStatusDisplay = (status, isCheckin) => {
+  const getStatusDisplay = (status, isCheckin, isExpired = false) => {
     // 已签到
     if (isCheckin === 1) {
       return { zh: '已签到', en: 'Checked In', class: 'checkedin' }
+    }
+    // 已过期（预约成功但时间已过）
+    if (isExpired && status === 1) {
+      return { zh: '已过期', en: 'Expired', class: 'expired' }
     }
     // 状态映射：1=预约成功, 10=已取消, 99=系统取消
     const statusMap = {
@@ -412,13 +447,50 @@ const MySchedule = () => {
       ) : (
         <div className="bookings-list">
           {bookings.map((booking) => {
-            const statusInfo = getStatusDisplay(booking.JOIN_STATUS, booking.JOIN_IS_CHECKIN)
+            const isExpired = isBookingExpired(booking)
+            const statusInfo = getStatusDisplay(booking.JOIN_STATUS, booking.JOIN_IS_CHECKIN, isExpired)
             const isCancelling = cancellingId === booking._id
-            // 只有预约成功(1)且未签到的才能取消
-            const showCancelBtn = booking.canCancel && booking.JOIN_STATUS === 1 && booking.JOIN_IS_CHECKIN !== 1
+            // 只有预约成功(1)且未签到且未过期的才能取消
+            const showCancelBtn = booking.canCancel && booking.JOIN_STATUS === 1 && booking.JOIN_IS_CHECKIN !== 1 && !isExpired
+
+            // 格式化卡项扣费信息
+            const getDeductInfo = () => {
+              if (!booking.JOIN_CARD_DEDUCT) return null
+              const deduct = booking.JOIN_CARD_DEDUCT
+              if (deduct.cardType === 'times') {
+                return language === 'zh'
+                  ? `已扣 ${deduct.deductAmount} 次`
+                  : `${deduct.deductAmount} class(es) deducted`
+              }
+              return language === 'zh'
+                ? `已扣 ¥${deduct.deductAmount}`
+                : `¥${deduct.deductAmount} deducted`
+            }
+
+            // 格式化取消规则
+            const getCancelRuleHint = () => {
+              if (!booking.canCancel || !booking.cancelSet) return null
+              const cancelSet = booking.cancelSet
+              if (!cancelSet.isLimit) {
+                return language === 'zh' ? '可随时取消' : 'Can cancel anytime'
+              }
+              if (cancelSet.days === -1) {
+                return language === 'zh' ? '不可取消' : 'Cannot cancel'
+              }
+              let parts = []
+              if (cancelSet.days > 0) parts.push(`${cancelSet.days}${language === 'zh' ? '天' : 'd'}`)
+              if (cancelSet.hours > 0) parts.push(`${cancelSet.hours}${language === 'zh' ? '小时' : 'h'}`)
+              if (cancelSet.minutes > 0) parts.push(`${cancelSet.minutes}${language === 'zh' ? '分钟' : 'm'}`)
+              return language === 'zh'
+                ? `需提前 ${parts.join('')} 取消`
+                : `Cancel ${parts.join('')} before`
+            }
+
+            const deductInfo = getDeductInfo()
+            const cancelRuleHint = getCancelRuleHint()
 
             return (
-              <div key={booking._id} className={`booking-card ${statusInfo.class} ${booking.isTimeout ? 'timeout' : ''}`}>
+              <div key={booking._id} className={`booking-card ${statusInfo.class} ${isExpired ? 'expired' : ''}`}>
                 <div className="booking-info">
                   <h3 className="booking-name">{booking.JOIN_MEET_TITLE}</h3>
                   <p className="booking-meta">
@@ -431,6 +503,25 @@ const MySchedule = () => {
                     <p className="booking-instructor">
                       <User size={14} />
                       {booking.JOIN_INSTRUCTOR_NAME}
+                    </p>
+                  )}
+                  {/* 卡项扣费信息 */}
+                  {deductInfo && (
+                    <p className="booking-deduct">
+                      <Coins size={14} />
+                      <span>{deductInfo}</span>
+                      {booking.JOIN_CARD_DEDUCT?.refunded && (
+                        <span className="refunded-tag">
+                          {language === 'zh' ? '已退还' : 'Refunded'}
+                        </span>
+                      )}
+                    </p>
+                  )}
+                  {/* 取消规则提示 */}
+                  {cancelRuleHint && booking.JOIN_STATUS === 1 && (
+                    <p className="booking-cancel-hint">
+                      <Info size={12} />
+                      <span>{cancelRuleHint}</span>
                     </p>
                   )}
                 </div>
@@ -606,22 +697,147 @@ const SettingsPage = () => {
   const mockUser = userData[language]
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [saveMessage, setSaveMessage] = useState(null)
   const [formData, setFormData] = useState({
-    name: authUser?.name || mockUser.name,
-    phone: authUser?.phone || mockUser.phone,
-    email: authUser?.email || '',
+    name: '',
+    phone: '',
+    city: '',
+    work: '',
+    trade: '',
   })
+  const [countryCode, setCountryCode] = useState('+86') // 默认中国
+
+  // 国家代码配置
+  const countryCodes = [
+    { code: '+86', label: '+86 中国', digits: 11 },
+    { code: '+1', label: '+1 美国', digits: 10 },
+  ]
+
+  // 获取当前国家代码的位数限制
+  const getPhoneDigits = () => {
+    const country = countryCodes.find(c => c.code === countryCode)
+    return country ? country.digits : 11
+  }
+
+  // 解析手机号中的国家代码
+  const parsePhoneNumber = (phone) => {
+    if (!phone) return { code: '+86', number: '' }
+    if (phone.startsWith('+86')) return { code: '+86', number: phone.slice(3) }
+    if (phone.startsWith('+1')) return { code: '+1', number: phone.slice(2) }
+    // 根据位数猜测
+    if (phone.length === 10) return { code: '+1', number: phone }
+    return { code: '+86', number: phone }
+  }
+
+  // 处理手机号输入（只允许数字）
+  const handlePhoneChange = (value) => {
+    const digits = value.replace(/\D/g, '') // 只保留数字
+    const maxDigits = getPhoneDigits()
+    const limited = digits.slice(0, maxDigits) // 限制位数
+    setFormData(prev => ({ ...prev, phone: limited }))
+  }
+
+  // 加载用户资料
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      if (!authUser?._id) {
+        setIsLoading(false)
+        return
+      }
+
+      try {
+        setIsLoading(true)
+        const result = await getMyDetail()
+        if (result.code === 200 && result.data) {
+          const { code, number } = parsePhoneNumber(result.data.USER_MOBILE)
+          setCountryCode(code)
+          setFormData({
+            name: result.data.USER_NAME || '',
+            phone: number,
+            city: result.data.USER_CITY || '',
+            work: result.data.USER_WORK || '',
+            trade: result.data.USER_TRADE || '',
+          })
+        }
+      } catch (err) {
+        console.error('加载用户资料失败:', err)
+        // 失败时使用 authUser 的数据
+        setFormData({
+          name: authUser?.name || '',
+          phone: authUser?.phone || '',
+          city: '',
+          work: '',
+          trade: '',
+        })
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadUserProfile()
+  }, [authUser?._id])
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
   const handleSave = async () => {
+    // 验证必填字段
+    if (!formData.name.trim()) {
+      setSaveMessage({ type: 'error', text: language === 'zh' ? '请填写姓名' : 'Name is required' })
+      return
+    }
+    if (!formData.phone.trim()) {
+      setSaveMessage({ type: 'error', text: language === 'zh' ? '请填写手机号' : 'Phone is required' })
+      return
+    }
+
+    // 验证手机号位数
+    const requiredDigits = getPhoneDigits()
+    if (formData.phone.length !== requiredDigits) {
+      setSaveMessage({
+        type: 'error',
+        text: language === 'zh'
+          ? `手机号需要 ${requiredDigits} 位数字`
+          : `Phone number must be ${requiredDigits} digits`
+      })
+      return
+    }
+
     setIsSaving(true)
-    // 模拟保存
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    setIsSaving(false)
+    setSaveMessage(null)
+
+    try {
+      // 发送带国家代码的完整手机号
+      const fullPhone = countryCode + formData.phone.trim()
+      const result = await editUserBase({
+        name: formData.name.trim(),
+        mobile: fullPhone,
+        city: formData.city.trim(),
+        work: formData.work.trim(),
+        trade: formData.trade.trim(),
+      })
+
+      if (result.code === 200) {
+        setSaveMessage({ type: 'success', text: language === 'zh' ? '保存成功' : 'Saved successfully' })
+        setIsEditing(false)
+        // 3秒后清除消息
+        setTimeout(() => setSaveMessage(null), 3000)
+      } else {
+        setSaveMessage({ type: 'error', text: result.msg || (language === 'zh' ? '保存失败' : 'Save failed') })
+      }
+    } catch (err) {
+      console.error('保存用户资料失败:', err)
+      setSaveMessage({ type: 'error', text: language === 'zh' ? '保存失败，请重试' : 'Save failed, please try again' })
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleCancel = () => {
     setIsEditing(false)
+    setSaveMessage(null)
   }
 
   const texts = language === 'zh' ? {
@@ -631,7 +847,9 @@ const SettingsPage = () => {
     cancel: '取消',
     name: '姓名',
     phone: '手机号码',
-    email: '邮箱',
+    city: '所在城市',
+    work: '工作单位',
+    trade: '行业领域',
     memberLevel: '会员等级',
     points: '累计积分',
   } : {
@@ -641,9 +859,24 @@ const SettingsPage = () => {
     cancel: 'Cancel',
     name: 'Name',
     phone: 'Phone Number',
-    email: 'Email',
+    city: 'City',
+    work: 'Company',
+    trade: 'Industry',
     memberLevel: 'Member Level',
     points: 'Total Points',
+  }
+
+  if (isLoading) {
+    return (
+      <div className="dashboard-content">
+        <h1 className="dashboard-title">{t('dashboard.settings')}</h1>
+        <p className="dashboard-subtitle">SETTINGS</p>
+        <div className="loading-state">
+          <Loader2 className="spin" size={32} />
+          <p>{language === 'zh' ? '加载中...' : 'Loading...'}</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -660,7 +893,7 @@ const SettingsPage = () => {
           </button>
         ) : (
           <div className="edit-actions">
-            <button className="cancel-btn" onClick={() => setIsEditing(false)} disabled={isSaving}>
+            <button className="cancel-btn" onClick={handleCancel} disabled={isSaving}>
               {texts.cancel}
             </button>
             <button className="save-btn" onClick={handleSave} disabled={isSaving}>
@@ -680,6 +913,14 @@ const SettingsPage = () => {
         )}
       </div>
 
+      {/* 保存消息 */}
+      {saveMessage && (
+        <div className={`save-message ${saveMessage.type}`}>
+          {saveMessage.type === 'success' ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
+          <span>{saveMessage.text}</span>
+        </div>
+      )}
+
       <div className="settings-list">
         <div className="settings-item">
           <span className="settings-label">{texts.name}</span>
@@ -689,36 +930,84 @@ const SettingsPage = () => {
               className="settings-input"
               value={formData.name}
               onChange={(e) => handleInputChange('name', e.target.value)}
+              placeholder={language === 'zh' ? '请输入姓名' : 'Enter name'}
             />
           ) : (
-            <span className="settings-value">{formData.name}</span>
+            <span className="settings-value">{formData.name || (language === 'zh' ? '未设置' : 'Not set')}</span>
           )}
         </div>
         <div className="settings-item">
           <span className="settings-label">{texts.phone}</span>
           {isEditing ? (
-            <input
-              type="tel"
-              className="settings-input"
-              value={formData.phone}
-              onChange={(e) => handleInputChange('phone', e.target.value)}
-            />
+            <div className="phone-input-group">
+              <select
+                className="country-code-select"
+                value={countryCode}
+                onChange={(e) => {
+                  setCountryCode(e.target.value)
+                  // 切换国家代码时清空号码
+                  setFormData(prev => ({ ...prev, phone: '' }))
+                }}
+              >
+                {countryCodes.map(c => (
+                  <option key={c.code} value={c.code}>{c.label}</option>
+                ))}
+              </select>
+              <input
+                type="tel"
+                className="settings-input phone-number-input"
+                value={formData.phone}
+                onChange={(e) => handlePhoneChange(e.target.value)}
+                placeholder={`${getPhoneDigits()} ${language === 'zh' ? '位数字' : 'digits'}`}
+                maxLength={getPhoneDigits()}
+              />
+            </div>
           ) : (
-            <span className="settings-value">{formData.phone}</span>
+            <span className="settings-value">
+              {formData.phone ? `${countryCode} ${formData.phone}` : (language === 'zh' ? '未设置' : 'Not set')}
+            </span>
           )}
         </div>
         <div className="settings-item">
-          <span className="settings-label">{texts.email}</span>
+          <span className="settings-label">{texts.city}</span>
           {isEditing ? (
             <input
-              type="email"
+              type="text"
               className="settings-input"
-              value={formData.email}
-              onChange={(e) => handleInputChange('email', e.target.value)}
-              placeholder={language === 'zh' ? '请输入邮箱' : 'Enter email'}
+              value={formData.city}
+              onChange={(e) => handleInputChange('city', e.target.value)}
+              placeholder={language === 'zh' ? '请输入城市' : 'Enter city'}
             />
           ) : (
-            <span className="settings-value">{formData.email || (language === 'zh' ? '未设置' : 'Not set')}</span>
+            <span className="settings-value">{formData.city || (language === 'zh' ? '未设置' : 'Not set')}</span>
+          )}
+        </div>
+        <div className="settings-item">
+          <span className="settings-label">{texts.work}</span>
+          {isEditing ? (
+            <input
+              type="text"
+              className="settings-input"
+              value={formData.work}
+              onChange={(e) => handleInputChange('work', e.target.value)}
+              placeholder={language === 'zh' ? '请输入工作单位' : 'Enter company'}
+            />
+          ) : (
+            <span className="settings-value">{formData.work || (language === 'zh' ? '未设置' : 'Not set')}</span>
+          )}
+        </div>
+        <div className="settings-item">
+          <span className="settings-label">{texts.trade}</span>
+          {isEditing ? (
+            <input
+              type="text"
+              className="settings-input"
+              value={formData.trade}
+              onChange={(e) => handleInputChange('trade', e.target.value)}
+              placeholder={language === 'zh' ? '请输入行业领域' : 'Enter industry'}
+            />
+          ) : (
+            <span className="settings-value">{formData.trade || (language === 'zh' ? '未设置' : 'Not set')}</span>
           )}
         </div>
         <div className="settings-item">
@@ -748,9 +1037,16 @@ const NavItem = ({ icon: Icon, label, path, isActive, onClick }) => (
 function Dashboard() {
   const navigate = useNavigate()
   const { t, language } = useLanguage()
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
   const [currentPath, setCurrentPath] = useState('/dashboard')
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
+  const handleLogout = () => {
+    if (window.confirm(language === 'zh' ? '确认退出登录？' : 'Confirm logout?')) {
+      logout()
+      navigate('/login')
+    }
+  }
 
   const handleNavigate = (path) => {
     setCurrentPath(path)
@@ -805,7 +1101,7 @@ function Dashboard() {
             </div>
             <div className="mobile-user-details">
               <span className="mobile-user-greeting">{language === 'zh' ? '欢迎回来' : 'Welcome back'}</span>
-              <span className="mobile-user-name">{user?.name || (language === 'zh' ? '用户' : 'User')}</span>
+              <span className="mobile-user-name" title={user?.name}>{truncateName(user?.name, 10) || (language === 'zh' ? '用户' : 'User')}</span>
             </div>
             <Activity size={18} className="mobile-user-home-icon" />
           </button>
@@ -838,6 +1134,17 @@ function Dashboard() {
             <Home size={18} />
             <span>{t('dashboard.backHome')}</span>
           </button>
+          <button
+            type="button"
+            className="mobile-logout-btn"
+            onClick={() => {
+              setIsMobileMenuOpen(false)
+              handleLogout()
+            }}
+          >
+            <LogOut size={18} />
+            <span>{language === 'zh' ? '退出登录' : 'Logout'}</span>
+          </button>
         </div>
       </aside>
 
@@ -862,10 +1169,19 @@ function Dashboard() {
         </nav>
 
         <div className="sidebar-footer">
-          <div className="user-badge neon-border-cyan">
-            <User size={14} />
+          <div className="sidebar-user-info">
+            <div className="user-badge neon-border-cyan">
+              <User size={14} />
+            </div>
+            <span className="user-id" title={user?.name}>{truncateName(user?.name, 8) || 'USER'}</span>
           </div>
-          <span className="user-id">{user?.name || 'USER'}</span>
+          <button
+            onClick={handleLogout}
+            className="sidebar-logout-btn"
+          >
+            <LogOut size={16} />
+            <span>{language === 'zh' ? '退出登录' : 'Logout'}</span>
+          </button>
         </div>
       </aside>
 

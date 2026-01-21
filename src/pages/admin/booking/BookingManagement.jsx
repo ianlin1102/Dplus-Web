@@ -4,9 +4,9 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../../contexts/AuthContext'
-import { getBookingList, checkinBooking, cancelCheckin } from '../../../services/databaseService'
+import { callCloudRouteHTTP } from '../../../services/httpApi'
 import './BookingManagement.css'
 
 // Icons
@@ -81,6 +81,8 @@ const ClockIcon = () => (
 
 export default function BookingManagement() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const meetId = searchParams.get('meetId')
   const { isAdmin } = useAuth()
 
   const [bookings, setBookings] = useState([])
@@ -100,32 +102,39 @@ export default function BookingManagement() {
       setLoading(true)
       setError(null)
 
-      const options = {
-        search,
+      const params = {
+        search: search || undefined,
         page,
-        limit
+        size: limit,
+        sortType: 'sort',
+        sortVal: 'timedesc'
+      }
+
+      // 如果有 meetId，添加到参数
+      if (meetId) {
+        params.meetId = meetId
       }
 
       // 状态筛选
       if (filterStatus !== 'all') {
-        options.status = parseInt(filterStatus)
+        params.status = parseInt(filterStatus)
       }
 
       // 签到筛选
       if (filterCheckin !== 'all') {
-        options.isCheckedIn = parseInt(filterCheckin)
+        params.isCheckin = parseInt(filterCheckin)
       }
 
-      const result = await getBookingList(options)
-      setBookings(result.list || [])
-      setTotal(result.total || 0)
+      const result = await callCloudRouteHTTP('admin/meet_join_list', params)
+      setBookings(result.data?.list || [])
+      setTotal(result.data?.total || 0)
     } catch (err) {
       console.error('加载预约列表失败:', err)
       setError(err.message || '加载失败')
     } finally {
       setLoading(false)
     }
-  }, [search, page, filterStatus, filterCheckin])
+  }, [search, page, filterStatus, filterCheckin, meetId])
 
   useEffect(() => {
     if (isAdmin()) {
@@ -148,7 +157,7 @@ export default function BookingManagement() {
 
     try {
       setProcessing(bookingId)
-      await checkinBooking(bookingId)
+      await callCloudRouteHTTP('admin/join_checkin', { id: bookingId })
       // 更新本地状态
       setBookings(prev => prev.map(b =>
         b._id === bookingId
@@ -163,7 +172,7 @@ export default function BookingManagement() {
     }
   }
 
-  // 取消签到
+  // 取消签到 - 改为切换状态
   const handleCancelCheckin = async (bookingId) => {
     if (processing) return
 
@@ -171,7 +180,7 @@ export default function BookingManagement() {
 
     try {
       setProcessing(bookingId)
-      await cancelCheckin(bookingId)
+      await callCloudRouteHTTP('admin/join_status', { id: bookingId, status: 1 })
       // 更新本地状态
       setBookings(prev => prev.map(b =>
         b._id === bookingId
@@ -297,12 +306,12 @@ export default function BookingManagement() {
                   <div className="booking-header">
                     <div className="booking-title">
                       <CalendarIcon />
-                      <span>{booking.JOIN_MEET_TITLE || '预约项目'}</span>
-                    </div>
-                    <div className="booking-badges">
                       <span className={`status-badge ${status.class}`}>
                         {status.text}
                       </span>
+                      <span>{booking.JOIN_MEET_TITLE || '预约项目'}</span>
+                    </div>
+                    <div className="booking-badges">
                       {booking.JOIN_STATUS === 1 && (
                         <span className={`checkin-badge ${isCheckedIn ? 'checked' : 'unchecked'}`}>
                           {isCheckedIn ? '已签到' : '未签到'}
@@ -316,7 +325,7 @@ export default function BookingManagement() {
                       <div className="info-row">
                         <UserIcon />
                         <span className="info-label">用户:</span>
-                        <span className="info-value">{booking.JOIN_USER_NAME || '未知用户'}</span>
+                        <span className="info-value">{booking.JOIN_USER_NAME || booking.JOIN_USER_ID || '-'}</span>
                       </div>
 
                       <div className="info-row">

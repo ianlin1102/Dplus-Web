@@ -84,6 +84,52 @@
   margin: 0;
 }
 
+/* 返还机制说明 */
+.cancel-policy .refund-policy {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.cancel-policy .refund-policy svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  opacity: 0.7;
+}
+
+.cancel-policy.flexible .refund-policy {
+  background: rgba(52, 211, 153, 0.1);
+  color: #6ee7b7;
+}
+
+.cancel-policy.flexible .refund-policy svg {
+  color: #34d399;
+}
+
+.cancel-policy.limited .refund-policy {
+  background: rgba(251, 191, 36, 0.1);
+  color: #fcd34d;
+}
+
+.cancel-policy.limited .refund-policy svg {
+  color: #fbbf24;
+}
+
+.cancel-policy.strict .refund-policy {
+  background: rgba(248, 113, 113, 0.1);
+  color: #fca5a5;
+}
+
+.cancel-policy.strict .refund-policy svg {
+  color: #f87171;
+}
+
 /* 紧凑模式 */
 .cancel-policy.compact {
   display: inline-flex;

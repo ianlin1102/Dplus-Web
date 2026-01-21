@@ -90,7 +90,14 @@ export default function UserCardManage() {
   // 搜索状态
   const [searchType, setSearchType] = useState('phone') // phone 或 uniqueId
   const [searchValue, setSearchValue] = useState('')
+  const [countryCode, setCountryCode] = useState('+1') // 默认美国
   const [searching, setSearching] = useState(false)
+
+  // 国家代码选项
+  const countryCodes = [
+    { code: '+1', label: '+1 (美国)', country: 'US' },
+    { code: '+86', label: '+86 (中国)', country: 'CN' }
+  ]
 
   // 用户和卡项数据
   const [user, setUser] = useState(null)
@@ -139,14 +146,16 @@ export default function UserCardManage() {
     try {
       let result
       if (searchType === 'phone') {
-        result = await searchUserByPhone(searchValue.trim())
+        // 传递国家代码和手机号
+        result = await searchUserByPhone(searchValue.trim(), countryCode)
       } else {
         result = await searchByUniqueId(searchValue.trim())
       }
 
       if (result.success && result.data) {
         setUser(result.data.user)
-        setUserCards(result.data.cards || [])
+        // cards 是 { list: [...], count: ... } 格式，取 list 数组
+        setUserCards(result.data.cards?.list || result.data.cards || [])
       } else {
         setError(result.message || '未找到用户')
       }
@@ -368,11 +377,23 @@ export default function UserCardManage() {
           </button>
         </div>
         <form className="search-form" onSubmit={handleSearch}>
+          {/* 手机号搜索时显示国家代码选择 */}
+          {searchType === 'phone' && (
+            <select
+              className="country-code-select"
+              value={countryCode}
+              onChange={(e) => setCountryCode(e.target.value)}
+            >
+              {countryCodes.map(item => (
+                <option key={item.code} value={item.code}>{item.label}</option>
+              ))}
+            </select>
+          )}
           <div className="search-input-wrapper">
             <SearchIcon />
             <input
               type="text"
-              placeholder={searchType === 'phone' ? '输入用户手机号...' : '输入卡项唯一识别码...'}
+              placeholder={searchType === 'phone' ? '输入手机号（不含国家代码）...' : '输入卡项唯一识别码...'}
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
             />
@@ -388,10 +409,10 @@ export default function UserCardManage() {
         <div className="user-info-section">
           <div className="user-card">
             <div className="user-avatar">
-              {user.USER_NAME?.charAt(0)?.toUpperCase() || 'U'}
+              {(user.USER_NAME || user.USER_ID || 'U').charAt(0).toUpperCase()}
             </div>
             <div className="user-details">
-              <h3>{user.USER_NAME || '未设置昵称'}</h3>
+              <h3>{user.USER_NAME || user.USER_ID || user._id}</h3>
               <p>手机: {user.USER_MOBILE || '未绑定'}</p>
               <p>注册时间: {formatDate(user.USER_ADD_TIME || user._createTime)}</p>
             </div>

@@ -129,7 +129,7 @@ const Navbar = ({ onNavigate, currentPath }) => {
                 className="user-portal"
                 title={isLoggedIn() ? (isAdmin() ? '管理后台' : t('nav.dashboard')) : '登录'}
               >
-                <div className="user-info">
+                <div className="navbar-user-info">
                   <p className="welcome-text">
                     {isLoggedIn() ? t('dashboard.welcome') : (language === 'zh' ? '欢迎' : 'Welcome')}
                   </p>

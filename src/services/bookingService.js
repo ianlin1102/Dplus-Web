@@ -410,6 +410,87 @@ export const formatDuration = (minutes, language = 'zh') => {
     : `${hours}h ${mins}m`;
 };
 
+/**
+ * 格式化卡项扣费信息
+ * @param {Object} deduct - 扣费记录 (JOIN_CARD_DEDUCT)
+ * @param {string} language - 语言
+ */
+export const formatDeductInfo = (deduct, language = 'zh') => {
+  if (!deduct) return null;
+
+  if (deduct.cardType === 'times') {
+    return language === 'zh'
+      ? `${deduct.deductAmount} 次`
+      : `${deduct.deductAmount} class(es)`;
+  }
+
+  return language === 'zh'
+    ? `¥${deduct.deductAmount}`
+    : `¥${deduct.deductAmount}`;
+};
+
+/**
+ * 格式化返还政策文本
+ * @param {Object} cancelSet - 取消规则配置
+ * @param {Object} costSet - 费用配置
+ * @param {string} language - 语言
+ */
+export const formatRefundPolicy = (cancelSet, costSet, language = 'zh') => {
+  // 如果不需要扣费，不显示返还说明
+  if (!costSet?.isEnabled || costSet?.costType === 'free') {
+    return null;
+  }
+
+  // 获取扣费类型描述
+  const getCostTypeDesc = () => {
+    if (costSet.costType === 'times') {
+      return language === 'zh' ? '课程次数' : 'class credits';
+    } else if (costSet.costType === 'balance') {
+      return language === 'zh' ? '卡项余额' : 'card balance';
+    } else {
+      return language === 'zh' ? '卡项次数/余额' : 'class credits/balance';
+    }
+  };
+
+  const costDesc = getCostTypeDesc();
+
+  // 不可取消
+  if (cancelSet?.isLimit && cancelSet?.days === -1) {
+    return language === 'zh'
+      ? `预约后不可取消，${costDesc}不予退还`
+      : `Cannot cancel after booking, ${costDesc} will not be refunded`;
+  }
+
+  // 有时间限制
+  if (cancelSet?.isLimit) {
+    return language === 'zh'
+      ? `在规定时间内取消可退还${costDesc}，超过时限不予退还`
+      : `${costDesc} will be refunded if cancelled within the time limit, no refund past deadline`;
+  }
+
+  // 可随时取消
+  return language === 'zh'
+    ? `取消预约后，${costDesc}将自动退还`
+    : `${costDesc} will be automatically refunded upon cancellation`;
+};
+
+/**
+ * 检查预约是否可以获得退还
+ * @param {Object} booking - 预约记录
+ */
+export const canGetRefund = (booking) => {
+  // 没有扣费记录
+  if (!booking.JOIN_CARD_DEDUCT) return false;
+  // 已经退还过
+  if (booking.JOIN_CARD_DEDUCT.refunded) return false;
+  // 已签到
+  if (booking.JOIN_IS_CHECKIN === 1) return false;
+  // 非成功状态
+  if (booking.JOIN_STATUS !== 1) return false;
+
+  return true;
+};
+
 export default {
   getMeetDetailForJoin,
   beforeJoin,
@@ -422,5 +503,8 @@ export default {
   canCancelBooking,
   formatJoinStatus,
   calculateDuration,
-  formatDuration
+  formatDuration,
+  formatDeductInfo,
+  formatRefundPolicy,
+  canGetRefund
 };
