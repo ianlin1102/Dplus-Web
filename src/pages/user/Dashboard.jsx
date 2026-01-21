@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Routes, Route, useLocation } from 'react-router-dom'
-import { Home, Calendar, CreditCard, Settings, Activity, User, Menu, X, Edit2, Save, Loader2, Clock, XCircle, AlertCircle, CalendarOff, RefreshCw, Info, Coins, CheckCircle, LogOut } from 'lucide-react'
+import { Home, Calendar, CreditCard, Settings, Activity, User, Menu, X, Edit2, Save, Loader2, Clock, XCircle, AlertCircle, CalendarOff, RefreshCw, Info, Coins, CheckCircle, LogOut, Link2, Unlink } from 'lucide-react'
 import { useLanguage } from '../../i18n/LanguageContext'
 import { useAuth } from '../../contexts/AuthContext'
 import { getMyJoinList, cancelMyJoin, canCancelBooking, formatCancelRule } from '../../services/bookingService'
@@ -691,14 +691,30 @@ const Wallet = () => {
   )
 }
 
+// Google OAuth Configuration for account linking
+const GOOGLE_CLIENT_ID = '574240389068-uf3u8v3hp2rd1kj642hf81as4uubdmba.apps.googleusercontent.com'
+const GOOGLE_REDIRECT_URI = `${window.location.origin}/oauth-callback.html`
+const GOOGLE_SCOPE = 'openid email profile'
+
+// Google Icon SVG Component
+const GoogleIcon = () => (
+  <svg className="google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="18" height="18">
+    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+  </svg>
+)
+
 const SettingsPage = () => {
   const { t, language } = useLanguage()
-  const { user: authUser } = useAuth()
+  const { user: authUser, googleEmail, hasGoogleAuth, hasPasswordAuth, canUnlinkGoogle, unlinkGoogle, loadAuthMethods } = useAuth()
   const mockUser = userData[language]
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [saveMessage, setSaveMessage] = useState(null)
+  const [isUnlinking, setIsUnlinking] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -778,6 +794,74 @@ const SettingsPage = () => {
     loadUserProfile()
   }, [authUser?._id])
 
+  // 加载认证方式
+  useEffect(() => {
+    if (authUser?._id && authUser?.role === 'user') {
+      loadAuthMethods()
+    }
+  }, [authUser?._id])
+
+  // 关联 Google 账户
+  const handleLinkGoogle = () => {
+    const state = crypto.randomUUID()
+    sessionStorage.setItem('oauth_state', state)
+    sessionStorage.setItem('oauth_action', 'link')
+
+    const params = new URLSearchParams({
+      client_id: GOOGLE_CLIENT_ID,
+      redirect_uri: GOOGLE_REDIRECT_URI,
+      response_type: 'code',
+      scope: GOOGLE_SCOPE,
+      access_type: 'offline',
+      prompt: 'consent',
+      state
+    })
+    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
+  }
+
+  // 取消关联 Google
+  const handleUnlinkGoogle = async () => {
+    if (!canUnlinkGoogle) {
+      setSaveMessage({
+        type: 'error',
+        text: language === 'zh' ? '无法取消唯一的登录方式' : 'Cannot unlink your only login method'
+      })
+      return
+    }
+
+    if (!window.confirm(
+      language === 'zh'
+        ? '确定要取消关联 Google 账户吗？'
+        : 'Are you sure you want to unlink your Google account?'
+    )) return
+
+    setIsUnlinking(true)
+    setSaveMessage(null)
+
+    try {
+      const result = await unlinkGoogle()
+      if (result.success) {
+        setSaveMessage({
+          type: 'success',
+          text: language === 'zh' ? 'Google 账户已取消关联' : 'Google account unlinked'
+        })
+      } else {
+        setSaveMessage({
+          type: 'error',
+          text: result.message || (language === 'zh' ? '取消关联失败' : 'Failed to unlink')
+        })
+      }
+    } catch (err) {
+      console.error('取消关联失败:', err)
+      setSaveMessage({
+        type: 'error',
+        text: language === 'zh' ? '取消关联失败' : 'Failed to unlink'
+      })
+    } finally {
+      setIsUnlinking(false)
+    }
+  }
+
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
@@ -852,6 +936,11 @@ const SettingsPage = () => {
     trade: '行业领域',
     memberLevel: '会员等级',
     points: '累计积分',
+    linkedAccounts: '账户关联',
+    linkGoogle: '关联 Google',
+    unlinkGoogle: '取消关联',
+    googleLinked: '已关联',
+    unlinking: '取消中...',
   } : {
     editProfile: 'Edit Profile',
     save: 'Save',
@@ -864,6 +953,11 @@ const SettingsPage = () => {
     trade: 'Industry',
     memberLevel: 'Member Level',
     points: 'Total Points',
+    linkedAccounts: 'Linked Accounts',
+    linkGoogle: 'Link Google',
+    unlinkGoogle: 'Unlink',
+    googleLinked: 'Linked',
+    unlinking: 'Unlinking...',
   }
 
   if (isLoading) {
@@ -1019,6 +1113,50 @@ const SettingsPage = () => {
           <span className="settings-value">{mockUser.points} {language === 'zh' ? '分' : 'pts'}</span>
         </div>
       </div>
+
+      {/* 账户关联 - 仅对普通用户显示 */}
+      {authUser?.role === 'user' && (
+        <div className="settings-section linked-accounts">
+          <h3 className="section-title">{texts.linkedAccounts}</h3>
+          <div className="settings-list">
+            <div className="settings-item google-link-item">
+              <div className="link-label">
+                <GoogleIcon />
+                <span>Google</span>
+              </div>
+              {hasGoogleAuth ? (
+                <div className="linked-status">
+                  <span className="linked-email" title={googleEmail}>{googleEmail || texts.googleLinked}</span>
+                  {canUnlinkGoogle && (
+                    <button
+                      className="unlink-btn"
+                      onClick={handleUnlinkGoogle}
+                      disabled={isUnlinking}
+                    >
+                      {isUnlinking ? (
+                        <>
+                          <Loader2 size={14} className="spin" />
+                          <span>{texts.unlinking}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Unlink size={14} />
+                          <span>{texts.unlinkGoogle}</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <button className="link-google-btn" onClick={handleLinkGoogle}>
+                  <Link2 size={16} />
+                  <span>{texts.linkGoogle}</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

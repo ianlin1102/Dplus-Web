@@ -1,56 +1,60 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 
 /**
- * 鼠标跟随光效 Hook
- * @param {Object} options - 配置选项
- * @param {number} options.smoothing - 平滑度，值越大延迟越大 (默认 0.15)
- * @param {boolean} options.enabled - 是否启用 (默认 true)
- * @returns {Object} { position, isActive, handlers }
+ * 鼠标跟随光效 Hook (Performance Optimized)
+ * Uses direct DOM manipulation to avoid React re-renders on every frame.
+ * 
+ * @param {Object} options
+ * @returns {Object} { glowRef, isActive, handlers }
  */
 const useMouseGlow = ({ smoothing = 0.15, enabled = true } = {}) => {
-  const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isActive, setIsActive] = useState(false);
   const targetPosition = useRef({ x: 0, y: 0 });
+  const currentPosition = useRef({ x: 0, y: 0 });
   const animationFrame = useRef(null);
+  const glowRef = useRef(null);
 
-  // 平滑动画更新位置
-  const animatePosition = useCallback(() => {
-    setPosition((prev) => {
-      const dx = targetPosition.current.x - prev.x;
-      const dy = targetPosition.current.y - prev.y;
+  // 动画循环
+  const animate = useCallback(() => {
+    if (!glowRef.current) return;
 
-      // 如果距离足够小，停止动画
-      if (Math.abs(dx) < 0.1 && Math.abs(dy) < 0.1) {
-        return targetPosition.current;
-      }
+    const dx = targetPosition.current.x - currentPosition.current.x;
+    const dy = targetPosition.current.y - currentPosition.current.y;
 
-      // 线性插值实现平滑效果
-      return {
-        x: prev.x + dx * smoothing,
-        y: prev.y + dy * smoothing,
-      };
-    });
+    // 移动
+    currentPosition.current.x += dx * smoothing;
+    currentPosition.current.y += dy * smoothing;
 
-    animationFrame.current = requestAnimationFrame(animatePosition);
+    // 直接操作 DOM
+    // 使用 translate3d 开启 GPU 加速
+    // Center the glow: assume size is handled in CSS or passed style, 
+    // but here we just move the element's top-left or center.
+    // Ideally, the element is positioned at 0,0 and we move it.
+    glowRef.current.style.transform = `translate3d(${currentPosition.current.x}px, ${currentPosition.current.y}px, 0)`;
+
+    // 停止条件 (low threshold)
+    if (Math.abs(dx) > 0.1 || Math.abs(dy) > 0.1) {
+      animationFrame.current = requestAnimationFrame(animate);
+    } else {
+      animationFrame.current = null;
+    }
   }, [smoothing]);
 
   const handleMouseMove = useCallback(
     (e) => {
       if (!enabled) return;
 
-      // 获取相对于容器的位置
       const rect = e.currentTarget.getBoundingClientRect();
       targetPosition.current = {
         x: e.clientX - rect.left,
         y: e.clientY - rect.top,
       };
 
-      // 启动动画循环
       if (!animationFrame.current) {
-        animationFrame.current = requestAnimationFrame(animatePosition);
+        animationFrame.current = requestAnimationFrame(animate);
       }
     },
-    [enabled, animatePosition]
+    [enabled, animate]
   );
 
   const handleMouseEnter = useCallback(() => {
@@ -60,33 +64,45 @@ const useMouseGlow = ({ smoothing = 0.15, enabled = true } = {}) => {
 
   const handleMouseLeave = useCallback(() => {
     setIsActive(false);
-    // 停止动画
     if (animationFrame.current) {
       cancelAnimationFrame(animationFrame.current);
       animationFrame.current = null;
     }
   }, []);
 
+  // Cleanup
+  useEffect(() => {
+    return () => {
+      if (animationFrame.current) {
+        cancelAnimationFrame(animationFrame.current);
+      }
+    };
+  }, []);
+
   return {
-    position,
+    glowRef, // New ref to attach
     isActive,
     handlers: {
       onMouseMove: handleMouseMove,
       onMouseEnter: handleMouseEnter,
       onMouseLeave: handleMouseLeave,
     },
-    // 光晕样式生成器
+    // Helper to generate base static styles (moved dynamic parts to GPU)
     getGlowStyle: (size = 200, color = 'rgba(138, 43, 226, 0.3)') => ({
       position: 'absolute',
-      left: position.x - size / 2,
-      top: position.y - size / 2,
+      left: 0, 
+      top: 0,
       width: size,
       height: size,
+      // Center the pivot point so translate moves the center
+      marginLeft: -size / 2,
+      marginTop: -size / 2,
       borderRadius: '50%',
       background: `radial-gradient(circle, ${color} 0%, transparent 70%)`,
       pointerEvents: 'none',
       opacity: isActive ? 1 : 0,
       transition: 'opacity 0.3s ease',
+      willChange: 'transform', // Performance hint
     }),
   };
 };

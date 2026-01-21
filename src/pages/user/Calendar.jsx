@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CalendarDays, ChevronLeft, ChevronRight, X, CalendarOff } from 'lucide-react'
 import { useLanguage } from '../../i18n/LanguageContext'
@@ -6,7 +6,6 @@ import { getMeetListByWeek, dateUtils } from '../../services/meetService'
 import { getTempDownloadUrl } from '../../utils/cloudUrlHelper'
 import CloudImage from '../../components/CloudImage'
 import './Calendar.css'
-
 
 // 类型颜色映射
 const typeColors = {
@@ -257,7 +256,7 @@ function Calendar() {
   }, [selectedWeekIndex])
 
   // 获取周一所在的周索引
-  const findWeekIndexByDate = (date) => {
+  const findWeekIndexByDate = useCallback((date) => {
     // 使用本地时间格式化，避免 UTC 时区问题
     const targetDate = formatLocalDate(date)
     for (let i = 0; i < weekButtons.length; i++) {
@@ -266,10 +265,10 @@ function Calendar() {
       }
     }
     return 0
-  }
+  }, [weekButtons])
 
   // 处理月历日期选择
-  const handleDateSelect = (dayInfo) => {
+  const handleDateSelect = useCallback((dayInfo) => {
     if (!dayInfo.day || !dayInfo.isCurrentMonth) return
     const weekIndex = findWeekIndexByDate(dayInfo.date)
     if (selectedWeekIndex !== weekIndex) {
@@ -279,35 +278,37 @@ function Calendar() {
       setSelectedWeekIndex(weekIndex)
     }
     setShowMonthPicker(false)
-  }
+  }, [findWeekIndexByDate, selectedWeekIndex])
 
   // 月份导航
-  const goToPrevMonth = () => {
+  const goToPrevMonth = useCallback(() => {
     if (pickerMonth === 0) {
       setPickerMonth(11)
-      setPickerYear(pickerYear - 1)
+      setPickerYear(y => y - 1)
     } else {
-      setPickerMonth(pickerMonth - 1)
+      setPickerMonth(m => m - 1)
     }
-  }
+  }, [pickerMonth])
 
-  const goToNextMonth = () => {
+  const goToNextMonth = useCallback(() => {
     if (pickerMonth === 11) {
       setPickerMonth(0)
-      setPickerYear(pickerYear + 1)
+      setPickerYear(y => y + 1)
     } else {
-      setPickerMonth(pickerMonth + 1)
+      setPickerMonth(m => m + 1)
     }
-  }
+  }, [pickerMonth])
 
-  // 月历数据
-  const monthDays = generateMonthCalendar(pickerYear, pickerMonth)
-  const monthNames = language === 'zh'
+  // 月历数据 (Memoized)
+  const monthDays = useMemo(() => generateMonthCalendar(pickerYear, pickerMonth), [pickerYear, pickerMonth])
+  
+  const monthNames = useMemo(() => language === 'zh'
     ? ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月']
-    : ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-  const weekdayNames = language === 'zh'
+    : ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'], [language])
+    
+  const weekdayNames = useMemo(() => language === 'zh'
     ? ['一', '二', '三', '四', '五', '六', '日']
-    : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+    : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], [language])
 
   // 加载数据（支持缓存）
   const loadData = useCallback(async () => {
@@ -359,8 +360,8 @@ function Calendar() {
     loadData()
   }, [loadData])
 
-  // 计算时长
-  const calculateDuration = (start, end) => {
+  // 计算时长 (Memoized helper not strictly needed inside component, but good practice)
+  const calculateDuration = useCallback((start, end) => {
     if (!start || !end) return ''
     const [sh, sm] = start.split(':').map(Number)
     const [eh, em] = end.split(':').map(Number)
@@ -370,37 +371,52 @@ function Calendar() {
     const m = diff % 60
     if (m === 0) return `${h}${language === 'zh' ? '小时' : 'h'}`
     return `${h}${language === 'zh' ? '小时' : 'h'}${m}${language === 'zh' ? '分钟' : 'min'}`
-  }
+  }, [language])
 
-  // 按日期分组课程
-  // 云函数返回的 times 数组中每个时段有 day 属性，需要按 day 展开
-  const groupedMeets = meets.reduce((acc, meet) => {
-    // 遍历每个时间段，按 day 分组
-    if (meet.times && meet.times.length > 0) {
-      meet.times.forEach(timeSlot => {
-        const day = timeSlot.day
-        if (!day) return
+  // 按日期分组课程 (Memoized)
+  const groupedMeets = useMemo(() => {
+    // 获取当前时间信息用于过滤
+    const now = new Date()
+    const todayStr = formatLocalDate(now)
+    const currentTimeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
 
-        if (!acc[day]) {
-          acc[day] = []
-        }
+    return meets.reduce((acc, meet) => {
+      // 遍历每个时间段，按 day 分组
+      if (meet.times && meet.times.length > 0) {
+        meet.times.forEach(timeSlot => {
+          const day = timeSlot.day
+          if (!day) return
 
-        // 创建一个包含单个时间段的 meet 副本
-        acc[day].push({
-          ...meet,
-          day: day, // 添加 day 属性方便后续使用
-          times: [timeSlot] // 只包含当天的时间段
+          // 过滤逻辑：
+          // 1. 过滤掉今天之前的日期
+          if (day < todayStr) return
+
+          // 2. 如果是今天，过滤掉已经开始的时段 (一旦开始即不可预约)
+          if (day === todayStr) {
+            if (timeSlot.start < currentTimeStr) return
+          }
+
+          if (!acc[day]) {
+            acc[day] = []
+          }
+
+          // 创建一个包含单个时间段的 meet 副本
+          acc[day].push({
+            ...meet,
+            day: day, // 添加 day 属性方便后续使用
+            times: [timeSlot] // 只包含当天的时间段
+          })
         })
-      })
-    }
-    return acc
-  }, {})
+      }
+      return acc
+    }, {})
+  }, [meets])
 
-  // 获取排序后的日期列表
-  const sortedDays = Object.keys(groupedMeets).sort()
+  // 获取排序后的日期列表 (Memoized)
+  const sortedDays = useMemo(() => Object.keys(groupedMeets).sort(), [groupedMeets])
 
   // 处理课程点击，跳转到预约确认页
-  const handleMeetClick = (meet, day) => {
+  const handleMeetClick = useCallback((meet, day) => {
     // 获取时段信息
     const timeSlot = meet.times?.[0]
     if (!timeSlot) return
@@ -422,7 +438,7 @@ function Calendar() {
         timeSlot: timeSlot
       }
     })
-  }
+  }, [language, navigate])
 
   return (
     <div className="calendar-page">

@@ -14,24 +14,7 @@ import useMouseGlow from '../hooks/useMouseGlow';
  * 4. 响应式设计: 手机端简化动画 + 滑动手势，网页端完整效果 + 鼠标跟随光效
  */
 
-// 动画配置 - 手机端简化版
-const mobileAnimation = {
-  textShadow: [
-    "0 0 10px #8A2BE2, 0 0 20px #8A2BE2",
-    "0 0 5px #8A2BE2, 0 0 10px #8A2BE2",
-  ],
-  opacity: [1, 0.9, 1],
-};
-
-// 动画配置 - 网页端完整版
-const desktopAnimation = {
-  textShadow: [
-    "0 0 10px #8A2BE2, 0 0 20px #8A2BE2, 0 0 40px #8A2BE2",
-    "0 0 5px #8A2BE2, 0 0 10px #8A2BE2, 0 0 20px #8A2BE2",
-    "0 0 10px #8A2BE2, 0 0 25px #8A2BE2, 0 0 50px #8A2BE2",
-  ],
-  opacity: [1, 0.8, 1, 0.9, 1, 0.5, 1],
-};
+// 动画配置 - 移除 JS 驱动的无限动画配置，改用 CSS
 
 // 上滑箭头动画组件
 const SwipeUpArrow = () => (
@@ -82,40 +65,55 @@ const IntroOverlay = ({ onEnter }) => {
   });
 
   // 网页端鼠标跟随光效
-  const { position, isActive, handlers: mouseHandlers, getGlowStyle } = useMouseGlow({
+  const { glowRef, isActive, handlers: mouseHandlers, getGlowStyle } = useMouseGlow({
     enabled: isDesktop,
     smoothing: 0.12,
   });
-
-  // 选择动画配置
-  const neonAnimation = isMobile ? mobileAnimation : desktopAnimation;
-  const animationDuration = isMobile ? 3 : 2;
-  const animationTimes = isMobile ? [0, 0.5, 1] : [0, 0.1, 0.2, 0.3, 0.5, 0.6, 1];
 
   return (
     <AnimatePresence>
       {!isEntered && (
         <motion.div
           key="intro-door"
-          initial={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 1 }}
           exit={{
             opacity: 0,
-            scale: 1.1,
-            filter: "blur(0px)",
-            transition: { duration: 0.8, ease: [0.43, 0.13, 0.23, 0.96] }
+            pointerEvents: "none", // Prevent interactions during exit
+            transition: { duration: 0.6, ease: "easeInOut" } // Simplified transition
           }}
           onClick={handleEnter}
-          className="fixed inset-0 z-50 cursor-pointer flex items-center justify-center group"
+          className="fixed inset-0 z-50 cursor-pointer flex items-center justify-center group will-change-opacity" // Added will-change hint
           // 手机端绑定滑动手势
           {...(isMobile ? swipeHandlers : {})}
           // 网页端绑定鼠标事件
           {...(isDesktop ? mouseHandlers : {})}
         >
+          <style>{`
+            @keyframes neon-pulse {
+              0%, 100% {
+                text-shadow: 
+                  0 0 10px #8A2BE2,
+                  0 0 20px #8A2BE2;
+                opacity: 1;
+              }
+              50% {
+                text-shadow: 
+                  0 0 5px #8A2BE2,
+                  0 0 10px #8A2BE2;
+                opacity: 0.9;
+              }
+            }
+            .neon-text-animate {
+              animation: neon-pulse 3s ease-in-out infinite;
+            }
+          `}</style>
+
           {/* 玻璃材质主体 - 手机端减少模糊强度 */}
           <div
             className={`absolute inset-0 bg-black/40 ${
               isMobile ? 'backdrop-blur-[10px]' : 'backdrop-blur-[25px]'
             }`}
+            style={{ willChange: 'opacity' }} // Hint for browser
           />
 
           {/* 霓虹边框环绕 - 手机端更紧凑 */}
@@ -125,23 +123,17 @@ const IntroOverlay = ({ onEnter }) => {
           </div>
 
           {/* 网页端鼠标跟随光晕 */}
-          {isDesktop && isActive && (
-            <div style={getGlowStyle(300, 'rgba(138, 43, 226, 0.25)')} />
+          {isDesktop && (
+            <div 
+              ref={glowRef}
+              style={getGlowStyle(300, 'rgba(138, 43, 226, 0.25)')} 
+            />
           )}
 
           {/* Logo 容器 */}
           <div className="relative z-10 flex flex-col items-center">
-            <motion.div
-              animate={{
-                ...neonAnimation,
-              }}
-              transition={{
-                duration: animationDuration,
-                repeat: Infinity,
-                repeatType: "mirror",
-                times: animationTimes,
-              }}
-              className={`font-black italic tracking-tighter ${
+            <div
+              className={`font-black italic tracking-tighter neon-text-animate ${
                 isMobile
                   ? 'text-[15vw]'
                   : 'text-[12vw] md:text-[8vw] lg:text-[6vw]'
@@ -149,7 +141,7 @@ const IntroOverlay = ({ onEnter }) => {
             >
               <span className="text-white">D</span>
               <span className="text-[#00FFFF]">plus</span>
-            </motion.div>
+            </div>
 
             {/* 提示文字 - 手机端显示滑动提示 */}
             <motion.div

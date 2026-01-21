@@ -1,10 +1,12 @@
 /**
  * 认证上下文
  * 统一管理用户登录状态、角色判断、权限检查
+ * Updated: 2026-01-21 - 添加注册、Google OAuth、账户关联支持
  */
 
 import { createContext, useContext, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import * as authService from '../services/authService'
 
 // 云函数 HTTP 地址
 const CLOUD_FUNCTION_URL = 'https://cloud1-6gnd02he13c1ff2e-1380655578.ap-shanghai.app.tcloudbase.com/cloud'
@@ -13,7 +15,7 @@ const AuthContext = createContext(null)
 
 // 缓存 key
 const AUTH_CACHE_KEY = 'auth_info'
-const AUTH_EXPIRE_TIME = 7200 * 1000 // 2小时
+const AUTH_EXPIRE_TIME = 7 * 24 * 60 * 60 * 1000 // 7天
 
 /**
  * 认证 Provider
@@ -22,6 +24,8 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [initialized, setInitialized] = useState(false)
+  const [authMethods, setAuthMethods] = useState([])
+  const [googleEmail, setGoogleEmail] = useState(null)
 
   // 初始化时检查登录状态
   useEffect(() => {
@@ -84,114 +88,91 @@ export function AuthProvider({ children }) {
     }))
   }
 
-  // 硬编码账号密码（与小程序 config.js 保持一致）
-  // 注意：userId 必须与数据库中的实际用户 ID 匹配，否则 API 查询会返回空数据
-  const ACCOUNTS = {
-    // 管理员账号
+  // 管理员账号（保留用于管理员登录）
+  const ADMIN_ACCOUNTS = {
     admin: { pwd: '123456', role: 'admin', type: 1, name: 'Admin' },
-    // 微信用户账号 - userId 来自 ax_join 中的实际用户
-    user: {
-      pwd: '123456',
-      role: 'user',
-      type: 0,
-      name: '测试用户',
-      userId: 'oi1Jt1yz9SQ8MzgMri3ifVTKnSNk'  // 微信用户 ID，与 ax_join.JOIN_USER_ID 匹配
-    },
-    test: {
-      pwd: '123456',
-      role: 'user',
-      type: 0,
-      name: 'Test User',
-      userId: 'oi1Jt1yz9SQ8MzgMri3ifVTKnSNk'  // 微信用户 ID
-    },
-    // Web 用户账号
-    testuser: {
-      pwd: '123456',
-      role: 'user',
-      type: 0,
-      name: 'Web测试用户',
-      userId: '20260111193257392'  // Web 用户 ID，与 ax_user.USER_ID 匹配
-    },
   }
 
   /**
    * 统一登录接口
-   * 管理员登录调用云函数获取真实 token
-   * 普通用户使用前端硬编码验证
+   * 管理员使用 admin/login 云函数
+   * 普通用户使用 passport/login 云函数
    */
   const login = async (username, password) => {
     try {
-      const account = ACCOUNTS[username]
-
-      // 验证账号密码
-      if (account && account.pwd === password) {
-        // 管理员登录：调用云函数获取真实 token
-        if (account.role === 'admin') {
-          try {
-            const response = await fetch(CLOUD_FUNCTION_URL, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                route: 'admin/login',
-                PID: 'A00',
-                params: { name: username, pwd: password }
-              })
+      // 检查是否是管理员账号
+      const adminAccount = ADMIN_ACCOUNTS[username]
+      if (adminAccount && adminAccount.pwd === password) {
+        // 管理员登录：调用 admin/login 云函数
+        try {
+          const response = await fetch(CLOUD_FUNCTION_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              route: 'admin/login',
+              PID: 'A00',
+              params: { name: username, pwd: password }
             })
-            const result = await response.json()
+          })
+          const result = await response.json()
 
-            if (result.code === 200 && result.data) {
-              const data = result.data
-              const userData = {
-                id: data.userId,
-                _id: data.userId,
-                name: data.name,
-                role: 'admin',
-                type: data.type,
-              }
-              setUser(userData)
-              saveAuthToCache(userData)
-
-              // 保存 admin_info（包含 token）
-              localStorage.setItem('admin_info', JSON.stringify({
-                id: data.userId,
-                name: data.name,
-                type: data.type,
-                token: data.jwtToken,
-                legacyToken: data.token  // 云函数 ADMIN_TOKEN
-              }))
-
-              return { success: true, role: 'admin', user: userData }
-            } else {
-              return { success: false, message: result.msg || '登录失败' }
+          if (result.code === 200 && result.data) {
+            const data = result.data
+            const userData = {
+              id: data.userId,
+              _id: data.userId,
+              name: data.name,
+              role: 'admin',
+              type: data.type,
             }
-          } catch (err) {
-            console.error('管理员登录云函数调用失败:', err)
-            return { success: false, message: '网络错误，请重试' }
-          }
-        }
+            setUser(userData)
+            setAuthMethods(['password'])
+            saveAuthToCache(userData)
 
-        // 普通用户登录：前端硬编码验证
-        const realUserId = account.userId || `${account.role}_${username}`
+            // 保存 admin_info（包含 token）
+            localStorage.setItem('admin_info', JSON.stringify({
+              id: data.userId,
+              name: data.name,
+              type: data.type,
+              token: data.jwtToken,
+              legacyToken: data.token
+            }))
+
+            return { success: true, role: 'admin', user: userData }
+          } else {
+            return { success: false, message: result.msg || '登录失败' }
+          }
+        } catch (err) {
+          console.error('管理员登录云函数调用失败:', err)
+          return { success: false, message: '网络错误，请重试' }
+        }
+      }
+
+      // 普通用户登录：调用 passport/login 云函数
+      const result = await authService.loginWithCredentials(username, password)
+
+      if (result.success) {
         const userData = {
-          id: realUserId,
-          _id: realUserId,
-          name: account.name,
-          role: account.role,
-          type: account.type,
+          id: result.userId,
+          _id: result.userId,
+          name: result.user.name,
+          username: result.user.username,
+          role: 'user',
+          type: 0,
+          googleEmail: result.user.googleEmail,
+          authMethods: result.user.authMethods
         }
         setUser(userData)
+        setAuthMethods(result.user.authMethods || ['password'])
+        setGoogleEmail(result.user.googleEmail || null)
         saveAuthToCache(userData)
 
-        return {
-          success: true,
-          role: account.role,
-          user: userData
-        }
+        return { success: true, role: 'user', user: userData }
       }
 
       return {
         success: false,
-        message: '用户名或密码错误'
+        message: result.message || '用户名或密码错误'
       }
     } catch (error) {
       console.error('登录失败:', error)
@@ -199,6 +180,155 @@ export function AuthProvider({ children }) {
         success: false,
         message: error.message || '登录失败'
       }
+    }
+  }
+
+  /**
+   * 用户注册
+   */
+  const register = async (username, password, name) => {
+    try {
+      const result = await authService.register({ username, password, name })
+
+      if (result.success) {
+        const userData = {
+          id: result.userId,
+          _id: result.userId,
+          name: result.user.name,
+          username: result.user.username,
+          role: 'user',
+          type: 0,
+          authMethods: result.user.authMethods
+        }
+        setUser(userData)
+        setAuthMethods(result.user.authMethods || ['password'])
+        saveAuthToCache(userData)
+
+        return { success: true, user: userData }
+      }
+
+      return { success: false, message: result.message }
+    } catch (error) {
+      console.error('注册失败:', error)
+      return { success: false, message: error.message || '注册失败' }
+    }
+  }
+
+  /**
+   * Google OAuth 登录/注册
+   */
+  const loginWithGoogle = async (code, redirectUri) => {
+    try {
+      const result = await authService.googleAuth(code, redirectUri)
+
+      if (result.success) {
+        const userData = {
+          id: result.userId,
+          _id: result.userId,
+          name: result.user.name,
+          username: result.user.username,
+          role: 'user',
+          type: 0,
+          googleEmail: result.user.googleEmail,
+          authMethods: result.user.authMethods
+        }
+        setUser(userData)
+        setAuthMethods(result.user.authMethods || ['google'])
+        setGoogleEmail(result.user.googleEmail || null)
+        saveAuthToCache(userData)
+
+        return {
+          success: true,
+          user: userData,
+          isNewUser: result.isNewUser
+        }
+      }
+
+      return { success: false, message: result.message }
+    } catch (error) {
+      console.error('Google 登录失败:', error)
+      return { success: false, message: error.message || 'Google 登录失败' }
+    }
+  }
+
+  /**
+   * 关联 Google 账户
+   */
+  const linkGoogle = async (code, redirectUri) => {
+    try {
+      const result = await authService.linkGoogle(code, redirectUri)
+
+      if (result.success) {
+        setGoogleEmail(result.googleEmail)
+        setAuthMethods(result.authMethods)
+
+        // 更新缓存中的用户信息
+        if (user) {
+          const updatedUser = {
+            ...user,
+            googleEmail: result.googleEmail,
+            authMethods: result.authMethods
+          }
+          setUser(updatedUser)
+          saveAuthToCache(updatedUser)
+        }
+
+        return { success: true, googleEmail: result.googleEmail }
+      }
+
+      return { success: false, message: result.message }
+    } catch (error) {
+      console.error('关联 Google 失败:', error)
+      return { success: false, message: error.message || '关联失败' }
+    }
+  }
+
+  /**
+   * 取消关联 Google 账户
+   */
+  const unlinkGoogle = async () => {
+    try {
+      const result = await authService.unlinkGoogle()
+
+      if (result.success) {
+        setGoogleEmail(null)
+        setAuthMethods(result.authMethods)
+
+        // 更新缓存中的用户信息
+        if (user) {
+          const updatedUser = {
+            ...user,
+            googleEmail: null,
+            authMethods: result.authMethods
+          }
+          setUser(updatedUser)
+          saveAuthToCache(updatedUser)
+        }
+
+        return { success: true }
+      }
+
+      return { success: false, message: result.message }
+    } catch (error) {
+      console.error('取消关联 Google 失败:', error)
+      return { success: false, message: error.message || '取消关联失败' }
+    }
+  }
+
+  /**
+   * 加载用户认证方式
+   */
+  const loadAuthMethods = async () => {
+    if (!user) return
+
+    try {
+      const result = await authService.getAuthMethods()
+      if (result.success) {
+        setAuthMethods(result.methods)
+        setGoogleEmail(result.googleEmail)
+      }
+    } catch (error) {
+      console.error('加载认证方式失败:', error)
     }
   }
 
@@ -251,13 +381,24 @@ export function AuthProvider({ children }) {
     user,
     loading,
     initialized,
+    authMethods,
+    googleEmail,
     login,
+    register,
+    loginWithGoogle,
+    linkGoogle,
+    unlinkGoogle,
+    loadAuthMethods,
     logout,
     isLoggedIn,
     isAdmin,
     isSuperAdmin,
     isUser,
-    refreshAuth
+    refreshAuth,
+    // 便捷方法
+    hasPasswordAuth: authMethods.includes('password'),
+    hasGoogleAuth: authMethods.includes('google'),
+    canUnlinkGoogle: authMethods.length > 1 && authMethods.includes('google')
   }
 
   return (

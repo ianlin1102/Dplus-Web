@@ -1,0 +1,222 @@
+/* Google OAuth Callback Page Styles */
+
+.google-callback-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.callback-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.callback-bg .bg-gradient {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at top, rgba(6, 182, 212, 0.15), transparent 50%),
+    radial-gradient(ellipse at bottom right, rgba(217, 70, 239, 0.1), transparent 50%);
+}
+
+.callback-container {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.callback-content {
+  background: rgba(30, 30, 30, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 48px 40px;
+  text-align: center;
+  backdrop-filter: blur(20px);
+}
+
+/* Loading State */
+.callback-content.loading h2 {
+  color: #fff;
+  font-size: 24px;
+  margin: 24px 0 12px;
+}
+
+.callback-content.loading p {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
+}
+
+.spinner {
+  color: #06b6d4;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Status Icon */
+.status-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  margin-bottom: 24px;
+}
+
+.status-icon.success {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+
+.status-icon.error {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+/* Success State */
+.callback-content.success h2 {
+  color: #22c55e;
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.callback-content.success > p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 16px;
+  margin-bottom: 24px;
+}
+
+/* Error State */
+.callback-content.error h2 {
+  color: #ef4444;
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.error-message {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  margin-bottom: 32px;
+  padding: 12px 16px;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* Debug Box */
+.debug-box {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.debug-box h4 {
+  color: #06b6d4;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+.debug-box pre {
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 11px;
+  color: #22c55e;
+  overflow-x: auto;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.debug-hint {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 11px;
+  margin-top: 8px;
+  margin-bottom: 0;
+}
+
+/* Action Buttons */
+.callback-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.callback-actions .btn-primary {
+  width: 100%;
+  padding: 14px 24px;
+  background: linear-gradient(135deg, #06b6d4, #d946ef);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.callback-actions .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(6, 182, 212, 0.3);
+}
+
+.callback-actions .btn-secondary {
+  width: 100%;
+  padding: 14px 24px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.callback-actions .btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+
+/* Responsive */
+@media (max-width: 520px) {
+  .callback-container {
+    padding: 16px;
+  }
+
+  .callback-content {
+    padding: 32px 24px;
+    border-radius: 20px;
+  }
+
+  .status-icon {
+    width: 80px;
+    height: 80px;
+  }
+
+  .status-icon svg {
+    width: 48px;
+    height: 48px;
+  }
+
+  .callback-content.success h2,
+  .callback-content.error h2 {
+    font-size: 24px;
+  }
+}

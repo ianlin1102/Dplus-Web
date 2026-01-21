@@ -16,6 +16,8 @@ import BookingConfirm from './pages/user/BookingConfirm'
 
 // Auth Pages
 import Login from './pages/Login'
+import Register from './pages/Register'
+import GoogleCallback from './pages/auth/GoogleCallback'
 
 // Admin Pages
 import AdminDashboard from './pages/admin/index/AdminDashboard'
@@ -81,6 +83,8 @@ function AppContent() {
 
       {/* Auth Pages */}
       <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/auth/google/callback" element={<GoogleCallback />} />
 
       {/* Role-based redirect after login */}
       <Route path="/redirect" element={<RoleBasedRedirect />} />

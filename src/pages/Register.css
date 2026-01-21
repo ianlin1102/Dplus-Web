@@ -1,0 +1,462 @@
+/**
+ * 注册页面样式
+ * 复用 Login.css 的样式模式
+ */
+
+.register-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 背景效果 */
+.register-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.register-bg .bg-gradient {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 30% 20%, rgba(6, 182, 212, 0.15) 0%, transparent 50%),
+              radial-gradient(ellipse at 70% 80%, rgba(217, 70, 239, 0.15) 0%, transparent 50%),
+              linear-gradient(180deg, #0a0a0f 0%, #1a1a2e 100%);
+}
+
+.register-bg .bg-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(6, 182, 212, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(6, 182, 212, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+/* 返回按钮 - 复用 Login 样式 */
+.register-page .back-home-btn {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.register-page .back-home-btn:hover {
+  background: rgba(6, 182, 212, 0.1);
+  border-color: rgba(6, 182, 212, 0.3);
+  color: #06b6d4;
+}
+
+/* 注册容器 */
+.register-container {
+  width: 100%;
+  max-width: 420px;
+  background: rgba(26, 26, 46, 0.8);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 36px 40px;
+  position: relative;
+  z-index: 1;
+  box-shadow:
+    0 0 80px rgba(6, 182, 212, 0.1),
+    0 0 160px rgba(217, 70, 239, 0.05);
+}
+
+/* 头部 */
+.register-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.register-logo {
+  margin-bottom: 20px;
+}
+
+.register-logo .logo-text {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 4px;
+  background: linear-gradient(135deg, #06b6d4, #d946ef, #06b6d4);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientShift 3s ease infinite;
+}
+
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.register-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 8px 0;
+}
+
+.register-subtitle {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+}
+
+/* 表单 */
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* 错误提示 */
+.register-error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 12px;
+  color: #ef4444;
+}
+
+.register-error .error-icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ef4444;
+  color: #fff;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.register-error .error-text {
+  font-size: 14px;
+}
+
+/* 表单组 */
+.register-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.register-form .form-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+.register-form .form-label svg {
+  opacity: 0.7;
+}
+
+.register-form .form-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: #fff;
+  font-size: 15px;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.register-form .form-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.register-form .form-input:focus {
+  border-color: rgba(6, 182, 212, 0.5);
+  background: rgba(6, 182, 212, 0.05);
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
+}
+
+.register-form .form-input.error {
+  border-color: rgba(239, 68, 68, 0.5);
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.register-form .form-input.success {
+  border-color: rgba(34, 197, 94, 0.5);
+  background: rgba(34, 197, 94, 0.05);
+}
+
+.register-form .form-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 用户名状态 */
+.input-with-status {
+  position: relative;
+}
+
+.input-with-status .form-input {
+  padding-right: 40px;
+}
+
+.input-status {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.status-icon {
+  display: block;
+}
+
+.status-icon.checking {
+  color: rgba(255, 255, 255, 0.5);
+  animation: spin 1s linear infinite;
+}
+
+.status-icon.available {
+  color: #22c55e;
+}
+
+.status-icon.taken {
+  color: #ef4444;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* 输入提示 */
+.input-hint {
+  font-size: 12px;
+  margin: 0;
+}
+
+.input-hint.success {
+  color: #22c55e;
+}
+
+.input-hint.error {
+  color: #ef4444;
+}
+
+/* 密码输入框 */
+.register-form .password-input-wrapper {
+  position: relative;
+}
+
+.register-form .password-input-wrapper .form-input {
+  padding-right: 48px;
+}
+
+.register-form .password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.register-form .password-toggle:hover {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* 密码强度 */
+.password-strength {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.strength-label {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.strength-bar {
+  flex: 1;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.strength-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.strength-text {
+  font-weight: 500;
+  min-width: 40px;
+}
+
+/* 注册按钮 */
+.register-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px;
+  margin-top: 4px;
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.register-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(6, 182, 212, 0.3);
+}
+
+.register-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.register-btn .btn-spinner {
+  animation: spin 0.8s linear infinite;
+}
+
+/* 分隔线 */
+.register-divider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 4px 0;
+}
+
+.register-divider::before,
+.register-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.register-divider span {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Google 注册按钮 */
+.google-register-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.google-register-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+.google-register-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.google-register-btn .google-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* 底部 */
+.register-footer {
+  margin-top: 24px;
+  text-align: center;
+}
+
+.register-footer .footer-text {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+}
+
+.register-footer .footer-link {
+  color: #06b6d4;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.register-footer .footer-link:hover {
+  color: #22d3ee;
+}
+
+/* 响应式 */
+@media (max-width: 480px) {
+  .register-container {
+    padding: 28px 20px;
+    border-radius: 20px;
+  }
+
+  .register-title {
+    font-size: 22px;
+  }
+
+  .register-logo .logo-text {
+    font-size: 24px;
+  }
+
+  .register-page .back-home-btn {
+    top: 16px;
+    left: 16px;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}
