@@ -867,6 +867,18 @@ body.light .placeholder-text {
   color: #34d399;
 }
 
+.status-yellow {
+  color: #fbbf24;
+}
+
+.activity-price {
+  font-size: 12px;
+  font-weight: 600;
+  color: #d946ef;
+  margin-left: auto;
+  padding-right: 12px;
+}
+
 /* Color utilities */
 .text-cyan {
   color: #06b6d4;

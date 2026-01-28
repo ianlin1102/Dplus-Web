@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Routes, Route, useLocation } from 'react-router-dom'
-import { Home, Calendar, CreditCard, Settings, Activity, User, Menu, X, Edit2, Save, Loader2, Clock, XCircle, AlertCircle, CalendarOff, RefreshCw, Info, Coins, CheckCircle, LogOut, Link2, Unlink } from 'lucide-react'
+import { Home, Calendar, CreditCard, Settings, Activity, User, Menu, X, Edit2, Save, Loader2, Clock, XCircle, AlertCircle, CalendarOff, RefreshCw, Info, Coins, CheckCircle, LogOut, Link2, Unlink, Receipt, ShoppingCart } from 'lucide-react'
 import { useLanguage } from '../../i18n/LanguageContext'
 import { useAuth } from '../../contexts/AuthContext'
 import { getMyJoinList, cancelMyJoin, canCancelBooking, formatCancelRule } from '../../services/bookingService'
-import { getMyCards } from '../../services/cardService'
+import { getMyCards, getPurchaseHistory } from '../../services/cardService'
 import { getMyDetail, editUserBase } from '../../services/api'
 import './Dashboard.css'
 
@@ -35,9 +35,10 @@ const DashboardOverview = () => {
   const mockUser = userData[language]
   const [cardStats, setCardStats] = useState({ totalTimes: 0, totalBalance: 0 })
   const [recentBookings, setRecentBookings] = useState([])
+  const [recentPurchases, setRecentPurchases] = useState([])
   const [loading, setLoading] = useState(true)
 
-  // 加载卡项汇总和最近预约
+  // 加载卡项汇总、最近预约和购买记录
   useEffect(() => {
     const loadData = async () => {
       if (!authUser?._id) {
@@ -48,10 +49,11 @@ const DashboardOverview = () => {
       try {
         setLoading(true)
 
-        // 并行加载卡项和预约
-        const [cards, bookingsResult] = await Promise.all([
+        // 并行加载卡项、预约和购买记录
+        const [cards, bookingsResult, purchases] = await Promise.all([
           getMyCards(authUser._id, { includeExpired: false }),
-          getMyJoinList({ sortType: 'timedesc', page: 1, size: 5 })
+          getMyJoinList({ sortType: 'timedesc', page: 1, size: 5 }),
+          getPurchaseHistory(authUser._id).catch(() => [])
         ])
 
         // 计算卡项汇总
@@ -73,6 +75,9 @@ const DashboardOverview = () => {
         if (bookingsResult.code === 200) {
           setRecentBookings(bookingsResult.data?.list || [])
         }
+
+        // 设置最近购买记录（只显示前5条）
+        setRecentPurchases((purchases || []).slice(0, 5))
       } catch (err) {
         console.error('加载数据失败:', err)
       } finally {
@@ -187,6 +192,58 @@ const DashboardOverview = () => {
                     activity.type === 'booking' ? 'status-green' :
                     'status-muted'
                   }`}>{activity.status}</span>
+                </div>
+              )
+            })
+          )}
+        </div>
+      </div>
+
+      {/* Purchase History */}
+      <div className="activity-card">
+        <h3 className="activity-title">
+          <Receipt size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }} />
+          {language === 'zh' ? '购买记录' : 'Purchase History'}
+        </h3>
+        <div className="activity-list">
+          {loading ? (
+            <div className="activity-item">
+              <span className="activity-event" style={{ opacity: 0.5 }}>
+                {language === 'zh' ? '加载中...' : 'Loading...'}
+              </span>
+            </div>
+          ) : recentPurchases.length === 0 ? (
+            <div className="activity-item">
+              <span className="activity-event" style={{ opacity: 0.5 }}>
+                {language === 'zh' ? '暂无购买记录' : 'No purchase history'}
+              </span>
+            </div>
+          ) : (
+            recentPurchases.map((purchase, index) => {
+              // 格式化日期
+              const formatDate = (timestamp) => {
+                if (!timestamp) return ''
+                const d = new Date(timestamp)
+                return `${d.getMonth() + 1}/${d.getDate()}`
+              }
+              // 状态映射: 0=待支付, 1=已支付待确认, 2=已完成, 3=已取消
+              const statusMap = {
+                0: { zh: '待支付', en: 'Pending', class: 'status-muted' },
+                1: { zh: '待确认', en: 'Awaiting', class: 'status-yellow' },
+                2: { zh: '已完成', en: 'Completed', class: 'status-green' },
+                3: { zh: '已取消', en: 'Cancelled', class: 'status-muted' },
+              }
+              const status = statusMap[purchase.PURCHASE_STATUS] || statusMap[0]
+              return (
+                <div key={purchase._id || index} className="activity-item">
+                  <span className="activity-date">{formatDate(purchase.PURCHASE_ADD_TIME)}</span>
+                  <span className="activity-event">
+                    {purchase.PURCHASE_CARD_TITLE || (language === 'zh' ? '卡项' : 'Card')}
+                  </span>
+                  <span className="activity-price">${purchase.PURCHASE_CARD_PRICE || 0}</span>
+                  <span className={`activity-status ${status.class}`}>
+                    {language === 'zh' ? status.zh : status.en}
+                  </span>
                 </div>
               )
             })

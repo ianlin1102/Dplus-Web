@@ -108,7 +108,15 @@ const UploadProofModal = ({ isOpen, onClose, purchaseId, onSuccess }) => {
       }
     } catch (err) {
       console.error('上传失败:', err)
-      setError(language === 'zh' ? '上传失败，请重试' : 'Upload failed, please try again')
+      // 检测 413 错误 (Content Too Large)
+      const errorMsg = err.message || ''
+      if (errorMsg.includes('413') || errorMsg.toLowerCase().includes('too large')) {
+        setError(language === 'zh'
+          ? '图片文件过大，请压缩后重试（建议小于 2MB）'
+          : 'Image file is too large. Please compress and try again (recommended < 2MB)')
+      } else {
+        setError(language === 'zh' ? '上传失败，请重试' : 'Upload failed, please try again')
+      }
     } finally {
       setUploading(false)
     }
