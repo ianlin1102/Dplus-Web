@@ -226,14 +226,16 @@ const DashboardOverview = () => {
                 const d = new Date(timestamp)
                 return `${d.getMonth() + 1}/${d.getDate()}`
               }
-              // 状态映射: 0=待支付, 1=已支付待确认, 2=已完成, 3=已取消
+              // 状态映射: 0=待支付, 1=待确认, 2=已同意, -1=已取消, -2=已拒绝
               const statusMap = {
                 0: { zh: '待支付', en: 'Pending', class: 'status-muted' },
                 1: { zh: '待确认', en: 'Awaiting', class: 'status-yellow' },
-                2: { zh: '已完成', en: 'Completed', class: 'status-green' },
-                3: { zh: '已取消', en: 'Cancelled', class: 'status-muted' },
+                2: { zh: '已同意', en: 'Approved', class: 'status-green' },
+                '-1': { zh: '已取消', en: 'Cancelled', class: 'status-muted' },
+                '-2': { zh: '已拒绝', en: 'Rejected', class: 'status-red' },
+                3: { zh: '已取消', en: 'Cancelled', class: 'status-muted' }, // 兼容旧数据
               }
-              const status = statusMap[purchase.PURCHASE_STATUS] || statusMap[0]
+              const status = statusMap[String(purchase.PURCHASE_STATUS)] || statusMap[0]
               return (
                 <div key={purchase._id || index} className="activity-item">
                   <span className="activity-date">{formatDate(purchase.PURCHASE_ADD_TIME)}</span>

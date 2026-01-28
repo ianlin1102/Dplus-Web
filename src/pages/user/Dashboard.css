@@ -871,6 +871,10 @@ body.light .placeholder-text {
   color: #fbbf24;
 }
 
+.status-red {
+  color: #ef4444;
+}
+
 .activity-price {
   font-size: 12px;
   font-weight: 600;
