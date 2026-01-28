@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { X, CheckCircle, AlertCircle } from 'lucide-react'
 import { useLanguage } from '../i18n/LanguageContext'
 import './DisclaimerModal.css'
@@ -9,6 +9,18 @@ import './DisclaimerModal.css'
 const DisclaimerModal = ({ isOpen, onClose, onAgree }) => {
   const { language } = useLanguage()
   const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false)
+
+  // 防止背景滚动
+  useEffect(() => {
+    if (isOpen) {
+      const originalOverflow = document.body.style.overflow
+      document.body.style.overflow = 'hidden'
+
+      return () => {
+        document.body.style.overflow = originalOverflow
+      }
+    }
+  }, [isOpen])
 
   if (!isOpen) return null
 

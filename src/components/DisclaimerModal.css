@@ -10,6 +10,7 @@
   justify-content: center;
   z-index: 1000;
   padding: 20px;
+  overflow: hidden; /* 防止 overlay 本身滚动 */
 }
 
 .disclaimer-modal {
@@ -80,6 +81,8 @@
   flex: 1;
   overflow-y: auto;
   padding: 24px;
+  overscroll-behavior: contain; /* 防止滚动穿透到背景 */
+  -webkit-overflow-scrolling: touch; /* iOS 平滑滚动 */
 }
 
 .disclaimer-section {
