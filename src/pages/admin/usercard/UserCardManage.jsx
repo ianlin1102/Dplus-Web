@@ -443,15 +443,15 @@ export default function UserCardManage() {
                       {isTimesCard ? <CoinsIcon /> : <CreditCardIcon />}
                     </div>
                     <div className="card-info">
-                      <h4>{card.USER_CARD_TITLE || card.USER_CARD_NAME || '未命名卡项'}</h4>
+                      <h4>{card.USER_CARD_CARD_NAME || '未命名卡项'}</h4>
                       <p className="card-balance">
                         {isTimesCard
-                          ? `剩余 ${card.USER_CARD_CNT || 0} 次`
-                          : `余额 ¥${(card.USER_CARD_BALANCE || 0).toFixed(2)}`
+                          ? `剩余 ${card.USER_CARD_REMAIN_TIMES || 0} 次`
+                          : `余额 $${(card.USER_CARD_REMAIN_AMOUNT || 0).toFixed(2)}`
                         }
                       </p>
                       <p className="card-expire">
-                        有效期: {formatExpireDate(card.USER_CARD_EXPIRE_TIME || card.USER_CARD_END)}
+                        有效期: {formatExpireDate(card.USER_CARD_EXPIRE_TIME)}
                       </p>
                       {card.USER_CARD_UNIQUE_ID && (
                         <p className="card-unique-id">
@@ -466,6 +466,7 @@ export default function UserCardManage() {
                         title="调整"
                       >
                         <EditIcon />
+                        <span>调整</span>
                       </button>
                       <button
                         className="action-btn history"
@@ -473,6 +474,7 @@ export default function UserCardManage() {
                         title="记录"
                       >
                         <HistoryIcon />
+                        <span>记录</span>
                       </button>
                     </div>
                   </div>
@@ -594,11 +596,11 @@ export default function UserCardManage() {
             </div>
             <div className="modal-body">
               <div className="current-info">
-                <p>卡项: {selectedCard.USER_CARD_TITLE || selectedCard.USER_CARD_NAME}</p>
+                <p>卡项: {selectedCard.USER_CARD_CARD_NAME || '未命名卡项'}</p>
                 <p>
                   当前余额: {selectedCard.USER_CARD_TYPE === 1
-                    ? `${selectedCard.USER_CARD_CNT || 0} 次`
-                    : `¥${(selectedCard.USER_CARD_BALANCE || 0).toFixed(2)}`
+                    ? `${selectedCard.USER_CARD_REMAIN_TIMES || 0} 次`
+                    : `$${(selectedCard.USER_CARD_REMAIN_AMOUNT || 0).toFixed(2)}`
                   }
                 </p>
               </div>
@@ -647,7 +649,7 @@ export default function UserCardManage() {
         <div className="modal-overlay" onClick={() => setShowHistoryModal(false)}>
           <div className="modal wide" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>使用记录 - {selectedCard.USER_CARD_TITLE || selectedCard.USER_CARD_NAME}</h3>
+              <h3>使用记录 - {selectedCard.USER_CARD_CARD_NAME || '未命名卡项'}</h3>
               <button className="close-btn" onClick={() => setShowHistoryModal(false)}>
                 <CloseIcon />
               </button>
@@ -659,21 +661,33 @@ export default function UserCardManage() {
                 </div>
               ) : (
                 <div className="records-list">
-                  {cardRecords.map((record, index) => (
-                    <div key={record._id || index} className="record-item">
-                      <div className="record-info">
-                        <span className="record-type">{record.RECORD_TYPE_TEXT || record.RECORD_TYPE}</span>
-                        <span className="record-change">
-                          {record.RECORD_CHANGE > 0 ? '+' : ''}{record.RECORD_CHANGE}
-                          {selectedCard.USER_CARD_TYPE === 1 ? '次' : '元'}
-                        </span>
+                  {cardRecords.map((record, index) => {
+                    // 记录类型：1=充值, 2=消费, 3=管理调整, 4=过期作废
+                    const typeMap = { 1: '充值', 2: '消费', 3: '调整', 4: '过期' }
+                    const typeText = typeMap[record.RECORD_TYPE] || '未知'
+
+                    // 根据卡项类型显示次数或金额变动
+                    const isTimesCard = selectedCard.USER_CARD_TYPE === 1
+                    const changeValue = isTimesCard
+                      ? record.RECORD_CHANGE_TIMES || 0
+                      : record.RECORD_CHANGE_AMOUNT || 0
+
+                    return (
+                      <div key={record._id || index} className="record-item">
+                        <div className="record-info">
+                          <span className="record-type">{typeText}</span>
+                          <span className={`record-change ${changeValue >= 0 ? 'positive' : 'negative'}`}>
+                            {changeValue > 0 ? '+' : ''}{changeValue}
+                            {isTimesCard ? '次' : '元'}
+                          </span>
+                        </div>
+                        <div className="record-meta">
+                          <span className="record-reason">{record.RECORD_REASON || '-'}</span>
+                          <span className="record-time">{formatDate(record.RECORD_ADD_TIME)}</span>
+                        </div>
                       </div>
-                      <div className="record-meta">
-                        <span className="record-reason">{record.RECORD_REASON || '-'}</span>
-                        <span className="record-time">{formatDate(record.RECORD_ADD_TIME)}</span>
-                      </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
             </div>

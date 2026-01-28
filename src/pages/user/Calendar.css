@@ -2,6 +2,7 @@
   position: relative;
   overflow: hidden;
   min-height: calc(100vh - 80px);
+  -webkit-overflow-scrolling: touch;
 }
 
 .grid-overlay {
@@ -17,6 +18,7 @@
   max-width: 900px;
   margin: 0 auto;
   padding: 24px 16px;
+  contain: layout;
 }
 
 .calendar-header {
@@ -211,6 +213,8 @@ body.light .month-day.out-of-range {
   scrollbar-width: none;
   -ms-overflow-style: none;
   padding-bottom: 8px;
+  -webkit-overflow-scrolling: touch;
+  contain: layout;
 }
 
 .week-buttons-container::-webkit-scrollbar {
@@ -269,6 +273,7 @@ body.light .week-button.active {
 
 .day-group {
   margin-bottom: 24px;
+  contain: layout style;
 }
 
 .day-header {
@@ -300,6 +305,7 @@ body.light .day-header {
   flex-direction: column;
   gap: 16px;
   margin-bottom: 32px;
+  contain: layout style;
 }
 
 .meet-card {
@@ -314,6 +320,9 @@ body.light .day-header {
   overflow: hidden;
   transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   contain: layout style;
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 body.light .meet-card {

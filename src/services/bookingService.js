@@ -228,10 +228,11 @@ export const getAvailableCardsForBooking = async (costSet, userId = null) => {
     const cards = result.data;
 
     // 过滤可用卡项
+    // 正确字段名：USER_CARD_EXPIRE_TIME, USER_CARD_REMAIN_TIMES, USER_CARD_REMAIN_AMOUNT
     return cards.filter(card => {
       // 过滤过期卡项
-      const expireTime = card.USER_CARD_EXPIRE_TIME || card.USER_CARD_END;
-      if (expireTime && expireTime < now) {
+      const expireTime = card.USER_CARD_EXPIRE_TIME;
+      if (expireTime && expireTime > 0 && expireTime < now) {
         return false;
       }
 
@@ -241,14 +242,14 @@ export const getAvailableCardsForBooking = async (costSet, userId = null) => {
       }
 
       // 判断卡项类型：1=次数卡, 2=余额卡
-      const cardType = card.USER_CARD_TYPE || (card.USER_CARD_CNT !== undefined ? 1 : 2);
-      const isTimesCard = cardType === 1 || card.USER_CARD_CNT !== undefined;
-      const isBalanceCard = cardType === 2 || card.USER_CARD_BALANCE !== undefined;
+      const cardType = card.USER_CARD_TYPE;
+      const isTimesCard = cardType === 1;
+      const isBalanceCard = cardType === 2;
 
       // 次数卡剩余次数
-      const remainTimes = card.USER_CARD_CNT || card.USER_CARD_REMAIN_TIMES || 0;
+      const remainTimes = card.USER_CARD_REMAIN_TIMES || 0;
       // 余额卡剩余余额
-      const remainBalance = card.USER_CARD_BALANCE || card.USER_CARD_REMAIN_AMOUNT || 0;
+      const remainBalance = card.USER_CARD_REMAIN_AMOUNT || 0;
 
       if (costSet.costType === 'times') {
         return isTimesCard && remainTimes >= (costSet.timesCost || 1);

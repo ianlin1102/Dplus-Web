@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, memo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CalendarDays, ChevronLeft, ChevronRight, X, CalendarOff } from 'lucide-react'
 import { useLanguage } from '../../i18n/LanguageContext'
@@ -200,6 +200,94 @@ function formatDateLabel(dateStr, language) {
   }
 }
 
+// Memoized 单个课程卡片组件
+const MeetCard = memo(function MeetCard({ meet, day, language, onMeetClick, typeColors, calculateDuration }) {
+  const timeSlot = meet.times?.[0]
+  const isFull = timeSlot?.cnt >= timeSlot?.limit
+  const accentColor = typeColors[meet.typeName] || typeColors.default
+
+  const handleClick = useCallback(() => {
+    if (!isFull) {
+      onMeetClick(meet, day)
+    }
+  }, [meet, day, isFull, onMeetClick])
+
+  return (
+    <div
+      className={`meet-card ${isFull ? 'full' : 'clickable'}`}
+      onClick={handleClick}
+      style={{ cursor: isFull ? 'not-allowed' : 'pointer' }}
+    >
+      <div className="meet-card-accent" style={{ background: accentColor }} />
+
+      <div className="meet-card-time">
+        {timeSlot && (
+          <>
+            <span className="time-range">
+              {timeSlot.start} - {timeSlot.end}
+            </span>
+            <span className="time-duration">
+              {timeSlot.duration || calculateDuration(timeSlot.start, timeSlot.end)}
+            </span>
+          </>
+        )}
+      </div>
+
+      <div className="meet-card-content">
+        <span className="meet-type-tag" style={{ background: accentColor }}>
+          {meet.typeName}
+        </span>
+        <h3 className="meet-title">{meet.title}</h3>
+        <p className="meet-instructor">{meet.instructorName}</p>
+        {meet.courseInfo && (
+          <p className="meet-course-info">{meet.courseInfo}</p>
+        )}
+
+        {timeSlot && (
+          <div className="meet-spots">
+            <span className={`spots-count ${isFull ? 'full' : ''}`}>
+              {language === 'zh'
+                ? `已约 ${timeSlot.cnt || 0}/${timeSlot.limit} 人`
+                : `${timeSlot.cnt || 0}/${timeSlot.limit} booked`}
+            </span>
+          </div>
+        )}
+      </div>
+
+      <div className="meet-card-avatar">
+        <CloudImage
+          src={meet.instructorPic}
+          alt={meet.instructorName || ''}
+          fallbackText={meet.instructorName || '?'}
+        />
+      </div>
+    </div>
+  )
+})
+
+// Memoized 日期分组组件
+const DayGroup = memo(function DayGroup({ day, meets, language, onMeetClick, typeColors, calculateDuration }) {
+  return (
+    <div className="day-group">
+      <div className="day-header">
+        <span className="day-label">{formatDateLabel(day, language)}</span>
+      </div>
+
+      {meets.map((meet) => (
+        <MeetCard
+          key={`${meet._id}-${meet.day}`}
+          meet={meet}
+          day={day}
+          language={language}
+          onMeetClick={onMeetClick}
+          typeColors={typeColors}
+          calculateDuration={calculateDuration}
+        />
+      ))}
+    </div>
+  )
+})
+
 // 生成月历数据
 function generateMonthCalendar(year, month) {
   const firstDay = new Date(year, month, 1)
@@ -354,7 +442,7 @@ function Calendar() {
     } finally {
       setLoading(false)
     }
-  }, [selectedWeek, language])
+  }, [selectedWeek]) // 移除 language 依赖，避免语言切换时重新加载
 
   useEffect(() => {
     loadData()
@@ -538,70 +626,15 @@ function Calendar() {
             </div>
           ) : meets.length > 0 ? (
             sortedDays.map(day => (
-              <div key={day} className="day-group">
-                <div className="day-header">
-                  <span className="day-label">{formatDateLabel(day, language)}</span>
-                </div>
-
-                {groupedMeets[day].map((meet) => (
-                  <div
-                    key={`${meet._id}-${meet.day}`}
-                    className={`meet-card ${meet.times?.[0]?.cnt >= meet.times?.[0]?.limit ? 'full' : 'clickable'}`}
-                    onClick={() => handleMeetClick(meet, day)}
-                    style={{ cursor: meet.times?.[0]?.cnt >= meet.times?.[0]?.limit ? 'not-allowed' : 'pointer' }}
-                  >
-                    <div
-                      className="meet-card-accent"
-                      style={{ background: typeColors[meet.typeName] || typeColors.default }}
-                    />
-
-                    <div className="meet-card-time">
-                      {meet.times && meet.times[0] && (
-                        <>
-                          <span className="time-range">
-                            {meet.times[0].start} - {meet.times[0].end}
-                          </span>
-                          <span className="time-duration">
-                            {meet.times[0].duration || calculateDuration(meet.times[0].start, meet.times[0].end)}
-                          </span>
-                        </>
-                      )}
-                    </div>
-
-                    <div className="meet-card-content">
-                      <span
-                        className="meet-type-tag"
-                        style={{ background: typeColors[meet.typeName] || typeColors.default }}
-                      >
-                        {meet.typeName}
-                      </span>
-                      <h3 className="meet-title">{meet.title}</h3>
-                      <p className="meet-instructor">{meet.instructorName}</p>
-                      {meet.courseInfo && (
-                        <p className="meet-course-info">{meet.courseInfo}</p>
-                      )}
-
-                      {meet.times && meet.times[0] && (
-                        <div className="meet-spots">
-                          <span className={`spots-count ${meet.times[0].cnt >= meet.times[0].limit ? 'full' : ''}`}>
-                            {language === 'zh'
-                              ? `已约 ${meet.times[0].cnt || 0}/${meet.times[0].limit} 人`
-                              : `${meet.times[0].cnt || 0}/${meet.times[0].limit} booked`}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="meet-card-avatar">
-                      <CloudImage
-                        src={meet.instructorPic}
-                        alt={meet.instructorName || ''}
-                        fallbackText={meet.instructorName || '?'}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <DayGroup
+                key={day}
+                day={day}
+                meets={groupedMeets[day]}
+                language={language}
+                onMeetClick={handleMeetClick}
+                typeColors={typeColors}
+                calculateDuration={calculateDuration}
+              />
             ))
           ) : (
             <div className="empty-state">

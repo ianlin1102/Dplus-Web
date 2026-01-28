@@ -17,9 +17,10 @@ import './CardSelector.css';
 const isCardSufficient = (card, costSet) => {
   if (!costSet?.isEnabled || costSet?.costType === 'free') return true;
 
-  const isTimesCard = card.USER_CARD_TYPE === 1 || card.USER_CARD_CNT !== undefined;
-  const remainTimes = card.USER_CARD_CNT || card.USER_CARD_REMAIN_TIMES || 0;
-  const remainBalance = card.USER_CARD_BALANCE || card.USER_CARD_REMAIN_AMOUNT || 0;
+  // USER_CARD_TYPE: 1=次数卡, 2=余额卡
+  const isTimesCard = card.USER_CARD_TYPE === 1;
+  const remainTimes = card.USER_CARD_REMAIN_TIMES || 0;
+  const remainBalance = card.USER_CARD_REMAIN_AMOUNT || 0;
 
   if (costSet.costType === 'times') {
     return isTimesCard && remainTimes >= (costSet.timesCost || 1);
@@ -93,19 +94,19 @@ const CardSelector = ({
   // 获取卡项显示信息
   const getCardInfo = (card) => {
     // USER_CARD_TYPE: 1=次数卡, 2=余额卡
-    // 兼容多种字段命名（USER_CARD_CNT 或 USER_CARD_REMAIN_TIMES）
-    const isTimesCard = card.USER_CARD_TYPE === 1 || card.USER_CARD_CNT !== undefined;
-    const cardName = card.USER_CARD_TITLE || card.USER_CARD_NAME || card.USER_CARD_CARD_NAME ||
+    // 正确字段：USER_CARD_CARD_NAME, USER_CARD_REMAIN_TIMES, USER_CARD_REMAIN_AMOUNT
+    const isTimesCard = card.USER_CARD_TYPE === 1;
+    const cardName = card.USER_CARD_CARD_NAME ||
       (language === 'zh' ? (isTimesCard ? '次数卡' : '余额卡') : (isTimesCard ? 'Class Pack' : 'Credit Card'));
 
     let balance, deduct, unit;
 
     if (isTimesCard) {
-      balance = card.USER_CARD_CNT || card.USER_CARD_REMAIN_TIMES || 0;
+      balance = card.USER_CARD_REMAIN_TIMES || 0;
       deduct = costSet.timesCost || 1;
       unit = language === 'zh' ? '次' : ' class(es)';
     } else {
-      balance = card.USER_CARD_BALANCE || card.USER_CARD_REMAIN_AMOUNT || 0;
+      balance = card.USER_CARD_REMAIN_AMOUNT || 0;
       deduct = costSet.balanceCost || 0;
       unit = '';
     }
@@ -115,14 +116,14 @@ const CardSelector = ({
 
   // 检查卡项是否过期
   const isExpired = (card) => {
-    const expireTime = card.USER_CARD_EXPIRE_TIME || card.USER_CARD_END;
-    if (!expireTime) return false;
+    const expireTime = card.USER_CARD_EXPIRE_TIME;
+    if (!expireTime || expireTime === 0) return false;
     return expireTime < Date.now();
   };
 
   // 获取过期时间
   const getExpireTime = (card) => {
-    return card.USER_CARD_EXPIRE_TIME || card.USER_CARD_END;
+    return card.USER_CARD_EXPIRE_TIME;
   };
 
   // 格式化过期时间

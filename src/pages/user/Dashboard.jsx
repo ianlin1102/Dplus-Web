@@ -14,27 +14,17 @@ const userData = {
     name: '用户',
     phone: '138****8888',
     level: 'VIP会员',
-    points: 1200,
-    cards: { totalTimes: 15, totalBalance: 580 },
-    activities: [
-      { date: '今天', event: 'Hip-Hop 基础班', status: '已签到', type: 'checkin' },
-      { date: '12月15日', event: '购买次数卡', status: '已完成', type: 'purchase' },
-      { date: '12月12日', event: 'K-Pop 编舞课', status: '已预约', type: 'booking' },
-      { date: '12月10日', event: '私教课程', status: '已取消', type: 'cancelled' },
-    ],
+    points: 0,
+    cards: { totalTimes: 0, totalBalance: 0 },
+    activities: [],
   },
   en: {
     name: 'User',
     phone: '138****8888',
     level: 'VIP Member',
-    points: 1200,
-    cards: { totalTimes: 15, totalBalance: 580 },
-    activities: [
-      { date: 'Today', event: 'Hip-Hop Basics', status: 'Checked In', type: 'checkin' },
-      { date: 'Dec 15', event: 'Bought Class Pack', status: 'Completed', type: 'purchase' },
-      { date: 'Dec 12', event: 'K-Pop Choreo', status: 'Booked', type: 'booking' },
-      { date: 'Dec 10', event: 'Private Lesson', status: 'Cancelled', type: 'cancelled' },
-    ],
+    points: 0,
+    cards: { totalTimes: 0, totalBalance: 0 },
+    activities: [],
   },
 }
 
@@ -65,13 +55,16 @@ const DashboardOverview = () => {
         ])
 
         // 计算卡项汇总
+        // 正确字段名：USER_CARD_REMAIN_TIMES (次数), USER_CARD_REMAIN_AMOUNT (余额)
         let totalTimes = 0
         let totalBalance = 0
         cards.forEach(card => {
-          if (card.USER_CARD_TYPE === 1 || card.USER_CARD_CNT !== undefined) {
-            totalTimes += card.USER_CARD_CNT || 0
-          } else {
-            totalBalance += card.USER_CARD_BALANCE || 0
+          if (card.USER_CARD_TYPE === 1) {
+            // 次数卡
+            totalTimes += card.USER_CARD_REMAIN_TIMES || 0
+          } else if (card.USER_CARD_TYPE === 2) {
+            // 余额卡
+            totalBalance += card.USER_CARD_REMAIN_AMOUNT || 0
           }
         })
         setCardStats({ totalTimes, totalBalance })
@@ -595,13 +588,14 @@ const Wallet = () => {
   // 获取卡项类型和颜色
   const getCardTypeInfo = (card) => {
     // USER_CARD_TYPE: 1=次数卡, 2=余额卡
-    const isTimesCard = card.USER_CARD_TYPE === 1 || card.USER_CARD_CNT !== undefined
+    // 正确字段：USER_CARD_REMAIN_TIMES, USER_CARD_TOTAL_TIMES, USER_CARD_REMAIN_AMOUNT, USER_CARD_TOTAL_AMOUNT
+    const isTimesCard = card.USER_CARD_TYPE === 1
     if (isTimesCard) {
       return {
         type: language === 'zh' ? '次数卡' : 'Class Pack',
         color: '#06b6d4',
-        remaining: card.USER_CARD_CNT || 0,
-        total: card.USER_CARD_TOTAL_CNT || card.USER_CARD_CNT || 0,
+        remaining: card.USER_CARD_REMAIN_TIMES || 0,
+        total: card.USER_CARD_TOTAL_TIMES || 0,
         unit: language === 'zh' ? '次' : 'classes',
         isBalance: false
       }
@@ -609,8 +603,8 @@ const Wallet = () => {
       return {
         type: language === 'zh' ? '余额卡' : 'Credit Card',
         color: '#d946ef',
-        remaining: card.USER_CARD_BALANCE || 0,
-        total: card.USER_CARD_TOTAL_BALANCE || card.USER_CARD_BALANCE || 0,
+        remaining: card.USER_CARD_REMAIN_AMOUNT || 0,
+        total: card.USER_CARD_TOTAL_AMOUNT || 0,
         unit: '',
         isBalance: true
       }
@@ -661,10 +655,10 @@ const Wallet = () => {
                 <div className="wallet-card-header">
                   <span className="card-type-tag" style={{ background: cardInfo.color }}>{cardInfo.type}</span>
                   <span className="card-expiry">
-                    {t('dashboard.validUntil')} {formatExpiry(card.USER_CARD_EXPIRE_TIME || card.USER_CARD_END)}
+                    {t('dashboard.validUntil')} {formatExpiry(card.USER_CARD_EXPIRE_TIME)}
                   </span>
                 </div>
-                <h3 className="wallet-card-name">{card.USER_CARD_TITLE || card.USER_CARD_NAME || cardInfo.type}</h3>
+                <h3 className="wallet-card-name">{card.USER_CARD_CARD_NAME || cardInfo.type}</h3>
                 <div className="wallet-card-balance">
                   <span className="balance-value" style={{ color: cardInfo.color }}>
                     {cardInfo.isBalance ? `¥${cardInfo.remaining}` : cardInfo.remaining}
@@ -708,13 +702,14 @@ const GoogleIcon = () => (
 
 const SettingsPage = () => {
   const { t, language } = useLanguage()
-  const { user: authUser, googleEmail, hasGoogleAuth, hasPasswordAuth, canUnlinkGoogle, unlinkGoogle, loadAuthMethods } = useAuth()
+  const { user: authUser, googleEmail, hasGoogleAuth, hasPasswordAuth, canUnlinkGoogle, unlinkGoogle, linkGoogle, loadAuthMethods } = useAuth()
   const mockUser = userData[language]
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [saveMessage, setSaveMessage] = useState(null)
   const [isUnlinking, setIsUnlinking] = useState(false)
+  const [isLinking, setIsLinking] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -801,22 +796,86 @@ const SettingsPage = () => {
     }
   }, [authUser?._id])
 
-  // 关联 Google 账户
+  // 关联 Google 账户（使用弹窗 + ID Token）
   const handleLinkGoogle = () => {
-    const state = crypto.randomUUID()
-    sessionStorage.setItem('oauth_state', state)
-    sessionStorage.setItem('oauth_action', 'link')
+    setIsLinking(true)
+    setSaveMessage(null)
 
-    const params = new URLSearchParams({
-      client_id: GOOGLE_CLIENT_ID,
-      redirect_uri: GOOGLE_REDIRECT_URI,
-      response_type: 'code',
-      scope: GOOGLE_SCOPE,
-      access_type: 'offline',
-      prompt: 'consent',
-      state
-    })
-    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
+    const width = 500
+    const height = 600
+    const left = window.screenX + (window.outerWidth - width) / 2
+    const top = window.screenY + (window.outerHeight - height) / 2
+
+    const popup = window.open(
+      `https://accounts.google.com/o/oauth2/v2/auth?` +
+      `client_id=${GOOGLE_CLIENT_ID}&` +
+      `redirect_uri=${encodeURIComponent(GOOGLE_REDIRECT_URI)}&` +
+      `response_type=token id_token&` +
+      `scope=${encodeURIComponent(GOOGLE_SCOPE)}&` +
+      `prompt=select_account&` +
+      `nonce=${crypto.randomUUID()}`,
+      'google-link',
+      `width=${width},height=${height},left=${left},top=${top}`
+    )
+
+    // 监听弹窗消息
+    const handleMessage = async (event) => {
+      if (event.origin !== window.location.origin) return
+      if (event.data?.type === 'google-auth') {
+        window.removeEventListener('message', handleMessage)
+        popup?.close()
+
+        if (event.data.id_token) {
+          try {
+            const result = await linkGoogle(event.data.id_token)
+            if (result.success) {
+              // 重新加载认证方式
+              loadAuthMethods()
+              if (result.merged) {
+                setSaveMessage({
+                  type: 'success',
+                  text: language === 'zh'
+                    ? `Google 账户已关联并合并了 ${result.mergeDetails?.cardsTransferred || 0} 张卡片`
+                    : `Google account linked and merged ${result.mergeDetails?.cardsTransferred || 0} cards`
+                })
+              } else {
+                setSaveMessage({
+                  type: 'success',
+                  text: language === 'zh' ? 'Google 账户已关联' : 'Google account linked'
+                })
+              }
+            } else {
+              setSaveMessage({
+                type: 'error',
+                text: result.message || (language === 'zh' ? '关联失败' : 'Failed to link')
+              })
+            }
+          } catch (err) {
+            console.error('关联 Google 失败:', err)
+            setSaveMessage({
+              type: 'error',
+              text: language === 'zh' ? '关联失败' : 'Failed to link'
+            })
+          }
+        } else if (event.data.error) {
+          setSaveMessage({
+            type: 'error',
+            text: event.data.error
+          })
+        }
+        setIsLinking(false)
+      }
+    }
+    window.addEventListener('message', handleMessage)
+
+    // 检测弹窗关闭
+    const checkClosed = setInterval(() => {
+      if (popup?.closed) {
+        clearInterval(checkClosed)
+        window.removeEventListener('message', handleMessage)
+        setIsLinking(false)
+      }
+    }, 1000)
   }
 
   // 取消关联 Google
@@ -1148,9 +1207,18 @@ const SettingsPage = () => {
                   )}
                 </div>
               ) : (
-                <button className="link-google-btn" onClick={handleLinkGoogle}>
-                  <Link2 size={16} />
-                  <span>{texts.linkGoogle}</span>
+                <button className="link-google-btn" onClick={handleLinkGoogle} disabled={isLinking}>
+                  {isLinking ? (
+                    <>
+                      <Loader2 size={16} className="spin" />
+                      <span>{language === 'zh' ? '关联中...' : 'Linking...'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Link2 size={16} />
+                      <span>{texts.linkGoogle}</span>
+                    </>
+                  )}
                 </button>
               )}
             </div>

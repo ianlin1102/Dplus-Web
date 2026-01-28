@@ -216,10 +216,11 @@ export function AuthProvider({ children }) {
 
   /**
    * Google OAuth 登录/注册
+   * @param {string} idToken - Google ID Token (JWT)
    */
-  const loginWithGoogle = async (code, redirectUri) => {
+  const loginWithGoogle = async (idToken) => {
     try {
-      const result = await authService.googleAuth(code, redirectUri)
+      const result = await authService.googleAuthWithIdToken(idToken)
 
       if (result.success) {
         const userData = {
@@ -252,11 +253,13 @@ export function AuthProvider({ children }) {
   }
 
   /**
-   * 关联 Google 账户
+   * 关联 Google 账户（使用 ID Token）
+   * 支持账户合并：如果 Google 账户已被其他用户使用，会自动合并
+   * @param {string} idToken - Google ID Token (JWT)
    */
-  const linkGoogle = async (code, redirectUri) => {
+  const linkGoogle = async (idToken) => {
     try {
-      const result = await authService.linkGoogle(code, redirectUri)
+      const result = await authService.linkGoogleWithIdToken(idToken)
 
       if (result.success) {
         setGoogleEmail(result.googleEmail)
@@ -273,7 +276,12 @@ export function AuthProvider({ children }) {
           saveAuthToCache(updatedUser)
         }
 
-        return { success: true, googleEmail: result.googleEmail }
+        return {
+          success: true,
+          googleEmail: result.googleEmail,
+          merged: result.merged,
+          mergeDetails: result.mergeDetails
+        }
       }
 
       return { success: false, message: result.message }

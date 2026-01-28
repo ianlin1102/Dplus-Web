@@ -37,12 +37,50 @@
     <p>Processing...</p>
   </div>
   <script>
-    // Get the full query string from the current URL
-    const queryString = window.location.search;
+    // Handle both Authorization Code flow (query params) and Implicit flow (fragment)
+    // Using BroadcastChannel to avoid COOP (Cross-Origin-Opener-Policy) issues
 
-    // Redirect to the HashRouter route with the query params
-    // This transfers Google's OAuth response to our React app
-    window.location.replace('/#/auth/google/callback' + queryString);
+    // Check for implicit flow (id_token in fragment)
+    const hash = window.location.hash.substring(1); // Remove the leading #
+    if (hash && hash.includes('id_token=')) {
+      // Parse the fragment
+      const params = new URLSearchParams(hash);
+      const idToken = params.get('id_token');
+      const error = params.get('error');
+
+      const message = {
+        type: 'google-auth',
+        id_token: idToken,
+        error: error
+      };
+
+      // Use BroadcastChannel API (works even when COOP blocks window.opener)
+      try {
+        const channel = new BroadcastChannel('oauth-channel');
+        channel.postMessage(message);
+        channel.close();
+        // Close this popup window
+        window.close();
+      } catch (e) {
+        // Fallback: try window.opener.postMessage (may be blocked by COOP)
+        if (window.opener) {
+          try {
+            window.opener.postMessage(message, window.location.origin);
+            window.close();
+          } catch (e2) {
+            // If still blocked, redirect to app
+            window.location.replace('/auth/google/callback?id_token=' + encodeURIComponent(idToken));
+          }
+        } else {
+          // No opener, redirect to app with token in state
+          window.location.replace('/auth/google/callback?id_token=' + encodeURIComponent(idToken));
+        }
+      }
+    } else {
+      // Authorization Code flow - redirect with query params
+      const queryString = window.location.search;
+      window.location.replace('/auth/google/callback' + queryString);
+    }
   </script>
 </body>
 </html>

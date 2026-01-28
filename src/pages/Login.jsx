@@ -2,9 +2,10 @@
  * 统一登录页面
  * 支持管理员和普通用户登录
  * 登录成功后根据角色跳转到对应的 Dashboard
+ * Updated: 2026-01-21 - 使用 Google Identity Services (GIS) 弹窗登录
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { Eye, EyeOff, User, Lock, ArrowLeft } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
@@ -13,29 +14,6 @@ import './Login.css'
 
 // Google OAuth Configuration
 const GOOGLE_CLIENT_ID = '574240389068-uf3u8v3hp2rd1kj642hf81as4uubdmba.apps.googleusercontent.com'
-// Use a static HTML file as redirect URI (Google doesn't support hash fragments)
-// The HTML file will redirect to our HashRouter route
-const GOOGLE_REDIRECT_URI = `${window.location.origin}/oauth-callback.html`
-const GOOGLE_SCOPE = 'openid email profile'
-
-// Build Google OAuth URL
-const getGoogleAuthUrl = () => {
-  const state = crypto.randomUUID()
-  // Store state and action for CSRF validation
-  sessionStorage.setItem('oauth_state', state)
-  sessionStorage.setItem('oauth_action', 'login')
-
-  const params = new URLSearchParams({
-    client_id: GOOGLE_CLIENT_ID,
-    redirect_uri: GOOGLE_REDIRECT_URI,
-    response_type: 'code',
-    scope: GOOGLE_SCOPE,
-    access_type: 'offline',
-    prompt: 'consent',
-    state
-  })
-  return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
-}
 
 // Google Icon SVG Component
 const GoogleIcon = () => (
@@ -50,14 +28,76 @@ const GoogleIcon = () => (
 export default function Login() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { login, user, isAdmin } = useAuth()
+  const { login, loginWithGoogle, user, isAdmin } = useAuth()
   const { t, language } = useLanguage()
 
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
   const [error, setError] = useState(null)
+  const googleButtonRef = useRef(null)
+  const googleInitialized = useRef(false)
+
+  // Google Sign-In 回调处理
+  const handleGoogleCallback = useCallback(async (response) => {
+    console.log('=== Google Sign-In Callback ===')
+    console.log('Credential received:', response.credential ? 'yes' : 'no')
+
+    if (!response.credential) {
+      setError(language === 'zh' ? 'Google 登录失败' : 'Google sign-in failed')
+      return
+    }
+
+    setGoogleLoading(true)
+    setError(null)
+
+    try {
+      // 发送 id_token 到后端验证
+      const result = await loginWithGoogle(response.credential)
+
+      if (result.success) {
+        // 登录成功，跳转
+        const from = location.state?.from?.pathname
+        if (result.isNewUser) {
+          // 新用户，跳转到完善资料页面
+          navigate('/auth/google/callback', {
+            state: { isNewUser: true, user: result.user }
+          })
+        } else if (from) {
+          navigate(from, { replace: true })
+        } else {
+          navigate('/dashboard', { replace: true })
+        }
+      } else {
+        setError(result.message || (language === 'zh' ? 'Google 登录失败' : 'Google sign-in failed'))
+      }
+    } catch (err) {
+      console.error('Google login error:', err)
+      setError(err.message || (language === 'zh' ? 'Google 登录失败' : 'Google sign-in failed'))
+    } finally {
+      setGoogleLoading(false)
+    }
+  }, [loginWithGoogle, navigate, location, language])
+
+  // 初始化 Google Identity Services
+  useEffect(() => {
+    if (googleInitialized.current || !window.google) return
+
+    try {
+      window.google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleGoogleCallback,
+        auto_select: false,
+        cancel_on_tap_outside: true,
+      })
+      googleInitialized.current = true
+      console.log('Google Identity Services initialized')
+    } catch (err) {
+      console.error('Failed to initialize Google Sign-In:', err)
+    }
+  }, [handleGoogleCallback])
 
   // 如果已登录，自动跳转
   useEffect(() => {
@@ -73,15 +113,64 @@ export default function Login() {
     }
   }, [user, isAdmin, navigate, location])
 
+  // Google 登录按钮点击 - 直接打开账户选择弹窗
   const handleGoogleLogin = () => {
-    // Log the OAuth URL for debugging
-    const authUrl = getGoogleAuthUrl()
-    console.log('=== Initiating Google OAuth ===')
-    console.log('Redirect URI:', GOOGLE_REDIRECT_URI)
-    console.log('OAuth URL:', authUrl)
+    console.log('=== Initiating Google Sign-In ===')
+    // 直接使用 OAuth 弹窗，允许选择账户
+    handleGooglePopup()
+  }
 
-    // Redirect to Google OAuth
-    window.location.href = authUrl
+  // 使用 OAuth 弹窗，允许选择账户
+  const handleGooglePopup = () => {
+    const width = 500
+    const height = 600
+    const left = window.screenX + (window.outerWidth - width) / 2
+    const top = window.screenY + (window.outerHeight - height) / 2
+
+    const popup = window.open(
+      `https://accounts.google.com/o/oauth2/v2/auth?` +
+      `client_id=${GOOGLE_CLIENT_ID}&` +
+      `redirect_uri=${encodeURIComponent(window.location.origin + '/oauth-callback.html')}&` +
+      `response_type=token id_token&` +
+      `scope=openid email profile&` +
+      `prompt=select_account&` +  // 强制显示账户选择
+      `nonce=${crypto.randomUUID()}`,
+      'google-login',
+      `width=${width},height=${height},left=${left},top=${top}`
+    )
+
+    // 使用 BroadcastChannel 监听消息 (避免 COOP 问题)
+    let channel = null
+    try {
+      channel = new BroadcastChannel('oauth-channel')
+      channel.onmessage = (event) => {
+        if (event.data?.type === 'google-auth') {
+          channel.close()
+          if (event.data.id_token) {
+            handleGoogleCallback({ credential: event.data.id_token })
+          } else if (event.data.error) {
+            setError(event.data.error)
+          }
+          // 弹窗会自己关闭，这里不需要调用 popup.close()
+        }
+      }
+    } catch (e) {
+      // BroadcastChannel 不支持时，回退到 window.postMessage
+      console.warn('BroadcastChannel not supported, using postMessage fallback')
+      const handleMessage = (event) => {
+        if (event.origin !== window.location.origin) return
+        if (event.data?.type === 'google-auth') {
+          window.removeEventListener('message', handleMessage)
+          if (event.data.id_token) {
+            handleGoogleCallback({ credential: event.data.id_token })
+          } else if (event.data.error) {
+            setError(event.data.error)
+          }
+          try { popup?.close() } catch (e) { /* ignore COOP errors */ }
+        }
+      }
+      window.addEventListener('message', handleMessage)
+    }
   }
 
   const handleSubmit = async (e) => {

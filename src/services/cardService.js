@@ -106,10 +106,11 @@ export const getMyCards = async (userId, options = {}) => {
     const db = getDatabase()
     const { includeExpired = false } = options
 
+    // USER_CARD_STATUS: 0=已用完, 1=使用中, 2=已过期
     const res = await db.collection('ax_user_card')
       .where({
         USER_CARD_USER_ID: userId,
-        USER_CARD_STATUS: '1'  // 有效的卡项
+        USER_CARD_STATUS: 1  // 使用中的卡项（整数）
       })
       .orderBy('USER_CARD_ADD_TIME', 'desc')
       .get()
@@ -120,13 +121,12 @@ export const getMyCards = async (userId, options = {}) => {
     if (!includeExpired) {
       const now = Date.now()
       cards = cards.filter(card => {
-        // 如果没有设置过期时间，认为永不过期
-        if (!card.USER_CARD_EXPIRE_TIME && !card.USER_CARD_END) {
+        // 如果没有设置过期时间或为0，认为永不过期
+        if (!card.USER_CARD_EXPIRE_TIME || card.USER_CARD_EXPIRE_TIME === 0) {
           return true
         }
         // 检查过期时间
-        const expireTime = card.USER_CARD_EXPIRE_TIME || card.USER_CARD_END
-        return expireTime > now
+        return card.USER_CARD_EXPIRE_TIME > now
       })
     }
 
@@ -201,28 +201,46 @@ export const getMyCardSummary = async (userId) => {
   try {
     const cards = await getMyCards(userId)
 
-    // 统计总次数、剩余次数
-    let totalCount = 0
-    let remainCount = 0
+    // 统计总次数、剩余次数、余额
+    let totalTimes = 0
+    let remainTimes = 0
+    let totalAmount = 0
+    let remainAmount = 0
     let expiredCount = 0
+    let timesCardsCount = 0
+    let balanceCardsCount = 0
 
     const now = Date.now()
 
     cards.forEach(card => {
-      totalCount += card.USER_CARD_TOTAL_CNT || 0
-
       // 检查是否过期
-      if (card.USER_CARD_END && card.USER_CARD_END < now) {
+      if (card.USER_CARD_EXPIRE_TIME && card.USER_CARD_EXPIRE_TIME > 0 && card.USER_CARD_EXPIRE_TIME < now) {
         expiredCount++
-      } else {
-        remainCount += card.USER_CARD_CNT || 0
+        return
+      }
+
+      // 次数卡 (USER_CARD_TYPE === 1)
+      if (card.USER_CARD_TYPE === 1) {
+        timesCardsCount++
+        totalTimes += card.USER_CARD_TOTAL_TIMES || 0
+        remainTimes += card.USER_CARD_REMAIN_TIMES || 0
+      }
+      // 余额卡 (USER_CARD_TYPE === 2)
+      else if (card.USER_CARD_TYPE === 2) {
+        balanceCardsCount++
+        totalAmount += card.USER_CARD_TOTAL_AMOUNT || 0
+        remainAmount += card.USER_CARD_REMAIN_AMOUNT || 0
       }
     })
 
     return {
-      totalCards: cards.length,      // 总卡项数
-      totalCount,                     // 总次数
-      remainCount,                    // 剩余次数
+      totalCards: cards.length,       // 总卡项数
+      timesCardsCount,                // 次数卡数量
+      balanceCardsCount,              // 余额卡数量
+      totalTimes,                     // 总次数
+      remainTimes,                    // 剩余次数
+      totalAmount,                    // 总金额
+      remainAmount,                   // 剩余金额
       expiredCount,                   // 过期卡项数
       activeCards: cards.length - expiredCount  // 有效卡项数
     }
