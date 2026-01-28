@@ -4,7 +4,7 @@ import translations from './translations'
 const LanguageContext = createContext()
 
 export function LanguageProvider({ children }) {
-  const [language, setLanguage] = useState('zh') // Default to Chinese
+  const [language, setLanguage] = useState('en') // Default to English
 
   const t = (key) => {
     const keys = key.split('.')

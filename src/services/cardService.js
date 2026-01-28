@@ -487,6 +487,33 @@ export const getPurchaseDetail = async (purchaseId) => {
   }
 }
 
+/**
+ * 取消购买订单（用户关闭上传弹窗但未上传凭证时调用）
+ * @param {string} purchaseId - 购买识别码
+ * @returns {Promise<Object>} 结果
+ */
+export const cancelPurchaseOrder = async (purchaseId) => {
+  try {
+    await initDatabase()
+    const db = getDatabase()
+
+    // 更新订单状态为已取消
+    await db.collection('ax_purchase_history')
+      .where({ PURCHASE_ID: purchaseId })
+      .update({
+        PURCHASE_STATUS: 3,  // 3=已取消
+        PURCHASE_UPDATE_TIME: Date.now(),
+        PURCHASE_REMARK: '用户未上传凭证，订单自动取消'
+      })
+
+    return { success: true, message: '订单已取消' }
+  } catch (error) {
+    console.error('取消购买订单失败:', error)
+    // 取消失败不抛出错误，避免影响用户体验
+    return { success: false, message: '取消订单失败' }
+  }
+}
+
 export default {
   getCardList,
   getHomeCardList,
@@ -500,6 +527,7 @@ export default {
   createPurchaseOrder,
   uploadPaymentProof,
   updatePurchaseProof,
+  cancelPurchaseOrder,
   getPurchaseHistory,
   getPurchaseDetail,
 }

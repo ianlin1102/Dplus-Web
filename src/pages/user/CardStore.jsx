@@ -4,7 +4,7 @@ import { useLanguage } from '../../i18n/LanguageContext'
 import { useAuth } from '../../contexts/AuthContext'
 import { useDataWithRetry } from '../../hooks/useDataWithRetry'
 import { getCardListHTTP } from '../../services/httpApi'
-import { createPurchaseOrder } from '../../services/cardService'
+import { createPurchaseOrder, cancelPurchaseOrder } from '../../services/cardService'
 import DataPlaceholder from '../../components/DataPlaceholder'
 import DisclaimerModal from '../../components/DisclaimerModal'
 import PurchaseModal from '../../components/PurchaseModal'
@@ -112,6 +112,7 @@ function CardStore() {
   const [agreedDisclaimer, setAgreedDisclaimer] = useState(false)
   const [isPurchasing, setIsPurchasing] = useState(false)
   const [currentPurchaseId, setCurrentPurchaseId] = useState(null)
+  const [uploadSuccess, setUploadSuccess] = useState(false)
 
   // 使用自动重试 Hook 加载卡项数据
   const {
@@ -206,6 +207,27 @@ function CardStore() {
   // 上传凭证成功
   const handleUploadSuccess = (result) => {
     console.log('凭证上传成功:', result)
+    setUploadSuccess(true)
+  }
+
+  // 关闭上传弹窗（如果未成功上传则取消订单）
+  const handleCloseUploadModal = async () => {
+    const purchaseId = currentPurchaseId
+    setShowUploadProof(false)
+
+    // 未成功上传凭证，取消订单
+    if (purchaseId && !uploadSuccess) {
+      try {
+        await cancelPurchaseOrder(purchaseId)
+        console.log('订单已取消:', purchaseId)
+      } catch (err) {
+        console.log('取消订单失败:', err)
+      }
+    }
+
+    // 重置状态
+    setCurrentPurchaseId(null)
+    setUploadSuccess(false)
   }
 
   return (
@@ -349,7 +371,7 @@ function CardStore() {
       {/* 上传支付凭证弹窗 */}
       <UploadProofModal
         isOpen={showUploadProof}
-        onClose={() => setShowUploadProof(false)}
+        onClose={handleCloseUploadModal}
         purchaseId={currentPurchaseId}
         onSuccess={handleUploadSuccess}
       />
