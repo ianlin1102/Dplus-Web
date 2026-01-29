@@ -211,3 +211,92 @@
   font-weight: 600;
   color: #f87171;
 }
+
+/* ============================================
+   Light Mode 亮色模式
+   ============================================ */
+
+body.light .card-selector.empty {
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px dashed rgba(0, 0, 0, 0.15);
+}
+
+body.light .card-selector .empty-icon {
+  color: rgba(0, 0, 0, 0.3);
+}
+
+body.light .card-selector .empty-text {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+body.light .card-selector .cost-hint {
+  background: rgba(102, 126, 234, 0.08);
+  color: #667eea;
+}
+
+body.light .card-selector .card-option {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+body.light .card-selector .card-option:hover {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+body.light .card-selector .card-option.selected {
+  background: rgba(102, 126, 234, 0.08);
+  border-color: #667eea;
+}
+
+body.light .card-selector .card-option.insufficient {
+  background: rgba(217, 119, 6, 0.05);
+  border-color: rgba(217, 119, 6, 0.25);
+}
+
+body.light .card-selector .insufficient-tag {
+  background: rgba(217, 119, 6, 0.15);
+  color: #b45309;
+}
+
+body.light .card-selector .insufficient-warning {
+  background: rgba(217, 119, 6, 0.08);
+  border: 1px solid rgba(217, 119, 6, 0.25);
+}
+
+body.light .card-selector .insufficient-warning .warning-title {
+  color: #b45309;
+}
+
+body.light .card-selector .insufficient-warning .warning-desc {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+body.light .card-selector .radio-unchecked {
+  color: rgba(0, 0, 0, 0.2);
+}
+
+body.light .card-selector .card-icon {
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+}
+
+body.light .card-selector .card-name {
+  color: #1f2937;
+}
+
+body.light .card-selector .card-balance {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+body.light .card-selector .card-expire {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+body.light .card-selector .deduct-label {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+body.light .card-selector .deduct-value {
+  color: #dc2626;
+}

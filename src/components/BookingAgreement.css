@@ -327,3 +327,97 @@ body.modal-open {
     font-size: 0.85rem;
   }
 }
+
+/* ============================================
+   Light Mode 亮色模式
+   ============================================ */
+
+/* 预约须知 */
+body.light .booking-notice {
+  background: rgba(255, 152, 0, 0.08);
+  border: 1px solid rgba(255, 152, 0, 0.25);
+}
+
+body.light .notice-content {
+  color: rgba(0, 0, 0, 0.75);
+}
+
+/* 协议勾选 */
+body.light .booking-agreement .agreement-checkbox {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+body.light .booking-agreement .agreement-checkbox:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+body.light .booking-agreement .checkmark {
+  border: 2px solid rgba(0, 0, 0, 0.2);
+}
+
+body.light .booking-agreement .agreement-text {
+  color: rgba(0, 0, 0, 0.7);
+}
+
+body.light .booking-agreement .terms-link {
+  color: #667eea;
+}
+
+body.light .booking-agreement .terms-link:hover {
+  color: #5a67d8;
+}
+
+/* 弹窗 */
+body.light .terms-modal-overlay {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+body.light .terms-modal {
+  background: linear-gradient(145deg, #ffffff, #f8f9fa);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+body.light .terms-modal-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+body.light .terms-modal-title {
+  color: #1f2937;
+}
+
+body.light .terms-modal-close {
+  background: rgba(0, 0, 0, 0.05);
+  color: rgba(0, 0, 0, 0.5);
+}
+
+body.light .terms-modal-close:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: #1f2937;
+}
+
+body.light .terms-section-title {
+  color: #667eea;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+body.light .terms-highlight {
+  background: rgba(255, 152, 0, 0.1);
+  color: rgba(0, 0, 0, 0.8);
+}
+
+body.light .terms-list li {
+  color: rgba(0, 0, 0, 0.7);
+}
+
+body.light .terms-modal-body .terms-text {
+  color: rgba(0, 0, 0, 0.7);
+}
+
+body.light .terms-modal-body .terms-empty {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+body.light .terms-modal-footer {
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}

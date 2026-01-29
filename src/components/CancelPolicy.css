@@ -154,3 +154,70 @@
 .cancel-policy.compact span {
   color: rgba(255, 255, 255, 0.8);
 }
+
+/* ============================================
+   Light Mode 亮色模式
+   ============================================ */
+
+body.light .cancel-policy .policy-label {
+  color: rgba(0, 0, 0, 0.8);
+}
+
+body.light .cancel-policy .policy-note,
+body.light .cancel-policy .policy-warning {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+/* 灵活取消 - 绿色 */
+body.light .cancel-policy.flexible {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+body.light .cancel-policy.flexible .policy-text {
+  color: #059669;
+}
+
+body.light .cancel-policy.flexible .refund-policy {
+  background: rgba(16, 185, 129, 0.08);
+  color: #059669;
+}
+
+/* 有时间限制 - 黄色 */
+body.light .cancel-policy.limited {
+  background: rgba(217, 119, 6, 0.08);
+  border: 1px solid rgba(217, 119, 6, 0.25);
+}
+
+body.light .cancel-policy.limited .policy-text {
+  color: #b45309;
+}
+
+body.light .cancel-policy.limited .refund-policy {
+  background: rgba(217, 119, 6, 0.08);
+  color: #b45309;
+}
+
+/* 严格不可取消 - 红色 */
+body.light .cancel-policy.strict {
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid rgba(220, 38, 38, 0.25);
+}
+
+body.light .cancel-policy.strict .policy-text {
+  color: #dc2626;
+}
+
+body.light .cancel-policy.strict .refund-policy {
+  background: rgba(220, 38, 38, 0.08);
+  color: #dc2626;
+}
+
+body.light .cancel-policy .refund-policy {
+  background: rgba(0, 0, 0, 0.03);
+  color: rgba(0, 0, 0, 0.7);
+}
+
+body.light .cancel-policy.compact span {
+  color: rgba(0, 0, 0, 0.7);
+}
