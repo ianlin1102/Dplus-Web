@@ -176,9 +176,16 @@ function sortMeetsByTime(meets) {
   })
 }
 
+// 安全解析日期字符串（避免时区问题）
+// 将 "2026-02-01" 解析为本地时间的该日期，而不是 UTC
+function parseLocalDate(dateStr) {
+  const [year, month, day] = dateStr.split('-').map(Number)
+  return new Date(year, month - 1, day)
+}
+
 // 获取星期几文字
 function getWeekdayLabel(dateStr, language) {
-  const date = new Date(dateStr)
+  const date = parseLocalDate(dateStr)
   const dayIndex = date.getDay()
   const weekdaysZh = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
   const weekdaysEn = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -187,7 +194,7 @@ function getWeekdayLabel(dateStr, language) {
 
 // 格式化日期显示
 function formatDateLabel(dateStr, language) {
-  const date = new Date(dateStr)
+  const date = parseLocalDate(dateStr)
   const month = date.getMonth() + 1
   const day = date.getDate()
   const weekday = getWeekdayLabel(dateStr, language)

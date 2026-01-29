@@ -113,12 +113,22 @@ export const dateUtils = {
   },
 
   /**
+   * 安全解析日期字符串（避免时区问题）
+   * @param {string} dateStr - 日期字符串 YYYY-MM-DD
+   * @returns {Date} 本地时间的 Date 对象
+   */
+  parseLocalDate(dateStr) {
+    const [year, month, day] = dateStr.split('-').map(Number)
+    return new Date(year, month - 1, day)
+  },
+
+  /**
    * 获取上一周的起止日期
    * @param {string} currentStartDate - 当前周的开始日期
    * @returns {{ startDate: string, endDate: string }}
    */
   getPrevWeek(currentStartDate) {
-    const d = new Date(currentStartDate)
+    const d = this.parseLocalDate(currentStartDate)
     d.setDate(d.getDate() - 7)
     return this.getWeekRange(d)
   },
@@ -129,7 +139,7 @@ export const dateUtils = {
    * @returns {{ startDate: string, endDate: string }}
    */
   getNextWeek(currentStartDate) {
-    const d = new Date(currentStartDate)
+    const d = this.parseLocalDate(currentStartDate)
     d.setDate(d.getDate() + 7)
     return this.getWeekRange(d)
   },
@@ -141,7 +151,7 @@ export const dateUtils = {
    * @returns {{ day: number, weekday: string, month: string, fullDate: string }}
    */
   formatDate(dateStr, lang = 'zh') {
-    const d = new Date(dateStr)
+    const d = this.parseLocalDate(dateStr)
     const weekdaysZh = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
     const weekdaysEn = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
     const monthsZh = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']

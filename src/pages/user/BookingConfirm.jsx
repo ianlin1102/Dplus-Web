@@ -221,18 +221,21 @@ const BookingConfirm = () => {
     }
   };
 
-  // 格式化日期显示
+  // 格式化日期显示（避免时区问题）
   const formatDate = (dateStr) => {
     if (!dateStr) return '';
-    const date = new Date(dateStr);
+    // 手动解析日期字符串，避免 new Date('YYYY-MM-DD') 的 UTC 时区问题
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
     const weekDays = language === 'zh'
       ? ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
       : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
     if (language === 'zh') {
-      return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 ${weekDays[date.getDay()]}`;
+      return `${year}年${month}月${day}日 ${weekDays[date.getDay()]}`;
     }
-    return `${weekDays[date.getDay()]}, ${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+    return `${weekDays[date.getDay()]}, ${monthNames[month - 1]} ${day}, ${year}`;
   };
 
   // 加载中
