@@ -390,11 +390,12 @@ const BookingConfirm = () => {
           <CancelPolicy cancelSet={cancelSet} costSet={costSet} language={language} />
         </section>
 
-        {/* 预约协议 */}
-        <section className="course-section agreement-section">
+        {/* 预约须知 - Booking Notice */}
+        <section className="course-section booking-notice-section">
           <BookingAgreement
             agreed={agreedTerms}
             onChange={setAgreedTerms}
+            cancelSet={cancelSet}
             termsContent={meetDetail.MEET_CONTENT || []}
             language={language}
           />

@@ -4,6 +4,49 @@
   width: 100%;
 }
 
+/* 预约须知 - 直接显示在页面上 */
+.booking-notice {
+  background: rgba(255, 152, 0, 0.1);
+  border: 1px solid rgba(255, 152, 0, 0.3);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.notice-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.notice-header .notice-icon {
+  color: #ffa726;
+  flex-shrink: 0;
+}
+
+.notice-header h4 {
+  margin: 0;
+  color: #ffa726;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.notice-content {
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.7;
+}
+
+.notice-main-text {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+/* 协议勾选行 */
+.agreement-row {
+  margin-top: 0.5rem;
+}
+
 .booking-agreement .agreement-checkbox {
   display: flex;
   align-items: center;
@@ -139,6 +182,74 @@ body.modal-open {
   padding: 1.25rem;
 }
 
+/* 条款分区 */
+.terms-section {
+  margin-bottom: 1.5rem;
+}
+
+.terms-section:last-child {
+  margin-bottom: 0;
+}
+
+.terms-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #a5b4fc;
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.terms-section-title svg {
+  flex-shrink: 0;
+}
+
+/* 高亮文本（预约须知） */
+.terms-highlight {
+  background: rgba(255, 152, 0, 0.15);
+  border-left: 3px solid #ffa726;
+  padding: 0.75rem 1rem;
+  border-radius: 0 8px 8px 0;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.7;
+  font-size: 0.9rem;
+}
+
+/* 条款列表 */
+.terms-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.terms-list li {
+  position: relative;
+  padding-left: 1.25rem;
+  margin-bottom: 0.75rem;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.6;
+  font-size: 0.9rem;
+}
+
+.terms-list li:last-child {
+  margin-bottom: 0;
+}
+
+.terms-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 6px;
+  height: 6px;
+  background: #667eea;
+  border-radius: 50%;
+}
+
 .terms-modal-body .terms-empty {
   color: rgba(255, 255, 255, 0.5);
   text-align: center;
@@ -149,6 +260,7 @@ body.modal-open {
   color: rgba(255, 255, 255, 0.8);
   line-height: 1.7;
   margin-bottom: 1rem;
+  font-size: 0.9rem;
 }
 
 .terms-modal-body .terms-text:last-child {
@@ -188,4 +300,30 @@ body.modal-open {
 .terms-agree-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+}
+
+/* 响应式 */
+@media (max-width: 480px) {
+  .terms-modal {
+    max-height: 90vh;
+    border-radius: 12px 12px 0 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-width: 100%;
+  }
+
+  .terms-modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .booking-notice {
+    padding: 0.875rem;
+  }
+
+  .notice-main-text {
+    font-size: 0.85rem;
+  }
 }
