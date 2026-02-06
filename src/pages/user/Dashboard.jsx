@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Routes, Route, useLocation } from 'react-router-dom'
-import { Home, Calendar, CreditCard, Settings, Activity, User, Menu, X, Edit2, Save, Loader2, Clock, XCircle, AlertCircle, CalendarOff, RefreshCw, Info, Coins, CheckCircle, LogOut, Link2, Unlink, Receipt, ShoppingCart } from 'lucide-react'
+import { Home, Calendar, CreditCard, Settings, Activity, User, Menu, X, Edit2, Save, Loader2, Clock, XCircle, AlertCircle, CalendarOff, RefreshCw, Info, Coins, CheckCircle, LogOut, Link2, Unlink, Receipt, ShoppingCart, FileText, ChevronRight } from 'lucide-react'
 import { useLanguage } from '../../i18n/LanguageContext'
 import { useAuth } from '../../contexts/AuthContext'
 import { getMyJoinList, cancelMyJoin, canCancelBooking, formatCancelRule } from '../../services/bookingService'
@@ -1284,6 +1284,20 @@ const SettingsPage = () => {
           </div>
         </div>
       )}
+
+      {/* 法律条款 */}
+      <div className="settings-section legal-section">
+        <h3 className="section-title">{language === 'zh' ? '法律条款' : 'Legal'}</h3>
+        <div className="settings-list">
+          <a href="#/terms/user" className="settings-item terms-link-item">
+            <div className="link-label">
+              <FileText size={18} />
+              <span>{language === 'zh' ? '用户服务条款' : 'User Terms of Service'}</span>
+            </div>
+            <ChevronRight size={18} className="chevron-icon" />
+          </a>
+        </div>
+      </div>
     </div>
   )
 }

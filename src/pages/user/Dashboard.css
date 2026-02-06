@@ -848,6 +848,49 @@ body.light .link-google-btn:hover {
 }
 
 /* ============================================
+   Legal / Terms Section
+   ============================================ */
+
+.settings-section.legal-section {
+  margin-top: 32px;
+}
+
+.terms-link-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.terms-link-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+body.light .terms-link-item:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.terms-link-item .chevron-icon {
+  color: rgba(255, 255, 255, 0.4);
+  transition: transform 0.2s ease;
+}
+
+body.light .terms-link-item .chevron-icon {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.terms-link-item:hover .chevron-icon {
+  transform: translateX(4px);
+  color: #06b6d4;
+}
+
+body.light .terms-link-item:hover .chevron-icon {
+  color: #0891b2;
+}
+
+/* ============================================
    Placeholder
    ============================================ */
 
