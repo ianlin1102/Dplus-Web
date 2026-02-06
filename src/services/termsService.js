@@ -7,17 +7,34 @@ const CLOUD_FUNCTION_URL = 'https://cloud1-6gnd02he13c1ff2e-1380655578.ap-shangh
 
 /**
  * 获取当前用户 token (从 localStorage)
+ * 兼容多种存储格式：auth_info (新格式) 和 auth_user (旧格式)
  */
 const getUserToken = () => {
-  try {
-    const authInfo = localStorage.getItem('auth_info')
-    if (authInfo) {
+  // 优先检查 auth_info（AuthContext 格式）
+  const authInfo = localStorage.getItem('auth_info')
+  if (authInfo) {
+    try {
       const parsed = JSON.parse(authInfo)
-      return parsed.user?.id || ''
+      // auth_info 格式: { user: { id, name, role, type }, expireTime }
+      if (parsed.user && parsed.user.id) {
+        return parsed.user.id
+      }
+    } catch (e) {
+      console.error('解析 auth_info 失败:', e)
     }
-  } catch (e) {
-    console.error('Failed to get user token:', e)
   }
+
+  // 兼容旧的 auth_user 格式
+  const authData = localStorage.getItem('auth_user')
+  if (authData) {
+    try {
+      const user = JSON.parse(authData)
+      return user._id || user.USER_MINI_OPENID || ''
+    } catch (e) {
+      console.error('解析 auth_user 失败:', e)
+    }
+  }
+
   return ''
 }
 
