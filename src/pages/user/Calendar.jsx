@@ -5,6 +5,7 @@ import { useLanguage } from '../../i18n/LanguageContext'
 import { getMeetListByWeek, dateUtils } from '../../services/meetService'
 import { getTempDownloadUrl } from '../../utils/cloudUrlHelper'
 import CloudImage from '../../components/CloudImage'
+import { useTermsCheck } from '../../hooks/useTermsCheck'
 import './Calendar.css'
 
 // 类型颜色映射
@@ -327,6 +328,7 @@ function generateMonthCalendar(year, month) {
 function Calendar() {
   const { t, language } = useLanguage()
   const navigate = useNavigate()
+  const { checkTerms } = useTermsCheck()
 
   // 周按钮列表
   const [weekButtons] = useState(() => generateWeekButtons(language))
@@ -511,7 +513,7 @@ function Calendar() {
   const sortedDays = useMemo(() => Object.keys(groupedMeets).sort(), [groupedMeets])
 
   // 处理课程点击，跳转到预约确认页
-  const handleMeetClick = useCallback((meet, day) => {
+  const handleMeetClick = useCallback(async (meet, day) => {
     // 获取时段信息
     const timeSlot = meet.times?.[0]
     if (!timeSlot) return
@@ -525,15 +527,26 @@ function Calendar() {
     // 生成 timeMark（使用后端返回的 mark 或生成格式）
     const timeMark = timeSlot.mark || `T${day.replace(/-/g, '')}${Math.random().toString(36).substring(2, 12).toUpperCase()}`
 
+    // 构建返回 URL
+    const returnUrl = `/booking/confirm?meetId=${meet._id}&day=${day}&timeMark=${timeMark}&start=${timeSlot.start}&end=${timeSlot.end}`
+
+    // 检查用户条款（自动跳转到条款页面）
+    const termsOk = await checkTerms({
+      returnUrl,
+      redirect: true  // 自动跳转到条款页面
+    })
+
+    if (!termsOk) return
+
     // 跳转到预约确认页，传递完整的 meet 数据
-    navigate(`/booking/confirm?meetId=${meet._id}&day=${day}&timeMark=${timeMark}&start=${timeSlot.start}&end=${timeSlot.end}`, {
+    navigate(returnUrl, {
       state: {
         meet: meet,
         day: day,
         timeSlot: timeSlot
       }
     })
-  }, [language, navigate])
+  }, [language, navigate, checkTerms])
 
   return (
     <div className="calendar-page">
