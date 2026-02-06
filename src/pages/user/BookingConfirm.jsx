@@ -33,6 +33,7 @@ import {
 } from '../../services/bookingService';
 import { getMyCards } from '../../services/cardService';
 import CloudImage from '../../components/CloudImage';
+import { useTermsCheck } from '../../hooks/useTermsCheck';
 import './BookingConfirm.css';
 
 const BookingConfirm = () => {
@@ -41,6 +42,9 @@ const BookingConfirm = () => {
   const location = useLocation();
   const { t, language } = useLanguage();
   const { user, isLoggedIn } = useAuth();
+  const { checkTerms, showTermsPrompt } = useTermsCheck();
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [termsPromptData, setTermsPromptData] = useState(null);
 
   // 从 location.state 获取传递的数据
   const passedMeet = location.state?.meet;
@@ -171,6 +175,22 @@ const BookingConfirm = () => {
 
   // 提交预约
   const handleSubmit = async () => {
+    // 最高优先级：检查用户条款
+    const termsOk = await checkTerms({
+      returnUrl: `/booking/confirm?${searchParams.toString()}`,
+      redirect: false
+    });
+
+    if (!termsOk) {
+      // 显示条款提示弹窗
+      const prompt = await showTermsPrompt(`/booking/confirm?${searchParams.toString()}`);
+      if (prompt.needAgree) {
+        setTermsPromptData(prompt);
+        setShowTermsModal(true);
+        return;
+      }
+    }
+
     const costSet = meetDetail?.MEET_COST_SET || {};
     const needCard = costSet.isEnabled && costSet.costType !== 'free';
 
@@ -427,6 +447,39 @@ const BookingConfirm = () => {
             language === 'zh' ? '确认预约' : 'Confirm Booking'
           )}
         </button>
+
+        {/* 用户条款提示弹窗 */}
+        {showTermsModal && termsPromptData && (
+          <div className="modal-overlay">
+            <div className="terms-prompt-modal">
+              <h3>{language === 'zh' ? '需要同意用户条款' : 'User Terms Required'}</h3>
+              <p>
+                {termsPromptData.notLoggedIn
+                  ? (language === 'zh' ? '请先登录后再预约' : 'Please login to continue booking')
+                  : (language === 'zh' ? '您需要先同意用户服务条款才能预约' : 'You need to agree to the user terms before booking')}
+              </p>
+              <div className="modal-actions">
+                <button
+                  className="modal-btn secondary"
+                  onClick={() => setShowTermsModal(false)}
+                >
+                  {language === 'zh' ? '取消' : 'Cancel'}
+                </button>
+                <button
+                  className="modal-btn primary"
+                  onClick={() => {
+                    setShowTermsModal(false);
+                    termsPromptData.goToTerms();
+                  }}
+                >
+                  {termsPromptData.notLoggedIn
+                    ? (language === 'zh' ? '去登录' : 'Go to Login')
+                    : (language === 'zh' ? '前往同意' : 'Go to Agree')}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
