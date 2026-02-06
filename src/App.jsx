@@ -13,6 +13,7 @@ import Dashboard from './pages/user/Dashboard'
 import About from './pages/user/About'
 import Appointments from './pages/user/Appointments'
 import BookingConfirm from './pages/user/BookingConfirm'
+import UserTerms from './pages/terms/UserTerms'
 
 // Auth Pages
 import Login from './pages/Login'
@@ -77,6 +78,15 @@ function AppContent() {
         <RequireAuth>
           <PublicLayout>
             <BookingConfirm />
+          </PublicLayout>
+        </RequireAuth>
+      } />
+
+      {/* User Terms - Requires auth */}
+      <Route path="/terms/user" element={
+        <RequireAuth>
+          <PublicLayout>
+            <UserTerms />
           </PublicLayout>
         </RequireAuth>
       } />
