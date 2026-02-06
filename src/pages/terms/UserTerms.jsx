@@ -80,6 +80,32 @@ const UserTerms = () => {
     loadData()
   }, [isLoggedIn, language])
 
+  // 检查是否需要滚动 - 如果内容短于视窗则自动启用同意区域
+  useEffect(() => {
+    if (loading || scrolledToBottom || alreadyAgreed) return
+
+    const checkScrollNeeded = () => {
+      const element = scrollRef.current
+      if (!element) return
+
+      // 如果内容高度小于等于可视区域高度（允许50px误差），不需要滚动
+      if (element.scrollHeight <= element.clientHeight + 50) {
+        setScrolledToBottom(true)
+      }
+    }
+
+    // 延迟检查，等待 DOM 渲染完成
+    const timer = setTimeout(checkScrollNeeded, 300)
+
+    // 窗口大小变化时重新检查
+    window.addEventListener('resize', checkScrollNeeded)
+
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener('resize', checkScrollNeeded)
+    }
+  }, [loading, scrolledToBottom, alreadyAgreed, sections])
+
   // 监听滚动事件
   const handleScroll = (e) => {
     const element = e.target
