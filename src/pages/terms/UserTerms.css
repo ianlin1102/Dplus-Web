@@ -1,0 +1,283 @@
+.user-terms-page {
+  min-height: 100vh;
+  background: var(--bg-primary, #0a0a0f);
+  display: flex;
+  flex-direction: column;
+}
+
+.user-terms-page .loading-state,
+.user-terms-page .success-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: var(--text-secondary, #888);
+}
+
+.user-terms-page .loading-spinner {
+  animation: spin 1s linear infinite;
+  color: var(--accent-color, #646cff);
+}
+
+.user-terms-page .success-icon {
+  color: #22c55e;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Header */
+.user-terms-page .terms-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--bg-secondary, #111);
+  border-bottom: 1px solid var(--border-color, #222);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.user-terms-page .back-btn {
+  background: none;
+  border: none;
+  color: var(--text-primary, #fff);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.user-terms-page .back-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.user-terms-page .terms-header h1 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary, #fff);
+  margin: 0;
+}
+
+.user-terms-page .header-spacer {
+  width: 36px;
+}
+
+/* Version Info */
+.user-terms-page .terms-version-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background: var(--bg-secondary, #111);
+}
+
+.user-terms-page .version-badge {
+  background: var(--accent-color, #646cff);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.user-terms-page .agreed-badge {
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Content */
+.user-terms-page .terms-content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  max-height: calc(100vh - 280px);
+}
+
+.user-terms-page .terms-section {
+  margin-bottom: 24px;
+}
+
+.user-terms-page .section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, #fff);
+  margin-bottom: 12px;
+}
+
+.user-terms-page .section-content {
+  font-size: 14px;
+  color: var(--text-secondary, #888);
+  line-height: 1.8;
+  white-space: pre-wrap;
+}
+
+.user-terms-page .scroll-hint {
+  text-align: center;
+  padding: 24px;
+  color: var(--accent-color, #646cff);
+  font-size: 14px;
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
+}
+
+/* Agree Section */
+.user-terms-page .agree-section {
+  padding: 20px;
+  background: var(--bg-secondary, #111);
+  border-top: 1px solid var(--border-color, #222);
+  opacity: 0.5;
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+
+.user-terms-page .agree-section.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.user-terms-page .checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--text-primary, #fff);
+  cursor: pointer;
+  margin-bottom: 16px;
+}
+
+.user-terms-page .checkbox-label input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--accent-color, #646cff);
+}
+
+.user-terms-page .name-input-group {
+  margin-bottom: 16px;
+}
+
+.user-terms-page .name-label {
+  display: block;
+  font-size: 13px;
+  color: var(--text-secondary, #888);
+  margin-bottom: 8px;
+}
+
+.user-terms-page .name-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--bg-tertiary, #1a1a1a);
+  border: 1px solid var(--border-color, #333);
+  border-radius: 8px;
+  color: var(--text-primary, #fff);
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.user-terms-page .name-input::placeholder {
+  color: var(--text-tertiary, #666);
+}
+
+.user-terms-page .name-input:focus {
+  outline: none;
+  border-color: var(--accent-color, #646cff);
+}
+
+.user-terms-page .name-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.user-terms-page .error-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  color: #ef4444;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.user-terms-page .submit-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--accent-color, #646cff);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.user-terms-page .submit-btn:hover:not(:disabled) {
+  background: var(--accent-hover, #5558dd);
+}
+
+.user-terms-page .submit-btn:disabled {
+  background: var(--text-tertiary, #444);
+  cursor: not-allowed;
+}
+
+.user-terms-page .submit-btn.loading {
+  opacity: 0.8;
+}
+
+.user-terms-page .btn-spinner {
+  animation: spin 1s linear infinite;
+}
+
+/* Already Agreed */
+.user-terms-page .already-agreed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  text-align: center;
+}
+
+.user-terms-page .already-agreed .agreed-icon {
+  color: #22c55e;
+}
+
+.user-terms-page .already-agreed span {
+  color: var(--text-primary, #fff);
+  font-size: 14px;
+}
+
+.user-terms-page .return-btn {
+  padding: 10px 24px;
+  background: var(--accent-color, #646cff);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.user-terms-page .return-btn:hover {
+  background: var(--accent-hover, #5558dd);
+}
