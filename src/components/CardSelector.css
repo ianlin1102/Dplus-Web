@@ -1,4 +1,4 @@
-/* CardSelector 组件样式 */
+/* CardSelector 组件样式 - Dropdown */
 
 .card-selector {
   width: 100%;
@@ -48,64 +48,9 @@
   padding: 0.75rem 1rem;
   background: rgba(102, 126, 234, 0.1);
   border-radius: 8px;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
   color: #a5b4fc;
   font-size: 0.9rem;
-}
-
-.card-selector .cards-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.card-selector .card-option {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.card-selector .card-option:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-.card-selector .card-option.selected {
-  background: rgba(102, 126, 234, 0.15);
-  border-color: #667eea;
-}
-
-.card-selector .card-option.expired {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.card-selector .card-option.insufficient {
-  opacity: 0.6;
-  cursor: not-allowed;
-  border-color: rgba(251, 191, 36, 0.3);
-  background: rgba(251, 191, 36, 0.05);
-}
-
-.card-selector .card-option.insufficient:hover {
-  background: rgba(251, 191, 36, 0.08);
-}
-
-/* 余额不足标签 */
-.card-selector .insufficient-tag {
-  display: inline-block;
-  font-size: 0.7rem;
-  padding: 0.15rem 0.5rem;
-  background: rgba(251, 191, 36, 0.2);
-  color: #fbbf24;
-  border-radius: 4px;
-  margin-top: 0.25rem;
 }
 
 /* 余额不足警告 */
@@ -116,7 +61,7 @@
   background: rgba(251, 191, 36, 0.1);
   border: 1px solid rgba(251, 191, 36, 0.3);
   border-radius: 12px;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
 .card-selector .insufficient-warning svg {
@@ -142,72 +87,188 @@
   line-height: 1.5;
 }
 
-.card-selector .card-radio {
-  flex-shrink: 0;
+.card-selector .insufficient-tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  padding: 0.1rem 0.4rem;
+  background: rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
+  border-radius: 4px;
+  margin-left: 6px;
 }
 
-.card-selector .radio-unchecked {
-  color: rgba(255, 255, 255, 0.3);
+.card-selector .expired-tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  padding: 0.1rem 0.4rem;
+  background: rgba(248, 113, 113, 0.2);
+  color: #f87171;
+  border-radius: 4px;
+  margin-left: 6px;
 }
 
-.card-selector .radio-checked {
-  width: 20px;
-  height: 20px;
-  background: #667eea;
-  border-radius: 50%;
+/* ============================================
+   Dropdown 样式
+   ============================================ */
+
+.card-dropdown {
+  position: relative;
+}
+
+.card-dropdown-trigger {
   display: flex;
   align-items: center;
-  justify-content: center;
-  color: white;
-}
-
-.card-selector .card-icon {
-  flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  background: rgba(255, 255, 255, 0.1);
+  width: 100%;
+  padding: 0.85rem 1rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 10px;
+  cursor: pointer;
+  color: white;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.card-dropdown-trigger:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.card-dropdown-trigger.open {
+  border-color: #667eea;
+  background: rgba(102, 126, 234, 0.1);
+}
+
+.card-dropdown-trigger.placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.trigger-content {
   display: flex;
   align-items: center;
-  justify-content: center;
-  color: #a5b4fc;
-}
-
-.card-selector .card-info {
+  gap: 0.6rem;
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+  min-width: 0;
 }
 
-.card-selector .card-name {
+.trigger-icon {
+  flex-shrink: 0;
+  color: #a5b4fc;
+  display: flex;
+  align-items: center;
+}
+
+.trigger-name {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.trigger-balance {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+  flex-shrink: 0;
+}
+
+.trigger-deduct {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #f87171;
+  flex-shrink: 0;
+}
+
+.trigger-placeholder {
+  flex: 1;
+}
+
+.trigger-arrow {
+  flex-shrink: 0;
+  margin-left: 0.5rem;
+  color: rgba(255, 255, 255, 0.4);
+  transition: transform 0.2s;
+}
+
+.trigger-arrow.rotated {
+  transform: rotate(180deg);
+}
+
+/* Dropdown 菜单 */
+.card-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: rgba(26, 26, 46, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.card-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.card-dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.card-dropdown-item.selected {
+  background: rgba(102, 126, 234, 0.15);
+}
+
+.card-dropdown-item.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.card-dropdown-item.disabled:hover {
+  background: transparent;
+}
+
+.card-dropdown-item + .card-dropdown-item {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.card-dropdown-item .item-icon {
+  flex-shrink: 0;
+  color: #a5b4fc;
+  display: flex;
+  align-items: center;
+}
+
+.card-dropdown-item .item-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.5rem;
+}
+
+.card-dropdown-item .item-name {
   font-weight: 500;
   color: white;
+  font-size: 0.9rem;
 }
 
-.card-selector .card-balance {
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.6);
+.card-dropdown-item .item-balance {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
 }
 
-.card-selector .card-expire {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.4);
-}
-
-.card-selector .card-deduct {
+.card-dropdown-item .item-deduct {
   flex-shrink: 0;
-  text-align: right;
-}
-
-.card-selector .deduct-label {
-  display: block;
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.4);
-}
-
-.card-selector .deduct-value {
-  display: block;
+  font-size: 0.8rem;
   font-weight: 600;
   color: #f87171;
 }
@@ -234,31 +295,6 @@ body.light .card-selector .cost-hint {
   color: #667eea;
 }
 
-body.light .card-selector .card-option {
-  background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-body.light .card-selector .card-option:hover {
-  background: rgba(0, 0, 0, 0.02);
-  border-color: rgba(0, 0, 0, 0.15);
-}
-
-body.light .card-selector .card-option.selected {
-  background: rgba(102, 126, 234, 0.08);
-  border-color: #667eea;
-}
-
-body.light .card-selector .card-option.insufficient {
-  background: rgba(217, 119, 6, 0.05);
-  border-color: rgba(217, 119, 6, 0.25);
-}
-
-body.light .card-selector .insufficient-tag {
-  background: rgba(217, 119, 6, 0.15);
-  color: #b45309;
-}
-
 body.light .card-selector .insufficient-warning {
   background: rgba(217, 119, 6, 0.08);
   border: 1px solid rgba(217, 119, 6, 0.25);
@@ -272,31 +308,83 @@ body.light .card-selector .insufficient-warning .warning-desc {
   color: rgba(0, 0, 0, 0.6);
 }
 
-body.light .card-selector .radio-unchecked {
-  color: rgba(0, 0, 0, 0.2);
+body.light .card-selector .insufficient-tag {
+  background: rgba(217, 119, 6, 0.15);
+  color: #b45309;
 }
 
-body.light .card-selector .card-icon {
-  background: rgba(102, 126, 234, 0.1);
-  color: #667eea;
+body.light .card-selector .expired-tag {
+  background: rgba(220, 38, 38, 0.15);
+  color: #dc2626;
 }
 
-body.light .card-selector .card-name {
+/* Light mode dropdown */
+body.light .card-dropdown-trigger {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
   color: #1f2937;
 }
 
-body.light .card-selector .card-balance {
-  color: rgba(0, 0, 0, 0.5);
+body.light .card-dropdown-trigger:hover {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.2);
 }
 
-body.light .card-selector .card-expire {
-  color: rgba(0, 0, 0, 0.4);
+body.light .card-dropdown-trigger.open {
+  border-color: #667eea;
+  background: rgba(102, 126, 234, 0.04);
 }
 
-body.light .card-selector .deduct-label {
-  color: rgba(0, 0, 0, 0.4);
+body.light .card-dropdown-trigger.placeholder {
+  color: rgba(0, 0, 0, 0.35);
 }
 
-body.light .card-selector .deduct-value {
+body.light .trigger-icon {
+  color: #667eea;
+}
+
+body.light .trigger-balance {
+  color: rgba(0, 0, 0, 0.45);
+}
+
+body.light .trigger-deduct {
+  color: #dc2626;
+}
+
+body.light .trigger-arrow {
+  color: rgba(0, 0, 0, 0.35);
+}
+
+body.light .card-dropdown-menu {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+body.light .card-dropdown-item:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+body.light .card-dropdown-item.selected {
+  background: rgba(102, 126, 234, 0.08);
+}
+
+body.light .card-dropdown-item + .card-dropdown-item {
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+body.light .card-dropdown-item .item-icon {
+  color: #667eea;
+}
+
+body.light .card-dropdown-item .item-name {
+  color: #1f2937;
+}
+
+body.light .card-dropdown-item .item-balance {
+  color: rgba(0, 0, 0, 0.45);
+}
+
+body.light .card-dropdown-item .item-deduct {
   color: #dc2626;
 }

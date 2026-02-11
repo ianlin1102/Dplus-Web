@@ -1,23 +1,19 @@
 /**
- * 卡项选择器组件
+ * 卡项选择器组件 - Dropdown 样式
  * 用于预约时选择支付卡项
  */
 
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Check, Circle, CreditCard, Coins, AlertCircle, AlertTriangle } from 'lucide-react';
+import { CreditCard, Coins, AlertCircle, AlertTriangle, ChevronDown } from 'lucide-react';
 import './CardSelector.css';
 
 /**
  * 检查卡项余额是否足够
- * @param {Object} card - 卡项
- * @param {Object} costSet - 费用配置
- * @returns {boolean} 是否余额充足
  */
 const isCardSufficient = (card, costSet) => {
   if (!costSet?.isEnabled || costSet?.costType === 'free') return true;
 
-  // USER_CARD_TYPE: 1=次数卡, 2=余额卡
   const isTimesCard = card.USER_CARD_TYPE === 1;
   const remainTimes = card.USER_CARD_REMAIN_TIMES || 0;
   const remainBalance = card.USER_CARD_REMAIN_AMOUNT || 0;
@@ -35,14 +31,27 @@ const isCardSufficient = (card, costSet) => {
 
 const CardSelector = ({
   cards = [],
-  allUserCards = [], // 新增：用户所有卡项（包括余额不足的）
+  allUserCards = [],
   selectedId,
   onSelect,
   costSet = {},
   language = 'zh'
 }) => {
-  // 获取用于显示的卡项列表（如果传入 allUserCards 则使用，否则使用 cards）
+  const [open, setOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
   const displayCards = allUserCards.length > 0 ? allUserCards : cards;
+
+  // 点击外部关闭
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // 无可用卡项
   if (!displayCards || displayCards.length === 0) {
@@ -63,44 +72,33 @@ const CardSelector = ({
     );
   }
 
-  // 检查是否所有卡项余额都不足
   const sufficientCards = displayCards.filter(card => isCardSufficient(card, costSet));
   const hasInsufficientCards = sufficientCards.length === 0 && displayCards.length > 0;
 
-  // 费用提示
   const getCostHint = () => {
     if (!costSet.isEnabled || costSet.costType === 'free') {
       return language === 'zh' ? '本次预约免费' : 'Free booking';
     }
-
     if (costSet.costType === 'times') {
       return language === 'zh'
         ? `需消耗 ${costSet.timesCost} 次`
         : `Requires ${costSet.timesCost} class(es)`;
     }
-
     if (costSet.costType === 'balance') {
       return language === 'zh'
         ? `需消耗 ¥${costSet.balanceCost}`
         : `Requires ¥${costSet.balanceCost}`;
     }
-
-    // both
     return language === 'zh'
       ? `需消耗 ${costSet.timesCost} 次 或 ¥${costSet.balanceCost}`
       : `Requires ${costSet.timesCost} class(es) or ¥${costSet.balanceCost}`;
   };
 
-  // 获取卡项显示信息
   const getCardInfo = (card) => {
-    // USER_CARD_TYPE: 1=次数卡, 2=余额卡
-    // 正确字段：USER_CARD_CARD_NAME, USER_CARD_REMAIN_TIMES, USER_CARD_REMAIN_AMOUNT
     const isTimesCard = card.USER_CARD_TYPE === 1;
     const cardName = card.USER_CARD_CARD_NAME ||
       (language === 'zh' ? (isTimesCard ? '次数卡' : '余额卡') : (isTimesCard ? 'Class Pack' : 'Credit Card'));
-
     let balance, deduct, unit;
-
     if (isTimesCard) {
       balance = card.USER_CARD_REMAIN_TIMES || 0;
       deduct = costSet.timesCost || 1;
@@ -110,31 +108,21 @@ const CardSelector = ({
       deduct = costSet.balanceCost || 0;
       unit = '';
     }
-
     return { cardName, balance, deduct, unit, isTimesCard };
   };
 
-  // 检查卡项是否过期
   const isExpired = (card) => {
     const expireTime = card.USER_CARD_EXPIRE_TIME;
     if (!expireTime || expireTime === 0) return false;
     return expireTime < Date.now();
   };
 
-  // 获取过期时间
-  const getExpireTime = (card) => {
-    return card.USER_CARD_EXPIRE_TIME;
-  };
+  const selectedCard = displayCards.find(c => c._id === selectedId);
+  const selectedInfo = selectedCard ? getCardInfo(selectedCard) : null;
 
-  // 格式化过期时间
-  const formatExpireDate = (timestamp) => {
-    if (!timestamp) return '';
-    const date = new Date(timestamp);
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-    return language === 'zh'
-      ? `${month}月${day}日到期`
-      : `Expires ${month}/${day}`;
+  const handleSelect = (cardId) => {
+    onSelect(cardId);
+    setOpen(false);
   };
 
   return (
@@ -144,7 +132,6 @@ const CardSelector = ({
         <span>{getCostHint()}</span>
       </div>
 
-      {/* 所有卡项余额不足警告 */}
       {hasInsufficientCards && (
         <div className="insufficient-warning">
           <AlertTriangle size={18} />
@@ -164,64 +151,81 @@ const CardSelector = ({
         </div>
       )}
 
-      <div className="cards-list">
-        {displayCards.map(card => {
-          const { cardName, balance, deduct, unit, isTimesCard } = getCardInfo(card);
-          const isSelected = selectedId === card._id;
-          const expired = isExpired(card);
-          const insufficient = !isCardSufficient(card, costSet);
-          const isDisabled = expired || insufficient;
-
-          return (
-            <div
-              key={card._id}
-              className={`card-option ${isSelected ? 'selected' : ''} ${expired ? 'expired' : ''} ${insufficient ? 'insufficient' : ''}`}
-              onClick={() => !isDisabled && onSelect(card._id)}
-            >
-              <div className="card-radio">
-                {isSelected ? (
-                  <div className="radio-checked">
-                    <Check size={14} />
-                  </div>
-                ) : (
-                  <Circle size={20} className="radio-unchecked" />
-                )}
-              </div>
-
-              <div className="card-icon">
-                {isTimesCard ? <Coins size={20} /> : <CreditCard size={20} />}
-              </div>
-
-              <div className="card-info">
-                <span className="card-name">{cardName}</span>
-                <span className="card-balance">
-                  {language === 'zh' ? '剩余 ' : 'Remaining: '}
-                  {isTimesCard ? `${balance}${unit}` : `¥${(balance || 0).toFixed(2)}`}
-                </span>
-                {getExpireTime(card) && (
-                  <span className="card-expire">
-                    {formatExpireDate(getExpireTime(card))}
-                  </span>
-                )}
-                {/* 余额不足标签 */}
-                {insufficient && !expired && (
-                  <span className="insufficient-tag">
-                    {language === 'zh' ? '余额不足' : 'Insufficient'}
-                  </span>
-                )}
-              </div>
-
-              <div className="card-deduct">
-                <span className="deduct-label">
-                  {language === 'zh' ? '将扣' : 'Deduct'}
-                </span>
-                <span className="deduct-value">
-                  {isTimesCard ? `-${deduct}${unit}` : `-¥${deduct}`}
-                </span>
-              </div>
+      {/* Dropdown */}
+      <div className="card-dropdown" ref={dropdownRef}>
+        <button
+          className={`card-dropdown-trigger ${open ? 'open' : ''} ${!selectedCard ? 'placeholder' : ''}`}
+          onClick={() => setOpen(!open)}
+          type="button"
+        >
+          {selectedInfo ? (
+            <div className="trigger-content">
+              <span className="trigger-icon">
+                {selectedInfo.isTimesCard ? <Coins size={18} /> : <CreditCard size={18} />}
+              </span>
+              <span className="trigger-name">{selectedInfo.cardName}</span>
+              <span className="trigger-balance">
+                {selectedInfo.isTimesCard
+                  ? `${selectedInfo.balance}${selectedInfo.unit}`
+                  : `¥${(selectedInfo.balance || 0).toFixed(2)}`}
+              </span>
+              <span className="trigger-deduct">
+                {selectedInfo.isTimesCard
+                  ? `-${selectedInfo.deduct}${selectedInfo.unit}`
+                  : `-¥${selectedInfo.deduct}`}
+              </span>
             </div>
-          );
-        })}
+          ) : (
+            <span className="trigger-placeholder">
+              {language === 'zh' ? '请选择卡项' : 'Select a card'}
+            </span>
+          )}
+          <ChevronDown size={18} className={`trigger-arrow ${open ? 'rotated' : ''}`} />
+        </button>
+
+        {open && (
+          <div className="card-dropdown-menu">
+            {displayCards.map(card => {
+              const { cardName, balance, deduct, unit, isTimesCard } = getCardInfo(card);
+              const isSelected = selectedId === card._id;
+              const expired = isExpired(card);
+              const insufficient = !isCardSufficient(card, costSet);
+              const isDisabled = expired || insufficient;
+
+              return (
+                <div
+                  key={card._id}
+                  className={`card-dropdown-item ${isSelected ? 'selected' : ''} ${isDisabled ? 'disabled' : ''}`}
+                  onClick={() => !isDisabled && handleSelect(card._id)}
+                >
+                  <span className="item-icon">
+                    {isTimesCard ? <Coins size={16} /> : <CreditCard size={16} />}
+                  </span>
+                  <div className="item-info">
+                    <span className="item-name">{cardName}</span>
+                    <span className="item-balance">
+                      {language === 'zh' ? '剩余 ' : 'Bal: '}
+                      {isTimesCard ? `${balance}${unit}` : `¥${(balance || 0).toFixed(2)}`}
+                    </span>
+                    {insufficient && !expired && (
+                      <span className="insufficient-tag">
+                        {language === 'zh' ? '余额不足' : 'Insufficient'}
+                      </span>
+                    )}
+                    {expired && (
+                      <span className="expired-tag">
+                        {language === 'zh' ? '已过期' : 'Expired'}
+                      </span>
+                    )}
+                  </div>
+                  <span className="item-deduct">
+                    {isTimesCard ? `-${deduct}${unit}` : `-¥${deduct}`}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

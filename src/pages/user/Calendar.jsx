@@ -5,7 +5,9 @@ import { useLanguage } from '../../i18n/LanguageContext'
 import { getMeetListByWeek, dateUtils } from '../../services/meetService'
 import { getTempDownloadUrl } from '../../utils/cloudUrlHelper'
 import CloudImage from '../../components/CloudImage'
+import BookingPreviewModal from '../../components/BookingPreviewModal'
 import { useTermsCheck } from '../../hooks/useTermsCheck'
+import { useAuth } from '../../contexts/AuthContext'
 import './Calendar.css'
 
 // 类型颜色映射
@@ -328,7 +330,18 @@ function generateMonthCalendar(year, month) {
 function Calendar() {
   const { t, language } = useLanguage()
   const navigate = useNavigate()
-  const { checkTerms } = useTermsCheck()
+  const { checkTerms, showTermsPrompt } = useTermsCheck()
+  const { isLoggedIn } = useAuth()
+
+  // 预览弹窗状态
+  const [showPreviewModal, setShowPreviewModal] = useState(false)
+  const [selectedMeet, setSelectedMeet] = useState(null)
+  const [selectedDay, setSelectedDay] = useState(null)
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState(null)
+
+  // 条款弹窗状态
+  const [showTermsModal, setShowTermsModal] = useState(false)
+  const [termsReturnUrl, setTermsReturnUrl] = useState('')
 
   // 周按钮列表
   const [weekButtons] = useState(() => generateWeekButtons(language))
@@ -512,41 +525,68 @@ function Calendar() {
   // 获取排序后的日期列表 (Memoized)
   const sortedDays = useMemo(() => Object.keys(groupedMeets).sort(), [groupedMeets])
 
-  // 处理课程点击，跳转到预约确认页
+  // 处理课程点击 - 检查登录和条款后显示预览弹窗
   const handleMeetClick = useCallback(async (meet, day) => {
     // 获取时段信息
     const timeSlot = meet.times?.[0]
     if (!timeSlot) return
 
-    // 检查是否已满（云函数返回 cnt 而不是 stat.succCnt）
+    // 检查是否已满
     if (timeSlot.cnt >= timeSlot.limit) {
       alert(language === 'zh' ? '该时段已满，请选择其他时段' : 'This slot is full, please choose another')
       return
     }
 
-    // 生成 timeMark（使用后端返回的 mark 或生成格式）
+    // 生成 timeMark
     const timeMark = timeSlot.mark || `T${day.replace(/-/g, '')}${Math.random().toString(36).substring(2, 12).toUpperCase()}`
 
     // 构建返回 URL
     const returnUrl = `/booking/confirm?meetId=${meet._id}&day=${day}&timeMark=${timeMark}&start=${timeSlot.start}&end=${timeSlot.end}`
 
-    // 检查用户条款（自动跳转到条款页面）
+    // 1. 检查登录状态
+    if (!isLoggedIn()) {
+      navigate('/login', { state: { returnUrl } })
+      return
+    }
+
+    // 2. 检查用户条款
     const termsOk = await checkTerms({
       returnUrl,
-      redirect: true  // 自动跳转到条款页面
+      redirect: false
     })
+    if (!termsOk) {
+      const prompt = await showTermsPrompt(returnUrl)
+      if (prompt.needAgree) {
+        setTermsReturnUrl(returnUrl)
+        setShowTermsModal(true)
+        return
+      }
+    }
 
-    if (!termsOk) return
+    // 3. 通过后显示预览弹窗
+    setSelectedMeet(meet)
+    setSelectedDay(day)
+    setSelectedTimeSlot(timeSlot)
+    setShowPreviewModal(true)
+  }, [language, navigate, checkTerms, showTermsPrompt, isLoggedIn])
 
-    // 跳转到预约确认页，传递完整的 meet 数据
+  // 预览弹窗中点击"去预约"
+  const handlePreviewConfirm = useCallback(() => {
+    if (!selectedMeet || !selectedDay || !selectedTimeSlot) return
+
+    const timeMark = selectedTimeSlot.mark || `T${selectedDay.replace(/-/g, '')}${Math.random().toString(36).substring(2, 12).toUpperCase()}`
+    const returnUrl = `/booking/confirm?meetId=${selectedMeet._id}&day=${selectedDay}&timeMark=${timeMark}&start=${selectedTimeSlot.start}&end=${selectedTimeSlot.end}`
+
+    setShowPreviewModal(false)
+
     navigate(returnUrl, {
       state: {
-        meet: meet,
-        day: day,
-        timeSlot: timeSlot
+        meet: selectedMeet,
+        day: selectedDay,
+        timeSlot: selectedTimeSlot
       }
     })
-  }, [language, navigate, checkTerms])
+  }, [selectedMeet, selectedDay, selectedTimeSlot, navigate])
 
   return (
     <div className="calendar-page">
@@ -685,6 +725,46 @@ function Calendar() {
           </div>
         </div>
       </div>
+
+      {/* 预约预览弹窗 */}
+      {showPreviewModal && selectedMeet && (
+        <BookingPreviewModal
+          meet={selectedMeet}
+          day={selectedDay}
+          timeSlot={selectedTimeSlot}
+          language={language}
+          onClose={() => setShowPreviewModal(false)}
+          onConfirm={handlePreviewConfirm}
+        />
+      )}
+
+      {/* 用户条款提示弹窗 */}
+      {showTermsModal && (
+        <div className="terms-prompt-modal-overlay" onClick={() => setShowTermsModal(false)}>
+          <div className="terms-prompt-modal" onClick={e => e.stopPropagation()}>
+            <div className="terms-prompt-icon">⚠️</div>
+            <h3 className="terms-prompt-title">
+              {language === 'zh' ? '请先同意用户条款' : 'Please Agree to Terms'}
+            </h3>
+            <p className="terms-prompt-message">
+              {language === 'zh'
+                ? '您尚未同意用户服务条款，请先阅读并同意条款后再预约。'
+                : "You haven't agreed to user terms. Please agree before booking."}
+            </p>
+            <div className="terms-prompt-buttons">
+              <button className="terms-prompt-btn cancel" onClick={() => setShowTermsModal(false)}>
+                {language === 'zh' ? '取消' : 'Cancel'}
+              </button>
+              <button className="terms-prompt-btn confirm" onClick={() => {
+                setShowTermsModal(false)
+                navigate('/terms/user', { state: { returnUrl: termsReturnUrl || '/calendar' } })
+              }}>
+                {language === 'zh' ? '去同意条款' : 'Go to Terms'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

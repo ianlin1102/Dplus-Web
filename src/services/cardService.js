@@ -342,9 +342,10 @@ const fileToBase64 = (file) => {
  * @param {string} base64 - Base64 字符串
  * @param {number} maxWidth - 最大宽度
  * @param {number} quality - 压缩质量 0-1
+ * @param {number} maxSizeKB - 最大文件大小（KB），超过会继续压缩
  * @returns {Promise<string>} 压缩后的 Base64（含前缀）
  */
-const compressImage = (base64, maxWidth = 800, quality = 0.7) => {
+const compressImage = (base64, maxWidth = 600, quality = 0.6, maxSizeKB = 500) => {
   return new Promise((resolve) => {
     const img = new Image()
     img.onload = () => {
@@ -364,8 +365,17 @@ const compressImage = (base64, maxWidth = 800, quality = 0.7) => {
       const ctx = canvas.getContext('2d')
       ctx.drawImage(img, 0, 0, width, height)
 
-      // 转为 JPEG 并压缩
-      const compressed = canvas.toDataURL('image/jpeg', quality)
+      // 转为 JPEG 并压缩，如果仍然太大则继续降低质量
+      let compressed = canvas.toDataURL('image/jpeg', quality)
+      let currentQuality = quality
+
+      // 如果超过大小限制，继续压缩
+      while (compressed.length > maxSizeKB * 1024 * 1.37 && currentQuality > 0.3) {
+        currentQuality -= 0.1
+        compressed = canvas.toDataURL('image/jpeg', currentQuality)
+        console.log(`图片压缩: quality=${currentQuality.toFixed(1)}, size=${Math.round(compressed.length / 1024)}KB`)
+      }
+
       resolve(compressed)
     }
     img.src = base64
@@ -388,8 +398,8 @@ export const uploadPaymentProof = async (purchaseId, file, onProgress) => {
     const base64WithPrefix = await fileToBase64(file)
     onProgress?.(30)
 
-    // 压缩图片
-    const compressedBase64 = await compressImage(base64WithPrefix, 800, 0.7)
+    // 压缩图片（限制 500KB 以避免 HTTP 413 错误）
+    const compressedBase64 = await compressImage(base64WithPrefix, 600, 0.6, 500)
     onProgress?.(50)
 
     // 提取纯 base64 数据（去掉 data:image/xxx;base64, 前缀）

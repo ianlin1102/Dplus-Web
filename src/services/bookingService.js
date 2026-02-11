@@ -5,86 +5,77 @@
 
 import { callCloudRouteHTTP } from './httpApi';
 import { callCloudRoute } from './api';
-import { getDatabase, initDatabase } from './databaseService';
 
 /**
  * 预约前获取详情（表单、取消规则、费用配置）
- * 直接查询数据库，避免需要用户认证的云函数调用
+ * 通过云函数 API 获取完整 meet 数据（含 MEET_COST_SET）
  * @param {string} meetId - 预约项目 ID
  * @param {string} timeMark - 时间段标记
  */
 export const getMeetDetailForJoin = async (meetId, timeMark) => {
   try {
-    await initDatabase();
-    const db = getDatabase();
+    console.log('[getMeetDetailForJoin] 调用云函数, meetId:', meetId, 'timeMark:', timeMark);
 
-    console.log('查询 meet, meetId:', meetId, 'timeMark:', timeMark);
+    // 使用云函数 API（比 CloudBase SDK 匿名查询更可靠）
+    const result = await callCloudRouteHTTP('meet/detail_for_join', { meetId, timeMark });
 
-    // 1. 获取 meet 详情 (使用 doc 查询)
-    const meetResult = await db.collection('ax_meet')
-      .doc(meetId)
-      .get();
+    console.log('[getMeetDetailForJoin] 云函数返回:', result);
 
-    console.log('meet 查询结果:', meetResult);
+    if (result.code === 200 && result.data) {
+      const meet = result.data;
+      // 云函数返回格式包含 MEET_DAYS_SET、MEET_FORM_SET、MEET_COST_SET 等
+      // 需要从 MEET_DAYS_SET 中提取时段信息
+      let day = null;
+      let timeStart = null;
+      let timeEnd = null;
+      let limit = null;
+      let stat = null;
 
-    // CloudBase SDK 返回格式: { data: [...] } 或 { data: { ... } }
-    let meet = null;
-    if (meetResult.data) {
-      if (Array.isArray(meetResult.data)) {
-        meet = meetResult.data[0];
-      } else {
-        meet = meetResult.data;
+      if (meet.MEET_DAYS_SET && Array.isArray(meet.MEET_DAYS_SET)) {
+        for (const daySet of meet.MEET_DAYS_SET) {
+          if (daySet.times && Array.isArray(daySet.times)) {
+            const timeSlot = daySet.times.find(t => t.mark === timeMark);
+            if (timeSlot) {
+              day = daySet.day;
+              timeStart = timeSlot.start;
+              timeEnd = timeSlot.end;
+              limit = timeSlot.limit;
+              stat = timeSlot.stat;
+              break;
+            }
+          }
+        }
       }
+
+      const data = {
+        _id: meet._id,
+        MEET_TITLE: meet.MEET_TITLE,
+        MEET_TYPE_ID: meet.MEET_TYPE_ID,
+        MEET_TYPE_NAME: meet.MEET_TYPE_NAME,
+        MEET_INSTRUCTOR_ID: meet.MEET_INSTRUCTOR_ID,
+        MEET_INSTRUCTOR_NAME: meet.MEET_INSTRUCTOR_NAME,
+        MEET_INSTRUCTOR_PIC: meet.MEET_INSTRUCTOR_PIC,
+        MEET_COURSE_INFO: meet.MEET_COURSE_INFO,
+        MEET_CONTENT: meet.MEET_CONTENT,
+        MEET_FORM_SET: meet.MEET_FORM_SET,
+        MEET_COST_SET: meet.MEET_COST_SET,
+        MEET_CANCEL_SET: meet.MEET_CANCEL_SET,
+        MEET_IS_SHOW_LIMIT: meet.MEET_IS_SHOW_LIMIT,
+        dayDesc: meet.dayDesc,
+        myForms: meet.myForms,
+        day,
+        timeStart,
+        timeEnd,
+        limit,
+        stat
+      };
+
+      return { code: 200, data };
     }
 
-    if (!meet) {
-      return { code: 500, msg: '预约项目不存在' };
-    }
-
-    // 2. 获取 day 时段数据
-    const dayResult = await db.collection('ax_day')
-      .where({
-        DAY_MEET_ID: meetId,
-        'times.mark': timeMark
-      })
-      .limit(1)
-      .get();
-
-    let timeSlot = null;
-    let dayInfo = null;
-    if (dayResult.data && dayResult.data.length > 0) {
-      dayInfo = dayResult.data[0];
-      // 找到匹配的时间段
-      timeSlot = dayInfo.times?.find(t => t.mark === timeMark);
-    }
-
-    // 3. 构建返回数据（模拟云函数返回格式）
-    const data = {
-      _id: meet._id,
-      MEET_TITLE: meet.MEET_TITLE,
-      MEET_TYPE_ID: meet.MEET_TYPE_ID,
-      MEET_TYPE_NAME: meet.MEET_TYPE_NAME,
-      MEET_INSTRUCTOR_ID: meet.MEET_INSTRUCTOR_ID,
-      MEET_INSTRUCTOR_NAME: meet.MEET_INSTRUCTOR_NAME,
-      MEET_INSTRUCTOR_PIC: meet.MEET_INSTRUCTOR_PIC,
-      MEET_COURSE_INFO: meet.MEET_COURSE_INFO,
-      MEET_CONTENT: meet.MEET_CONTENT,
-      MEET_FORM_SET: meet.MEET_FORM_SET,
-      MEET_COST_SET: meet.MEET_COST_SET,
-      MEET_CANCEL_SET: meet.MEET_CANCEL_SET,
-      MEET_IS_SHOW_LIMIT: meet.MEET_IS_SHOW_LIMIT,
-      // 时段信息
-      day: dayInfo?.day,
-      dayDesc: dayInfo?.dayDesc,
-      timeStart: timeSlot?.start,
-      timeEnd: timeSlot?.end,
-      limit: timeSlot?.limit,
-      stat: timeSlot?.stat
-    };
-
-    return { code: 200, data };
+    return { code: result.code || 500, msg: result.msg || '获取预约详情失败' };
   } catch (error) {
-    console.error('获取预约详情失败:', error);
+    console.error('[getMeetDetailForJoin] 失败:', error);
     return { code: 500, msg: error.message || '获取预约详情失败' };
   }
 };
@@ -189,46 +180,30 @@ export const cancelMyJoin = async (joinId) => {
 
 /**
  * 获取可用于预约的卡项（过滤过期和余额不足）
- * 直接查询数据库
+ * 通过云函数 API 获取用户卡项列表
  * @param {Object} costSet - 费用配置
- * @param {string} userId - 用户 ID（可选，从 AuthContext 获取）
  */
-export const getAvailableCardsForBooking = async (costSet, userId = null) => {
+export const getAvailableCardsForBooking = async (costSet) => {
   try {
-    // 如果没有传 userId，尝试从 localStorage 获取
-    if (!userId) {
-      const authData = localStorage.getItem('auth_user');
-      if (authData) {
-        const user = JSON.parse(authData);
-        userId = user._id || user.USER_MINI_OPENID;
-      }
-    }
+    console.log('[getAvailableCardsForBooking] 通过云函数获取卡项');
 
-    if (!userId) {
-      console.log('未登录用户，无法获取卡项');
+    const result = await callCloudRouteHTTP('my/my_card_list', {});
+
+    console.log('[getAvailableCardsForBooking] 云函数返回:', result);
+
+    if (result.code !== 200 || !result.data) {
+      console.log('[getAvailableCardsForBooking] 获取卡项失败:', result.msg);
       return [];
     }
 
-    await initDatabase();
-    const db = getDatabase();
-
-    // 查询用户卡项
-    const result = await db.collection('ax_user_card')
-      .where({
-        USER_CARD_USER_ID: userId,
-        USER_CARD_STATUS: '1'
-      })
-      .get();
-
-    if (!result.data || result.data.length === 0) {
+    const cards = result.data.list || result.data || [];
+    if (!Array.isArray(cards) || cards.length === 0) {
       return [];
     }
 
     const now = Date.now();
-    const cards = result.data;
 
     // 过滤可用卡项
-    // 正确字段名：USER_CARD_EXPIRE_TIME, USER_CARD_REMAIN_TIMES, USER_CARD_REMAIN_AMOUNT
     return cards.filter(card => {
       // 过滤过期卡项
       const expireTime = card.USER_CARD_EXPIRE_TIME;
@@ -263,7 +238,7 @@ export const getAvailableCardsForBooking = async (costSet, userId = null) => {
       return true;
     });
   } catch (error) {
-    console.error('获取可用卡项失败:', error);
+    console.error('[getAvailableCardsForBooking] 失败:', error);
     return [];
   }
 };
@@ -492,6 +467,25 @@ export const canGetRefund = (booking) => {
   return true;
 };
 
+/**
+ * 获取某个时段的已预约人员名单
+ * @param {string} meetId - 预约项目 ID
+ * @param {string} timeMark - 时间段标记
+ * @returns {Promise<Object>} - { code, data: { list: [...], count } }
+ */
+export const getSlotBookings = async (meetId, timeMark) => {
+  try {
+    const result = await callCloudRouteHTTP('meet/get_slot_bookings', {
+      meetId,
+      timeMark
+    });
+    return result;
+  } catch (error) {
+    console.error('获取已预约名单失败:', error);
+    return { code: 500, msg: error.message || '获取已预约名单失败' };
+  }
+};
+
 export default {
   getMeetDetailForJoin,
   beforeJoin,
@@ -500,6 +494,7 @@ export default {
   getMyJoinDetail,
   cancelMyJoin,
   getAvailableCardsForBooking,
+  getSlotBookings,
   formatCancelRule,
   canCancelBooking,
   formatJoinStatus,

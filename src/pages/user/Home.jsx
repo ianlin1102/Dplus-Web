@@ -84,7 +84,6 @@ function Home() {
   }
 
   const menuItems = [
-    { icon: Calendar, label: t('home.menuBook'), path: '/appointments', color: 'cyan' },
     { icon: CreditCard, label: t('home.menuCards'), path: '/store', color: 'pink' },
     { icon: BookOpen, label: t('home.menuCalendar'), path: '/calendar', color: 'green' },
     { icon: Info, label: t('home.menuAbout'), path: '/about', color: 'cyan' },
@@ -111,7 +110,7 @@ function Home() {
 
         <div className="hero-buttons">
           <button
-            onClick={() => navigate('/appointments')}
+            onClick={() => navigate('/calendar')}
             className="btn-neon cyan neon-border-cyan"
           >
             {language === 'zh' ? '立即预约' : 'Book Now'}
@@ -219,7 +218,7 @@ function Home() {
           <h2 className="cta-title">{language === 'zh' ? '开启你的舞蹈之旅' : 'Start Your Dance Journey'}</h2>
           <p className="cta-text">{language === 'zh' ? '专业导师团队，沉浸式教学体验' : 'Professional instructors, immersive experience'}</p>
           <button
-            onClick={() => navigate('/appointments')}
+            onClick={() => navigate('/calendar')}
             className="btn-solid"
           >
             {language === 'zh' ? '立即预约' : 'Book Your Spot'}

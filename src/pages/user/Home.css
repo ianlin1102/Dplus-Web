@@ -95,9 +95,9 @@ body.light .hero-subtitle {
   contain: layout style;
 }
 
-.menu-grid {
+.home-page .menu-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
 }
 
@@ -531,8 +531,8 @@ body.light .cta-text {
     padding: 0 16px 40px;
   }
 
-  .menu-grid {
-    grid-template-columns: repeat(4, 1fr);
+  .home-page .menu-grid {
+    grid-template-columns: repeat(3, 1fr);
     gap: 8px;
   }
 

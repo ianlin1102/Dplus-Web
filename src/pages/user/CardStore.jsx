@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../i18n/LanguageContext'
 import { useAuth } from '../../contexts/AuthContext'
 import { useDataWithRetry } from '../../hooks/useDataWithRetry'
+import { useTermsCheck } from '../../hooks/useTermsCheck'
 import { getCardListHTTP } from '../../services/httpApi'
 import { createPurchaseOrder, cancelPurchaseOrder } from '../../services/cardService'
 import DataPlaceholder from '../../components/DataPlaceholder'
@@ -103,8 +104,11 @@ function CardStore() {
   const { t, language } = useLanguage()
   const { user, isLoggedIn } = useAuth()
   const navigate = useNavigate()
+  const { showTermsPrompt } = useTermsCheck()
 
   // 弹窗状态
+  const [showTermsModal, setShowTermsModal] = useState(false)
+  const [termsPromptData, setTermsPromptData] = useState(null)
   const [showDisclaimer, setShowDisclaimer] = useState(false)
   const [showPurchase, setShowPurchase] = useState(false)
   const [showUploadProof, setShowUploadProof] = useState(false)
@@ -140,7 +144,7 @@ function CardStore() {
   const displayCards = hasCards && apiCards.length > 0 ? apiCards : cards[language]
 
   // 点击购买按钮
-  const handleBuyClick = (card) => {
+  const handleBuyClick = async (card) => {
     // 检查登录状态
     if (!isLoggedIn()) {
       const confirmLogin = window.confirm(
@@ -151,6 +155,16 @@ function CardStore() {
       if (confirmLogin) {
         navigate('/login')
       }
+      return
+    }
+
+    // 检查用户条款状态
+    const termsResult = await showTermsPrompt()
+    if (termsResult.needAgree) {
+      // 需要同意条款，显示提示弹窗
+      setSelectedCard(card)
+      setTermsPromptData(termsResult)
+      setShowTermsModal(true)
       return
     }
 
@@ -375,6 +389,40 @@ function CardStore() {
         purchaseId={currentPurchaseId}
         onSuccess={handleUploadSuccess}
       />
+
+      {/* 用户条款提示弹窗 */}
+      {showTermsModal && (
+        <div className="terms-prompt-modal-overlay" onClick={() => setShowTermsModal(false)}>
+          <div className="terms-prompt-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="terms-prompt-icon">⚠️</div>
+            <h3 className="terms-prompt-title">
+              {language === 'zh' ? '请先同意用户条款' : 'Please Agree to Terms'}
+            </h3>
+            <p className="terms-prompt-message">
+              {language === 'zh'
+                ? '您尚未同意用户服务条款，请先阅读并同意条款后再购买卡项。'
+                : "You haven't agreed to user terms of service. Please read and agree to the terms before purchasing."}
+            </p>
+            <div className="terms-prompt-buttons">
+              <button
+                className="terms-prompt-btn cancel"
+                onClick={() => setShowTermsModal(false)}
+              >
+                {language === 'zh' ? '取消' : 'Cancel'}
+              </button>
+              <button
+                className="terms-prompt-btn confirm"
+                onClick={() => {
+                  setShowTermsModal(false)
+                  navigate('/terms/user', { state: { returnUrl: '/store' } })
+                }}
+              >
+                {language === 'zh' ? '去同意条款' : 'Go to Terms'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -13,26 +13,6 @@ import './Register.css'
 
 // Google OAuth Configuration
 const GOOGLE_CLIENT_ID = '574240389068-uf3u8v3hp2rd1kj642hf81as4uubdmba.apps.googleusercontent.com'
-const GOOGLE_REDIRECT_URI = `${window.location.origin}/oauth-callback.html`
-const GOOGLE_SCOPE = 'openid email profile'
-
-// Build Google OAuth URL
-const getGoogleAuthUrl = () => {
-  const state = crypto.randomUUID()
-  sessionStorage.setItem('oauth_state', state)
-  sessionStorage.setItem('oauth_action', 'login') // 'login' for new registration via Google
-
-  const params = new URLSearchParams({
-    client_id: GOOGLE_CLIENT_ID,
-    redirect_uri: GOOGLE_REDIRECT_URI,
-    response_type: 'code',
-    scope: GOOGLE_SCOPE,
-    access_type: 'offline',
-    prompt: 'consent',
-    state
-  })
-  return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
-}
 
 // Google Icon SVG
 const GoogleIcon = () => (
@@ -74,7 +54,7 @@ const useDebounce = (value, delay) => {
 
 export default function Register() {
   const navigate = useNavigate()
-  const { register, user } = useAuth()
+  const { register, loginWithGoogle, user } = useAuth()
   const { language } = useLanguage()
 
   const [username, setUsername] = useState('')
@@ -84,6 +64,7 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
   const [error, setError] = useState(null)
 
   // Username availability check
@@ -207,8 +188,86 @@ export default function Register() {
     }
   }
 
+  // Google OAuth 回调处理
+  const handleGoogleCallback = useCallback(async (response) => {
+    if (!response.credential) {
+      setError(language === 'zh' ? 'Google 注册失败' : 'Google sign-up failed')
+      return
+    }
+
+    setGoogleLoading(true)
+    setError(null)
+
+    try {
+      const result = await loginWithGoogle(response.credential)
+
+      if (result.success) {
+        if (result.isNewUser) {
+          navigate('/auth/google/callback', {
+            state: { isNewUser: true, user: result.user }
+          })
+        } else {
+          navigate('/dashboard', { replace: true })
+        }
+      } else {
+        setError(result.message || (language === 'zh' ? 'Google 注册失败' : 'Google sign-up failed'))
+      }
+    } catch (err) {
+      console.error('Google register error:', err)
+      setError(err.message || (language === 'zh' ? 'Google 注册失败' : 'Google sign-up failed'))
+    } finally {
+      setGoogleLoading(false)
+    }
+  }, [loginWithGoogle, navigate, language])
+
+  // 使用 OAuth 弹窗（implicit flow，与 Login 页一致）
   const handleGoogleRegister = () => {
-    window.location.href = getGoogleAuthUrl()
+    const width = 500
+    const height = 600
+    const left = window.screenX + (window.outerWidth - width) / 2
+    const top = window.screenY + (window.outerHeight - height) / 2
+
+    const popup = window.open(
+      `https://accounts.google.com/o/oauth2/v2/auth?` +
+      `client_id=${GOOGLE_CLIENT_ID}&` +
+      `redirect_uri=${encodeURIComponent(window.location.origin + '/oauth-callback.html')}&` +
+      `response_type=token id_token&` +
+      `scope=openid email profile&` +
+      `prompt=select_account&` +
+      `nonce=${crypto.randomUUID()}`,
+      'google-register',
+      `width=${width},height=${height},left=${left},top=${top}`
+    )
+
+    let channel = null
+    try {
+      channel = new BroadcastChannel('oauth-channel')
+      channel.onmessage = (event) => {
+        if (event.data?.type === 'google-auth') {
+          channel.close()
+          if (event.data.id_token) {
+            handleGoogleCallback({ credential: event.data.id_token })
+          } else if (event.data.error) {
+            setError(event.data.error)
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('BroadcastChannel not supported, using postMessage fallback')
+      const handleMessage = (event) => {
+        if (event.origin !== window.location.origin) return
+        if (event.data?.type === 'google-auth') {
+          window.removeEventListener('message', handleMessage)
+          if (event.data.id_token) {
+            handleGoogleCallback({ credential: event.data.id_token })
+          } else if (event.data.error) {
+            setError(event.data.error)
+          }
+          try { popup?.close() } catch (e) { /* ignore COOP errors */ }
+        }
+      }
+      window.addEventListener('message', handleMessage)
+    }
   }
 
   // Username status icon
@@ -407,10 +466,19 @@ export default function Register() {
             type="button"
             className="google-register-btn"
             onClick={handleGoogleRegister}
-            disabled={loading}
+            disabled={loading || googleLoading}
           >
-            <GoogleIcon />
-            <span>{texts.googleRegister}</span>
+            {googleLoading ? (
+              <>
+                <Loader2 size={18} className="btn-spinner" />
+                <span>{language === 'zh' ? '注册中...' : 'Signing up...'}</span>
+              </>
+            ) : (
+              <>
+                <GoogleIcon />
+                <span>{texts.googleRegister}</span>
+              </>
+            )}
           </button>
         </form>
 

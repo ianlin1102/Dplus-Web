@@ -10,6 +10,7 @@ import {
   Calendar,
   Clock,
   User,
+  Users,
   Music,
   FileText,
   ChevronDown,
@@ -28,10 +29,11 @@ import {
   beforeJoin,
   submitJoin,
   getAvailableCardsForBooking,
+  getSlotBookings,
   calculateDuration,
   formatDuration
 } from '../../services/bookingService';
-import { getMyCards } from '../../services/cardService';
+// getMyCards 不再需要，卡项通过云函数 API 获取
 import CloudImage from '../../components/CloudImage';
 import { useTermsCheck } from '../../hooks/useTermsCheck';
 import './BookingConfirm.css';
@@ -69,6 +71,8 @@ const BookingConfirm = () => {
   const [showContent, setShowContent] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [bookedNames, setBookedNames] = useState([]);
+  const [loadingNames, setLoadingNames] = useState(true);
 
   // 检查登录状态
   useEffect(() => {
@@ -92,12 +96,9 @@ const BookingConfirm = () => {
         setLoading(true);
         setError(null);
 
-        let meetData;
-
-        // 优先使用传递过来的数据
+        // 先用 passedMeet 做即时展示（基本信息）
+        let meetData = null;
         if (passedMeet) {
-          console.log('使用传递的 meet 数据:', passedMeet);
-          // 云函数返回的是camelCase字段名，转换为MEET_*格式供后续使用
           meetData = {
             _id: passedMeet._id,
             MEET_TITLE: passedMeet.title || passedMeet.MEET_TITLE,
@@ -107,13 +108,11 @@ const BookingConfirm = () => {
             MEET_INSTRUCTOR_NAME: passedMeet.instructorName || passedMeet.MEET_INSTRUCTOR_NAME,
             MEET_INSTRUCTOR_PIC: passedMeet.instructorPic || passedMeet.MEET_INSTRUCTOR_PIC,
             MEET_COURSE_INFO: passedMeet.courseInfo || passedMeet.MEET_COURSE_INFO,
-            // 注意: 这些字段在list API中不返回，需要在前端有默认值
             MEET_CONTENT: passedMeet.MEET_CONTENT || [],
             MEET_FORM_SET: passedMeet.MEET_FORM_SET || [],
             MEET_COST_SET: passedMeet.MEET_COST_SET || { isEnabled: false, costType: 'free' },
             MEET_CANCEL_SET: passedMeet.MEET_CANCEL_SET || { isLimit: false },
             MEET_IS_SHOW_LIMIT: passedMeet.MEET_IS_SHOW_LIMIT ?? 1,
-            // 时段信息
             day: passedDay,
             dayDesc: passedMeet.dayDesc,
             timeStart: passedTimeSlot?.start,
@@ -121,41 +120,69 @@ const BookingConfirm = () => {
             limit: passedTimeSlot?.limit,
             cnt: passedTimeSlot?.cnt
           };
-        } else {
-          // 如果没有传递数据，尝试从 API 获取（可能会失败）
-          console.log('尝试从 API 获取 meet 数据...');
-          const result = await getMeetDetailForJoin(meetId, timeMark);
-
-          if (result.code !== 200 || !result.data) {
-            throw new Error(result.msg || '获取预约详情失败');
-          }
-
-          meetData = result.data;
+          setMeetDetail(meetData);
         }
 
-        setMeetDetail(meetData);
+        // 始终调用 getMeetDetailForJoin 获取完整数据（含 MEET_COST_SET、MEET_CANCEL_SET、MEET_CONTENT）
+        const [detailResult, bookingsResult] = await Promise.all([
+          getMeetDetailForJoin(meetId, timeMark),
+          getSlotBookings(meetId, timeMark)
+        ]);
+
+        // 处理完整的 meet 详情
+        if (detailResult.code === 200 && detailResult.data) {
+          const fullData = detailResult.data;
+          console.log('[BookingConfirm] getMeetDetailForJoin 返回数据:', {
+            MEET_COST_SET: fullData.MEET_COST_SET,
+            MEET_TITLE: fullData.MEET_TITLE,
+            _id: fullData._id
+          });
+          // 合并：API 返回的数据覆盖 passedMeet，但跳过 undefined 值以保留 passedMeet 的有效数据
+          const filteredData = Object.fromEntries(
+            Object.entries(fullData).filter(([, v]) => v !== undefined)
+          );
+          meetData = {
+            ...(meetData || {}),
+            ...filteredData,
+            // 保留 passedMeet 的时段信息（如果 API 未返回）
+            day: fullData.day || meetData?.day || passedDay,
+            timeStart: fullData.timeStart || meetData?.timeStart,
+            timeEnd: fullData.timeEnd || meetData?.timeEnd,
+            limit: fullData.limit || meetData?.limit,
+            cnt: fullData.cnt || meetData?.cnt
+          };
+          setMeetDetail(meetData);
+        } else if (!meetData) {
+          throw new Error(detailResult.msg || '获取预约详情失败');
+        }
+
+        // 处理已预约名单
+        if (bookingsResult.code === 200 && bookingsResult.data) {
+          const list = bookingsResult.data.names || bookingsResult.data.list || [];
+          setBookedNames(Array.isArray(list) ? list : []);
+        }
+        setLoadingNames(false);
 
         // 如果需要卡项，加载可用卡项
-        const costSet = meetData.MEET_COST_SET || {};
+        const costSet = meetData?.MEET_COST_SET || {};
+        console.log('[BookingConfirm] costSet 检查:', {
+          costSet,
+          isEnabled: costSet.isEnabled,
+          costType: costSet.costType,
+          needCard: costSet.isEnabled && costSet.costType !== 'free'
+        });
         if (costSet.isEnabled && costSet.costType !== 'free') {
-          // 获取用户 ID
-          const authData = localStorage.getItem('auth_user');
-          let userId = null;
-          if (authData) {
-            const userData = JSON.parse(authData);
-            userId = userData._id || userData.USER_MINI_OPENID;
-          }
+          // 通过云函数 API 获取可用卡项（userId 从 token 自动获取）
+          const availableCardList = await getAvailableCardsForBooking(costSet);
 
-          // 同时获取所有卡项和可用卡项
-          const [allCards, availableCardList] = await Promise.all([
-            userId ? getMyCards(userId, { includeExpired: false }) : [],
-            getAvailableCardsForBooking(costSet)
-          ]);
+          console.log('[BookingConfirm] 卡项查询结果:', {
+            availableCards: availableCardList?.length,
+            availableDetail: availableCardList
+          });
 
-          setAllUserCards(allCards || []);
+          setAllUserCards(availableCardList || []);
           setAvailableCards(availableCardList || []);
 
-          // 自动选择第一张可用卡
           if (availableCardList.length > 0) {
             setSelectedCardId(availableCardList[0]._id);
           }
@@ -165,6 +192,7 @@ const BookingConfirm = () => {
         setError(err.message || (language === 'zh' ? '加载失败' : 'Failed to load'));
       } finally {
         setLoading(false);
+        setLoadingNames(false);
       }
     };
 
@@ -350,6 +378,41 @@ const BookingConfirm = () => {
                 </span>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* 已预约学员 */}
+        <section className="course-section booked-names-section">
+          <div className="section-header">
+            <Users size={18} />
+            <h3>
+              {language === 'zh' ? '已预约学员' : 'Booked Students'}
+              {!loadingNames && (
+                <span className="booked-count-badge">
+                  {bookedNames.length}/{meetDetail.limit || '?'}
+                </span>
+              )}
+            </h3>
+          </div>
+          <div className="section-content booked-names-content">
+            {loadingNames ? (
+              <div className="booked-names-loading">
+                <Loader2 className="booked-spinner" size={18} />
+                <span>{language === 'zh' ? '加载中...' : 'Loading...'}</span>
+              </div>
+            ) : bookedNames.length > 0 ? (
+              <ol className="booked-names-list">
+                {bookedNames.map((item, idx) => (
+                  <li key={idx} className="booked-name-item">
+                    {typeof item === 'string' ? item : (item.name || item.JOIN_USER_NAME || `${language === 'zh' ? '学员' : 'Student'} ${idx + 1}`)}
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p className="booked-names-empty">
+                {language === 'zh' ? '暂无预约' : 'No bookings yet'}
+              </p>
+            )}
           </div>
         </section>
 

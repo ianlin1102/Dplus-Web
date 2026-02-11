@@ -151,26 +151,12 @@ export default function GoogleCallback() {
           setStatus('error')
         }
       } else {
-        // Login or register with Google
-        console.log('Calling loginWithGoogle with code:', code.substring(0, 20) + '...')
-        console.log('Redirect URI:', GOOGLE_REDIRECT_URI)
-
-        const result = await loginWithGoogle(code, GOOGLE_REDIRECT_URI)
-        console.log('loginWithGoogle result:', result)
-
-        if (result.success) {
-          setOauthData({ user: result.user })
-          setIsNewUser(result.isNewUser || false)
-          // Pre-fill name from Google if available
-          if (result.user?.name) {
-            setProfileForm(prev => ({ ...prev, name: result.user.name }))
-          }
-          // Show profile form for new users, success for existing
-          setStatus(result.isNewUser ? 'profile' : 'success')
-        } else {
-          setErrorMessage(result.message || (language === 'zh' ? '登录失败' : 'Login failed'))
-          setStatus('error')
-        }
+        // Authorization code flow is no longer used for login/register
+        // (Login and Register pages now use implicit flow with id_token)
+        // If we get here with a code, redirect user to login page to retry
+        console.warn('Received authorization code instead of id_token, redirecting to login')
+        setErrorMessage(language === 'zh' ? '请重新登录' : 'Please try logging in again')
+        setStatus('error')
       }
     } catch (err) {
       console.error('OAuth processing error:', err)

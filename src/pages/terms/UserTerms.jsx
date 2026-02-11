@@ -205,10 +205,36 @@ const UserTerms = () => {
         ref={scrollRef}
         onScroll={handleScroll}
       >
-        {sections.map((section, idx) => (
+        {/* Header section */}
+        {sections.length > 0 && sections[0].isHeader && (
+          <div className="terms-document-header">
+            <h2 className="terms-document-title">
+              {language === 'zh' ? sections[0].header_zh : sections[0].header_en}
+            </h2>
+            {(language === 'zh' ? sections[0].header_en : sections[0].header_zh) && (
+              <h3 className="terms-document-subtitle">
+                {language === 'zh' ? sections[0].header_en : sections[0].header_zh}
+              </h3>
+            )}
+            <p className="terms-document-intro">
+              {language === 'zh' ? sections[0].intro_zh : sections[0].intro_en}
+            </p>
+          </div>
+        )}
+
+        {/* Regular sections */}
+        {sections.filter(s => !s.isHeader).map((section, idx) => (
           <div key={idx} className="terms-section">
-            <h3 className="section-title">{section.title}</h3>
-            <div className="section-content">{section.content}</div>
+            <h3 className="section-title">
+              {language === 'zh'
+                ? (section.title_zh || section.title)
+                : (section.title_en || section.title_zh || section.title)}
+            </h3>
+            <div className="section-content" style={{whiteSpace: 'pre-wrap'}}>
+              {language === 'zh'
+                ? (section.content_zh || section.content)
+                : (section.content_en || section.content_zh || section.content)}
+            </div>
           </div>
         ))}
 

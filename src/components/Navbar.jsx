@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { User, Menu, X, Home, Calendar, CreditCard, Info, BookOpen, LogOut, Shield, ChevronDown, LayoutDashboard, Sun, Moon, Globe } from 'lucide-react'
+import { User, Menu, X, Home, Calendar, CreditCard, Info, LogOut, Shield, ChevronDown, LayoutDashboard, Sun, Moon, Globe } from 'lucide-react'
 import { useLanguage } from '../i18n/LanguageContext'
 import { useAuth } from '../contexts/AuthContext'
 import { useTheme } from '../App'
@@ -39,7 +39,6 @@ const Navbar = ({ onNavigate, currentPath }) => {
     { path: '/', label: t('nav.home'), icon: Home },
     { path: '/calendar', label: t('nav.calendar'), icon: Calendar },
     { path: '/store', label: t('nav.store'), icon: CreditCard },
-    { path: '/appointments', label: language === 'zh' ? '预约' : 'Book', icon: BookOpen },
     { path: '/about', label: language === 'zh' ? '关于' : 'About', icon: Info },
   ]
 

@@ -612,3 +612,133 @@ body.light .zelle-account-info code {
     min-height: 48px;
   }
 }
+
+/* ============================================
+   Terms Prompt Modal
+   ============================================ */
+
+.terms-prompt-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.terms-prompt-modal {
+  background: #1a1a2e;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+}
+
+body.light .terms-prompt-modal {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+.terms-prompt-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.terms-prompt-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: #fff;
+}
+
+body.light .terms-prompt-title {
+  color: #1a1a1a;
+}
+
+.terms-prompt-message {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+body.light .terms-prompt-message {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.terms-prompt-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.terms-prompt-btn {
+  flex: 1;
+  padding: 14px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.terms-prompt-btn.cancel {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+body.light .terms-prompt-btn.cancel {
+  border-color: rgba(0, 0, 0, 0.2);
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.terms-prompt-btn.cancel:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+body.light .terms-prompt-btn.cancel:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.terms-prompt-btn.confirm {
+  background: linear-gradient(135deg, #06b6d4, #0891b2);
+  border: none;
+  color: white;
+}
+
+.terms-prompt-btn.confirm:hover {
+  background: linear-gradient(135deg, #22d3ee, #06b6d4);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 640px) {
+  .terms-prompt-modal {
+    padding: 24px;
+    margin: 16px;
+  }
+
+  .terms-prompt-icon {
+    font-size: 40px;
+  }
+
+  .terms-prompt-title {
+    font-size: 18px;
+  }
+
+  .terms-prompt-message {
+    font-size: 13px;
+  }
+
+  .terms-prompt-buttons {
+    flex-direction: column;
+  }
+
+  .terms-prompt-btn {
+    padding: 12px 16px;
+  }
+}

@@ -11,9 +11,10 @@ import CardStore from './pages/user/CardStore'
 import Calendar from './pages/user/Calendar'
 import Dashboard from './pages/user/Dashboard'
 import About from './pages/user/About'
-import Appointments from './pages/user/Appointments'
+// import Appointments from './pages/user/Appointments'
 import BookingConfirm from './pages/user/BookingConfirm'
 import UserTerms from './pages/terms/UserTerms'
+import TermsPrint from './pages/terms/TermsPrint'
 
 // Auth Pages
 import Login from './pages/Login'
@@ -71,7 +72,7 @@ function AppContent() {
       <Route path="/store" element={<PublicLayout><CardStore /></PublicLayout>} />
       <Route path="/calendar" element={<PublicLayout><Calendar /></PublicLayout>} />
       <Route path="/about" element={<PublicLayout><About /></PublicLayout>} />
-      <Route path="/appointments" element={<PublicLayout><Appointments /></PublicLayout>} />
+      {/* <Route path="/appointments" element={<PublicLayout><Appointments /></PublicLayout>} /> */}
 
       {/* Booking Confirmation - Requires auth */}
       <Route path="/booking/confirm" element={
@@ -81,6 +82,9 @@ function AppContent() {
           </PublicLayout>
         </RequireAuth>
       } />
+
+      {/* Terms Print - No layout, auth via token query param */}
+      <Route path="/terms/print/:id" element={<TermsPrint />} />
 
       {/* User Terms - Requires auth */}
       <Route path="/terms/user" element={
