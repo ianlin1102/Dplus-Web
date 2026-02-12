@@ -451,7 +451,7 @@
 @media print {
   @page {
     size: A4;
-    margin: 8mm;
+    margin: 0;
   }
 
   .no-print {
@@ -471,7 +471,7 @@
   }
 
   .sched-page {
-    padding: 20px;
+    padding: 24px 20px;
     margin: 0;
     max-width: none;
     min-height: auto !important;
@@ -481,8 +481,13 @@
     font-size: 10px;
   }
 
+  /* Keep grid background in print */
   .sched-page::before {
-    display: none;
+    display: block;
+    background-size: 30px 30px;
+    background-image:
+      linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
   }
 
   /* Compact header */
