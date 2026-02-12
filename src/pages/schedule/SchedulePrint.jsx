@@ -95,6 +95,15 @@ function processScheduleData(meets) {
 export default function SchedulePrint() {
   const { yearMonth: paramYM } = useParams()
   const navigate = useNavigate()
+
+  function goBack() {
+    if (window.history.length > 1) {
+      navigate(-1)
+    } else {
+      navigate('/')
+    }
+  }
+
   const [yearMonth, setYearMonth] = useState(paramYM || getDefaultYearMonth())
   const [days, setDays] = useState([])
   const [loading, setLoading] = useState(true)
@@ -168,7 +177,7 @@ export default function SchedulePrint() {
     <div className="sched-page">
       <div className="sched-controls no-print">
         <div className="sched-top-bar">
-          <button onClick={() => navigate(-1)} className="sched-back-btn">
+          <button onClick={goBack} className="sched-back-btn">
             &larr; {t.back}
           </button>
           <div className="sched-top-bar-right">
