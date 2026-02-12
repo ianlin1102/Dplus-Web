@@ -1,7 +1,7 @@
 /**
  * 月度课程表打印页面
  * 公开页面，无需登录，可通过浏览器打印保存为 PDF
- * URL: /#/schedule/print 或 /#/schedule/print/2026-02
+ * URL: /#/schedule 或 /#/schedule/2026-02
  */
 
 import React, { useState, useEffect } from 'react'
