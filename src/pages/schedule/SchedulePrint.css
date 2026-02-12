@@ -446,34 +446,39 @@
 }
 
 /* ============================================
-   Print styles - Compact table layout for PDF
+   Print styles - Dark theme compact PDF
    ============================================ */
 @media print {
   @page {
     size: A4;
-    margin: 12mm 10mm;
+    margin: 8mm;
   }
 
   .no-print {
     display: none !important;
   }
 
-  /* Force white background on all ancestors */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Dark background on all ancestors */
   html, body, .app, .app.dark, .app.light {
-    background: white !important;
-    background-color: white !important;
+    background: #0a0a0a !important;
+    background-color: #0a0a0a !important;
     min-height: auto !important;
   }
 
   .sched-page {
-    padding: 0;
+    padding: 20px;
     margin: 0;
     max-width: none;
     min-height: auto !important;
-    background: white !important;
-    background-color: white !important;
-    color: #111 !important;
-    font-size: 11px;
+    background: #0a0a0a !important;
+    background-color: #0a0a0a !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-size: 10px;
   }
 
   .sched-page::before {
@@ -482,34 +487,33 @@
 
   /* Compact header */
   .sched-header {
-    margin-bottom: 16px;
+    margin-bottom: 14px;
     padding-bottom: 10px;
-    border-bottom: 2px solid #111;
-    text-align: center;
+    border-bottom: 1px solid rgba(6, 182, 212, 0.4);
   }
 
   .sched-studio-name {
-    -webkit-text-fill-color: initial;
-    color: #111 !important;
-    background: none;
-    font-size: 22px !important;
+    font-size: 24px !important;
     margin-bottom: 2px !important;
+    -webkit-text-fill-color: initial;
+    background: none;
+    color: #06b6d4 !important;
   }
 
   .sched-title {
-    color: #444 !important;
-    font-size: 12px !important;
+    color: rgba(255, 255, 255, 0.5) !important;
+    font-size: 11px !important;
     letter-spacing: 0.15em;
     margin-bottom: 4px !important;
   }
 
   .sched-month {
-    color: #111 !important;
-    font-size: 14px !important;
+    color: #fff !important;
+    font-size: 13px !important;
     font-weight: 600;
   }
 
-  /* Compact day rows — table-like */
+  /* Compact day rows */
   .sched-body {
     display: flex;
     flex-direction: column;
@@ -518,24 +522,24 @@
 
   .sched-day-row {
     display: flex;
-    align-items: stretch;
+    align-items: flex-start;
     margin-bottom: 0;
-    padding: 6px 0;
-    border-bottom: 1px solid #ddd;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     break-inside: avoid;
   }
 
   .sched-day-label {
-    width: 90px;
+    width: 80px;
     flex-shrink: 0;
     font-weight: 700;
-    font-size: 10px;
-    color: #111 !important;
+    font-size: 9px;
+    color: #06b6d4 !important;
     text-transform: none;
     letter-spacing: 0;
-    padding-top: 4px;
+    padding-top: 3px;
     line-height: 1.4;
-    border-right: 2px solid #111;
+    border-right: 2px solid #06b6d4;
     padding-right: 8px;
     margin-right: 10px;
   }
@@ -543,88 +547,96 @@
   .sched-classes {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px 12px;
+    gap: 4px 10px;
     flex: 1;
     align-items: flex-start;
   }
 
-  /* Compact inline cards — no borders, minimal padding */
+  /* Compact cards — keep subtle card feel */
   .sched-class-card {
-    background: none !important;
-    border: none !important;
-    border-radius: 0;
-    padding: 2px 0;
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 6px;
+    padding: 5px 8px;
     min-width: auto;
     max-width: none;
-    flex: 0 0 auto;
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
+    flex: 0 1 auto;
     box-shadow: none !important;
     transform: none !important;
     overflow: visible;
+    position: relative;
   }
 
   .sched-class-card::before {
-    display: none;
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 2px;
+    height: 100%;
+    background: #06b6d4;
+    opacity: 0.6;
+    border-radius: 2px 0 0 2px;
   }
 
   .sched-class-time {
-    color: #111 !important;
-    font-size: 10px;
+    color: #06b6d4 !important;
+    font-size: 9px;
     font-weight: 700;
-    margin-bottom: 0;
+    margin-bottom: 2px;
     white-space: nowrap;
     letter-spacing: 0;
   }
 
   .sched-class-title {
-    color: #111 !important;
-    font-size: 11px;
+    color: #fff !important;
+    font-size: 10px;
     font-weight: 600;
-    margin-bottom: 0;
+    margin-bottom: 2px;
     line-height: 1.3;
   }
 
   .sched-class-instructor {
-    color: #555 !important;
-    font-size: 10px;
-    gap: 0;
+    color: rgba(255, 255, 255, 0.5) !important;
+    font-size: 9px;
+    gap: 4px;
   }
 
-  /* Hide avatars in print */
-  .sched-instructor-pic,
+  /* Small avatars in print */
+  .sched-instructor-pic, .sched-instructor-avatar-mini {
+    width: 14px !important;
+    height: 14px !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  }
+
   .sched-instructor-avatar-mini {
-    display: none !important;
+    font-size: 8px !important;
+    background: rgba(6, 182, 212, 0.15) !important;
+    color: #06b6d4 !important;
   }
 
   .sched-instructor-name {
     font-weight: 400;
-    font-size: 10px;
-  }
-
-  .sched-instructor-name::before {
-    content: '/ ';
-    color: #999;
+    font-size: 9px;
   }
 
   /* Compact footer */
   .sched-footer {
-    margin-top: 16px;
+    margin-top: 14px;
     padding: 8px 0 0 0;
-    border-top: 1px solid #999;
-    font-size: 9px;
-    color: #888 !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 8px;
+    color: rgba(255, 255, 255, 0.3) !important;
     line-height: 1.4;
   }
 
   .sched-footer p {
-    margin: 2px 0;
+    margin: 1px 0;
   }
 
   .sched-empty {
-    color: #666 !important;
-    font-size: 13px;
+    color: rgba(255, 255, 255, 0.4) !important;
+    font-size: 12px;
     padding: 30px 0;
   }
 }
