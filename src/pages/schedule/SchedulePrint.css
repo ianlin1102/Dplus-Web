@@ -1,0 +1,242 @@
+/* SchedulePrint.css - Print-optimized monthly class schedule */
+
+.sched-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  color: #1a1a1a;
+  background: #ffffff;
+  min-height: 100vh;
+}
+
+.sched-controls {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+/* Month picker - year arrows + label */
+.sched-month-picker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.sched-year-btn {
+  background: none;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 32px;
+  height: 32px;
+  font-size: 18px;
+  cursor: pointer;
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sched-year-btn:hover {
+  background: #f0f0f0;
+}
+
+.sched-year-label {
+  font-size: 18px;
+  font-weight: bold;
+  font-family: sans-serif;
+  min-width: 60px;
+  text-align: center;
+}
+
+/* Month tabs */
+.sched-month-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.sched-month-tab {
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-family: sans-serif;
+  cursor: pointer;
+  color: #555;
+  transition: all 0.15s;
+}
+
+.sched-month-tab:hover {
+  background: #e8e8e8;
+}
+
+.sched-month-tab.active {
+  background: #1a1a1a;
+  color: #fff;
+  border-color: #1a1a1a;
+}
+
+.sched-print-btn {
+  background: #06b6d4;
+  color: white;
+  border: none;
+  padding: 12px 32px;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.sched-print-btn:hover {
+  background: #0891b2;
+}
+
+.sched-loading, .sched-error {
+  text-align: center;
+  padding: 60px 20px;
+  font-size: 16px;
+  color: #666;
+}
+
+.sched-error { color: #ef4444; }
+
+/* Header */
+.sched-header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #1a1a1a;
+}
+
+.sched-studio-name {
+  font-size: 24px;
+  font-weight: bold;
+  margin: 0 0 4px 0;
+}
+
+.sched-title {
+  font-size: 16px;
+  font-weight: normal;
+  color: #444;
+  margin: 0 0 8px 0;
+}
+
+.sched-month {
+  font-size: 14px;
+  color: #666;
+}
+
+/* Body */
+.sched-empty {
+  text-align: center;
+  color: #888;
+  font-size: 16px;
+  padding: 40px 0;
+}
+
+/* Day row */
+.sched-day-row {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.sched-day-label {
+  width: 120px;
+  flex-shrink: 0;
+  font-weight: bold;
+  font-size: 14px;
+  padding-top: 8px;
+  color: #333;
+}
+
+.sched-classes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  flex: 1;
+}
+
+/* Class card */
+.sched-class-card {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 8px 12px;
+  min-width: 160px;
+  max-width: 220px;
+}
+
+.sched-class-time {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 2px;
+}
+
+.sched-class-title {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.sched-class-instructor {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #555;
+}
+
+.sched-instructor-pic {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.sched-instructor-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Footer */
+.sched-footer {
+  margin-top: 30px;
+  padding-top: 16px;
+  border-top: 1px solid #ccc;
+  font-size: 12px;
+  color: #888;
+  text-align: center;
+  font-style: italic;
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .sched-page {
+    padding: 0;
+    margin: 0;
+    max-width: none;
+  }
+
+  body {
+    background: white;
+  }
+
+  .sched-day-row {
+    break-inside: avoid;
+  }
+
+  .sched-class-card {
+    break-inside: avoid;
+  }
+}
