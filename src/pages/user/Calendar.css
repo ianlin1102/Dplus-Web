@@ -36,6 +36,12 @@
   margin: 0;
 }
 
+.calendar-header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
 /* 月历选择按钮 */
 .month-picker-btn {
   display: flex;
@@ -505,7 +511,7 @@ body.light .empty-state {
    Legend
    ============================================ */
 
-.schedule-legend {
+.calendar-legend {
   display: flex;
   gap: 24px;
   justify-content: center;
@@ -514,7 +520,7 @@ body.light .empty-state {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-body.light .schedule-legend {
+body.light .calendar-legend {
   border-color: rgba(0, 0, 0, 0.1);
 }
 
@@ -650,7 +656,7 @@ body.light .legend-item {
     height: 40px;
   }
 
-  .schedule-legend {
+  .calendar-legend {
     gap: 16px;
     padding-top: 16px;
   }

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, memo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CalendarDays, ChevronLeft, ChevronRight, X, CalendarOff } from 'lucide-react'
+import { CalendarDays, ChevronLeft, ChevronRight, X, CalendarOff, Printer } from 'lucide-react'
 import { useLanguage } from '../../i18n/LanguageContext'
 import { getMeetListByWeek, dateUtils } from '../../services/meetService'
 import { getTempDownloadUrl } from '../../utils/cloudUrlHelper'
@@ -595,13 +595,22 @@ function Calendar() {
       <div className="calendar-container">
         <div className="calendar-header">
           <h1 className="calendar-title">{t('calendar.title')}</h1>
-          <button
-            className="month-picker-btn"
-            onClick={() => setShowMonthPicker(true)}
-            title={language === 'zh' ? '选择日期' : 'Select Date'}
-          >
-            <CalendarDays size={24} />
-          </button>
+          <div className="calendar-header-actions">
+            <button
+              className="month-picker-btn"
+              onClick={() => navigate('/schedule')}
+              title={language === 'zh' ? '月度课程表' : 'Monthly Schedule'}
+            >
+              <Printer size={24} />
+            </button>
+            <button
+              className="month-picker-btn"
+              onClick={() => setShowMonthPicker(true)}
+              title={language === 'zh' ? '选择日期' : 'Select Date'}
+            >
+              <CalendarDays size={24} />
+            </button>
+          </div>
         </div>
 
         {/* 周选择按钮 */}
@@ -710,7 +719,7 @@ function Calendar() {
         </div>
 
         {/* 状态说明 */}
-        <div className="schedule-legend">
+        <div className="calendar-legend">
           <div className="legend-item">
             <span className="legend-dot available" />
             <span>{t('calendar.legendAvailable')}</span>

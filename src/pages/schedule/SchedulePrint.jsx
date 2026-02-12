@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import './SchedulePrint.css'
 
 const CLOUD_FUNCTION_URL = 'https://cloud1-6gnd02he13c1ff2e-1380655578.ap-shanghai.app.tcloudbase.com/cloud'
@@ -63,6 +63,7 @@ function processScheduleData(meets) {
 
 export default function SchedulePrint() {
   const { yearMonth: paramYM } = useParams()
+  const navigate = useNavigate()
   const [yearMonth, setYearMonth] = useState(paramYM || getDefaultYearMonth())
   const [days, setDays] = useState([])
   const [loading, setLoading] = useState(true)
@@ -133,11 +134,20 @@ export default function SchedulePrint() {
   return (
     <div className="sched-page">
       <div className="sched-controls no-print">
-        <div className="sched-month-picker">
-          <button className="sched-year-btn" onClick={() => switchYear(-1)}>&lsaquo;</button>
-          <span className="sched-year-label">{currentYear}</span>
-          <button className="sched-year-btn" onClick={() => switchYear(1)}>&rsaquo;</button>
+        <div className="sched-top-bar">
+          <button onClick={() => navigate(-1)} className="sched-back-btn">
+            &larr; Back
+          </button>
+          <div className="sched-month-picker">
+            <button className="sched-year-btn" onClick={() => switchYear(-1)}>&lsaquo;</button>
+            <span className="sched-year-label">{currentYear}</span>
+            <button className="sched-year-btn" onClick={() => switchYear(1)}>&rsaquo;</button>
+          </div>
+          <button onClick={() => window.print()} className="sched-print-btn">
+            Print PDF
+          </button>
         </div>
+        
         <div className="sched-month-tabs">
           {MONTH_LABELS.map((label, i) => (
             <button
@@ -147,9 +157,6 @@ export default function SchedulePrint() {
             >{label}</button>
           ))}
         </div>
-        <button onClick={() => window.print()} className="sched-print-btn">
-          Print / Save as PDF
-        </button>
       </div>
 
       <div className="sched-content">
@@ -159,8 +166,20 @@ export default function SchedulePrint() {
           <div className="sched-month">{formatMonthTitle(yearMonth)}</div>
         </div>
 
-        {loading && <div className="sched-loading">Loading...</div>}
-        {error && <div className="sched-error">{error}</div>}
+        {loading && (
+          <div className="sched-loading">
+            <div className="sched-spinner"></div>
+            <span>Synchronizing Schedule Data...</span>
+          </div>
+        )}
+        
+        {error && (
+          <div className="sched-error">
+            <div className="sched-error-icon">!</div>
+            <span>{error}</span>
+            <button onClick={() => loadSchedule()} className="sched-retry-btn">Retry</button>
+          </div>
+        )}
 
         {!loading && !error && (
           <div className="sched-body">
@@ -178,13 +197,17 @@ export default function SchedulePrint() {
                       </div>
                       <div className="sched-class-title">{cls.title}</div>
                       <div className="sched-class-instructor">
-                        {cls.instructorPic && (
+                        {cls.instructorPic ? (
                           <img
                             src={cls.instructorPic}
                             alt=""
                             className="sched-instructor-pic"
                             onError={e => { e.target.style.display = 'none' }}
                           />
+                        ) : (
+                          <div className="sched-instructor-avatar-mini">
+                            {cls.instructorName?.charAt(0) || 'D'}
+                          </div>
                         )}
                         <span className="sched-instructor-name">{cls.instructorName}</span>
                       </div>
@@ -198,8 +221,10 @@ export default function SchedulePrint() {
 
         <div className="sched-footer">
           <p>Schedule is subject to change. Please check the latest information before booking.</p>
+          <p>© {new Date().getFullYear()} Dplus Dance Studio. All Rights Reserved.</p>
         </div>
       </div>
     </div>
   )
 }
+
