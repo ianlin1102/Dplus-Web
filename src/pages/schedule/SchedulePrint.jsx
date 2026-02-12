@@ -12,6 +12,31 @@ const CLOUD_FUNCTION_URL = 'https://cloud1-6gnd02he13c1ff2e-1380655578.ap-shangh
 
 const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
+const I18N = {
+  en: {
+    back: 'Back',
+    printPdf: 'Print PDF',
+    title: 'Monthly Class Schedule',
+    loading: 'Synchronizing Schedule Data...',
+    retry: 'Retry',
+    empty: 'No classes scheduled this month.',
+    footer: 'Schedule is subject to change. Please check the latest information before booking.',
+    copyright: 'Dplus Dance Studio. All Rights Reserved.',
+    instructor: 'Instructor',
+  },
+  zh: {
+    back: '返回',
+    printPdf: '打印 PDF',
+    title: '月度课程表',
+    loading: '正在同步课程数据...',
+    retry: '重试',
+    empty: '本月暂无课程安排',
+    footer: '课程安排可能会有变动，请预约前确认最新信息。',
+    copyright: 'Dplus 舞蹈工作室 版权所有',
+    instructor: '教师',
+  }
+}
+
 function getDefaultYearMonth() {
   const now = new Date()
   const y = now.getFullYear()
@@ -27,15 +52,22 @@ function getMonthRange(yearMonth) {
   return { startDate, endDate }
 }
 
-function formatMonthTitle(yearMonth) {
+function formatMonthTitle(yearMonth, lang) {
   const [y, m] = yearMonth.split('-').map(Number)
+  if (lang === 'zh') {
+    return `${y}年${m}月`
+  }
   const d = new Date(y, m - 1, 1)
   return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long' })
 }
 
-function formatDayLabel(dateStr) {
+function formatDayLabel(dateStr, lang) {
   const [y, m, d] = dateStr.split('-').map(Number)
   const date = new Date(y, m - 1, d)
+  if (lang === 'zh') {
+    const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+    return `${m}月${d}日 ${weekdays[date.getDay()]}`
+  }
   return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
 }
 
@@ -56,7 +88,6 @@ function processScheduleData(meets) {
   }
   return Object.keys(dayMap).sort().map(date => ({
     date,
-    label: formatDayLabel(date),
     classes: dayMap[date].sort((a, b) => (a.start || '').localeCompare(b.start || ''))
   }))
 }
@@ -68,6 +99,9 @@ export default function SchedulePrint() {
   const [days, setDays] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [lang, setLang] = useState('en')
+
+  const t = I18N[lang]
 
   const currentYear = parseInt(yearMonth.split('-')[0])
   const currentMonth = parseInt(yearMonth.split('-')[1])
@@ -89,7 +123,6 @@ export default function SchedulePrint() {
   async function loadSchedule() {
     const cacheKey = `sched_print_${yearMonth}`
     try {
-      // Check localStorage cache (1 hour)
       const cached = localStorage.getItem(cacheKey)
       if (cached) {
         const { data, ts } = JSON.parse(cached)
@@ -136,18 +169,26 @@ export default function SchedulePrint() {
       <div className="sched-controls no-print">
         <div className="sched-top-bar">
           <button onClick={() => navigate(-1)} className="sched-back-btn">
-            &larr; Back
+            &larr; {t.back}
           </button>
-          <div className="sched-month-picker">
-            <button className="sched-year-btn" onClick={() => switchYear(-1)}>&lsaquo;</button>
-            <span className="sched-year-label">{currentYear}</span>
-            <button className="sched-year-btn" onClick={() => switchYear(1)}>&rsaquo;</button>
+          <div className="sched-top-bar-right">
+            <button
+              className="sched-lang-btn"
+              onClick={() => setLang(prev => prev === 'en' ? 'zh' : 'en')}
+            >
+              {lang === 'en' ? '中文' : 'EN'}
+            </button>
+            <div className="sched-month-picker">
+              <button className="sched-year-btn" onClick={() => switchYear(-1)}>&lsaquo;</button>
+              <span className="sched-year-label">{currentYear}</span>
+              <button className="sched-year-btn" onClick={() => switchYear(1)}>&rsaquo;</button>
+            </div>
+            <button onClick={() => window.print()} className="sched-print-btn">
+              {t.printPdf}
+            </button>
           </div>
-          <button onClick={() => window.print()} className="sched-print-btn">
-            Print PDF
-          </button>
         </div>
-        
+
         <div className="sched-month-tabs">
           {MONTH_LABELS.map((label, i) => (
             <button
@@ -162,33 +203,33 @@ export default function SchedulePrint() {
       <div className="sched-content">
         <div className="sched-header">
           <h1 className="sched-studio-name">Dplus Dance Studio</h1>
-          <h2 className="sched-title">Monthly Class Schedule</h2>
-          <div className="sched-month">{formatMonthTitle(yearMonth)}</div>
+          <h2 className="sched-title">{t.title}</h2>
+          <div className="sched-month">{formatMonthTitle(yearMonth, lang)}</div>
         </div>
 
         {loading && (
           <div className="sched-loading">
             <div className="sched-spinner"></div>
-            <span>Synchronizing Schedule Data...</span>
+            <span>{t.loading}</span>
           </div>
         )}
-        
+
         {error && (
           <div className="sched-error">
             <div className="sched-error-icon">!</div>
             <span>{error}</span>
-            <button onClick={() => loadSchedule()} className="sched-retry-btn">Retry</button>
+            <button onClick={() => loadSchedule()} className="sched-retry-btn">{t.retry}</button>
           </div>
         )}
 
         {!loading && !error && (
           <div className="sched-body">
             {days.length === 0 && (
-              <p className="sched-empty">No classes scheduled this month.</p>
+              <p className="sched-empty">{t.empty}</p>
             )}
             {days.map(day => (
               <div key={day.date} className="sched-day-row">
-                <div className="sched-day-label">{day.label}</div>
+                <div className="sched-day-label">{formatDayLabel(day.date, lang)}</div>
                 <div className="sched-classes">
                   {day.classes.map((cls, i) => (
                     <div key={i} className="sched-class-card">
@@ -220,11 +261,10 @@ export default function SchedulePrint() {
         )}
 
         <div className="sched-footer">
-          <p>Schedule is subject to change. Please check the latest information before booking.</p>
-          <p>© {new Date().getFullYear()} Dplus Dance Studio. All Rights Reserved.</p>
+          <p>{t.footer}</p>
+          <p>&copy; {new Date().getFullYear()} {t.copyright}</p>
         </div>
       </div>
     </div>
   )
 }
-
