@@ -408,6 +408,140 @@
   box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
 }
 
+/* ============================================
+   Light Mode 亮色模式
+   ============================================ */
+
+body.light .user-terms-page {
+  background-color: #f8f9fa;
+  background-image:
+    linear-gradient(to right, rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+  color: rgba(0, 0, 0, 0.87);
+}
+
+body.light .user-terms-page .loading-state,
+body.light .user-terms-page .success-state {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+body.light .user-terms-page .terms-header {
+  background: rgba(255, 255, 255, 0.9);
+  border-bottom-color: rgba(0, 0, 0, 0.1);
+}
+
+body.light .user-terms-page .back-btn {
+  border-color: rgba(0, 0, 0, 0.15);
+  color: rgba(0, 0, 0, 0.6);
+}
+
+body.light .user-terms-page .back-btn:hover {
+  background: rgba(6, 182, 212, 0.08);
+  color: #0891b2;
+}
+
+body.light .user-terms-page .terms-header h1 {
+  color: #1a1a1a;
+  text-shadow: none;
+}
+
+body.light .user-terms-page .terms-version-info {
+  background: rgba(0, 0, 0, 0.02);
+  border-bottom-color: rgba(0, 0, 0, 0.06);
+}
+
+body.light .user-terms-page .terms-document-header {
+  border-bottom-color: rgba(0, 0, 0, 0.1);
+}
+
+body.light .user-terms-page .terms-document-subtitle {
+  color: rgba(0, 0, 0, 0.45);
+}
+
+body.light .user-terms-page .terms-document-intro {
+  color: rgba(0, 0, 0, 0.65);
+}
+
+body.light .user-terms-page .terms-section {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+body.light .user-terms-page .section-title {
+  color: #1a1a1a;
+  border-bottom-color: rgba(0, 0, 0, 0.1);
+}
+
+body.light .user-terms-page .section-content {
+  color: rgba(0, 0, 0, 0.65);
+}
+
+body.light .user-terms-page .agree-section {
+  background: rgba(255, 255, 255, 0.95);
+  border-top-color: rgba(6, 182, 212, 0.25);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+}
+
+body.light .user-terms-page .checkbox-label {
+  color: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+body.light .user-terms-page .checkbox-label:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+body.light .user-terms-page .name-label {
+  color: rgba(0, 0, 0, 0.45);
+}
+
+body.light .user-terms-page .name-input {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.12);
+  color: #1a1a1a;
+}
+
+body.light .user-terms-page .name-input::placeholder {
+  color: rgba(0, 0, 0, 0.25);
+}
+
+body.light .user-terms-page .name-input:focus {
+  background: rgba(6, 182, 212, 0.03);
+}
+
+body.light .user-terms-page .name-input:disabled {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+body.light .user-terms-page .submit-btn:disabled {
+  border-color: rgba(0, 0, 0, 0.1);
+  color: rgba(0, 0, 0, 0.25);
+}
+
+body.light .user-terms-page .already-agreed span {
+  color: rgba(0, 0, 0, 0.8);
+}
+
+body.light .user-terms-page .return-btn {
+  border-color: rgba(0, 0, 0, 0.2);
+  color: #1a1a1a;
+}
+
+body.light .user-terms-page .return-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.4);
+  box-shadow: none;
+}
+
+body.light .user-terms-page .terms-content::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+body.light .user-terms-page .terms-content::-webkit-scrollbar-thumb {
+  background: rgba(6, 182, 212, 0.25);
+}
+
 /* Responsive */
 @media (max-width: 640px) {
   .user-terms-page .terms-header {

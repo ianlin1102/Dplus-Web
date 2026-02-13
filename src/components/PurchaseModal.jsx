@@ -104,7 +104,7 @@ const PurchaseModal = ({ isOpen, onClose, card, onConfirm, isPurchasing }) => {
             </div>
             <div className="zelle-account">
               <span className="account-label">{texts.zelleAccount}:</span>
-              <span className="account-value">smartbeauty@example.com</span>
+              <span className="account-value">Dplus@example.com</span>
             </div>
           </div>
         </div>

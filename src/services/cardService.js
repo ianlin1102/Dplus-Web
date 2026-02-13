@@ -282,7 +282,7 @@ export const createPurchaseOrder = async (params) => {
     await initDatabase()
     const db = getDatabase()
 
-    const { cardId, userId, userName, userPhone, paymentMethod, cardInfo } = params
+    const { cardId, userId, userName, userPhone, paymentMethod, cardInfo, cardTermsAgreed, cardTermsTime } = params
 
     const purchaseId = generatePurchaseId()
     const now = Date.now()
@@ -304,6 +304,8 @@ export const createPurchaseOrder = async (params) => {
       PURCHASE_UPDATE_TIME: now,                   // 更新时间
       PURCHASE_CONFIRM_TIME: 0,                    // 确认时间
       PURCHASE_REMARK: '',                         // 备注
+      ORDER_CARD_TERMS_AGREED: cardTermsAgreed || false,   // 是否同意卡项条款
+      ORDER_CARD_TERMS_TIME: cardTermsTime || 0,           // 同意卡项条款时间戳
     }
 
     // 保存到 ax_purchase_history 集合

@@ -201,6 +201,8 @@ function CardStore() {
         userId: user?.id || '',
         userName: user?.name || '',
         userPhone: '',
+        cardTermsAgreed: true,
+        cardTermsTime: Date.now(),
       })
 
       setCurrentPurchaseId(result.purchaseId)
@@ -340,7 +342,7 @@ function CardStore() {
               <p>{language === 'zh' ? '转账后上传截图凭证，我们会在24小时内为您充值' : 'Upload screenshot after transfer. We will credit your account within 24 hours.'}</p>
               <div className="zelle-account-info">
                 <span>{language === 'zh' ? '收款账号' : 'Account'}:</span>
-                <code>smartbeauty@example.com</code>
+                <code>Dplus@example.com</code>
               </div>
             </div>
           </div>

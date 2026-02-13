@@ -116,13 +116,15 @@ export const beforeJoin = async (meetId, timeMark, day = null) => {
  * @param {Array} forms - 表单数据
  * @param {string} cardId - 卡项 ID（可选）
  */
-export const submitJoin = async (meetId, timeMark, forms = [], cardId = '') => {
+export const submitJoin = async (meetId, timeMark, forms = [], cardId = '', termsInfo = {}) => {
   try {
     const result = await callCloudRouteHTTP('meet/join', {
       meetId,
       timeMark,
       forms,
-      cardId
+      cardId,
+      bookingTermsAgreed: termsInfo.bookingTermsAgreed || false,
+      bookingTermsTime: termsInfo.bookingTermsTime || 0
     });
     return result;
   } catch (error) {

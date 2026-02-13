@@ -230,6 +230,73 @@
   background: rgba(138, 43, 226, 0.5);
 }
 
+/* ============================================
+   Light Mode 亮色模式
+   ============================================ */
+
+body.light .disclaimer-overlay {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+body.light .disclaimer-modal {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(248, 248, 252, 0.98));
+  border-color: rgba(138, 43, 226, 0.2);
+  box-shadow: 0 0 30px rgba(138, 43, 226, 0.1);
+}
+
+body.light .disclaimer-header {
+  border-bottom-color: rgba(0, 0, 0, 0.1);
+  background: rgba(138, 43, 226, 0.05);
+}
+
+body.light .header-title {
+  color: #1a1a1a;
+}
+
+body.light .header-subtitle {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+body.light .close-button {
+  background: rgba(0, 0, 0, 0.05);
+  color: rgba(0, 0, 0, 0.5);
+}
+
+body.light .close-button:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: #1a1a1a;
+}
+
+body.light .disclaimer-section .section-title {
+  color: #0891b2;
+  border-bottom-color: rgba(8, 145, 178, 0.2);
+}
+
+body.light .section-list li {
+  color: rgba(0, 0, 0, 0.7);
+}
+
+body.light .scroll-hint {
+  background: linear-gradient(to bottom, transparent, rgba(138, 43, 226, 0.1));
+  color: rgba(0, 0, 0, 0.5);
+}
+
+body.light .disclaimer-footer {
+  border-top-color: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.03);
+}
+
+body.light .btn-cancel {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.15);
+  color: rgba(0, 0, 0, 0.6);
+}
+
+body.light .btn-cancel:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: #1a1a1a;
+}
+
 /* Responsive */
 @media (max-width: 640px) {
   .disclaimer-overlay {

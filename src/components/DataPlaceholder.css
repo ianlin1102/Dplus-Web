@@ -216,6 +216,33 @@
   margin: 0;
 }
 
+/* Light mode overrides */
+body.light .shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.04) 0%,
+    rgba(0, 0, 0, 0.08) 50%,
+    rgba(0, 0, 0, 0.04) 100%
+  );
+  background-size: 200% 100%;
+}
+
+body.light .instructor-placeholder,
+body.light .ranking-placeholder,
+body.light .card-placeholder,
+body.light .list-placeholder {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+body.light .message-text {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+body.light .retry-info {
+  color: rgba(0, 0, 0, 0.35);
+}
+
 /* ========== 响应式 ========== */
 @media (max-width: 768px) {
   .instructor-placeholder__avatar {

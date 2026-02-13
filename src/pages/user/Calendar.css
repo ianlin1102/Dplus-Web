@@ -80,6 +80,10 @@ body.light .month-picker-btn {
   padding: 16px;
 }
 
+body.light .month-picker-overlay {
+  background: rgba(0, 0, 0, 0.4);
+}
+
 .month-picker-modal {
   background: #1a1a2e;
   border-radius: 16px;
@@ -455,6 +459,12 @@ body.light .meet-course-info {
   border: 2px solid rgba(255, 255, 255, 0.1);
 }
 
+body.light .meet-card-avatar img,
+body.light .meet-card-avatar .cloud-image-fallback,
+body.light .meet-card-avatar .cloud-image-placeholder {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
 /* ============================================
    Loading & Empty States
    ============================================ */
@@ -724,16 +734,28 @@ body.light .legend-item {
   margin-bottom: 1.5rem;
 }
 
+body.light .empty-state .empty-icon {
+  color: rgba(0, 0, 0, 0.25);
+}
+
 .empty-state .empty-title {
   font-size: 1.1rem;
   color: rgba(255, 255, 255, 0.7);
   margin: 0 0 0.5rem;
 }
 
+body.light .empty-state .empty-title {
+  color: rgba(0, 0, 0, 0.6);
+}
+
 .empty-state .empty-hint {
   font-size: 0.9rem;
   color: rgba(255, 255, 255, 0.4);
   margin: 0;
+}
+
+body.light .empty-state .empty-hint {
+  color: rgba(0, 0, 0, 0.4);
 }
 
 /* ============================================

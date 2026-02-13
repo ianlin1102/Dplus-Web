@@ -245,7 +245,10 @@ const BookingConfirm = () => {
       }
 
       // 提交预约
-      const result = await submitJoin(meetId, timeMark, [], needCard ? selectedCardId : '');
+      const result = await submitJoin(meetId, timeMark, [], needCard ? selectedCardId : '', {
+        bookingTermsAgreed: true,
+        bookingTermsTime: Date.now()
+      });
 
       if (result.code !== 200) {
         throw new Error(result.msg || '预约失败');

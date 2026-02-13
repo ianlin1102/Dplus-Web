@@ -501,3 +501,41 @@ body.light .purchase-footer .btn-cancel:hover:not(:disabled) {
   background: rgba(0, 0, 0, 0.1);
   color: #1a1a1a;
 }
+
+body.light .method-item {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+body.light .method-item:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+body.light .method-item.selected {
+  background: rgba(8, 145, 178, 0.08);
+  border-color: #0891b2;
+  box-shadow: 0 0 15px rgba(8, 145, 178, 0.15);
+}
+
+body.light .method-icon {
+  background: rgba(0, 0, 0, 0.05);
+  color: rgba(0, 0, 0, 0.6);
+}
+
+body.light .method-item.selected .method-icon {
+  background: rgba(8, 145, 178, 0.15);
+  color: #0891b2;
+}
+
+body.light .method-name {
+  color: #1a1a1a;
+}
+
+body.light .method-desc {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+body.light .method-check {
+  background: #0891b2;
+}

@@ -69,6 +69,33 @@
   transform: translateX(4px);
 }
 
+/* Light mode overrides */
+body.light .instructor-card {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+body.light .instructor-card:hover {
+  border-color: #0891b2;
+  box-shadow: 0 4px 12px rgba(8, 145, 178, 0.15);
+}
+
+body.light .instructor-card__name {
+  color: #1a1a1a;
+}
+
+body.light .instructor-card__desc {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+body.light .instructor-card__arrow {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+body.light .instructor-card:hover .instructor-card__arrow {
+  color: #0891b2;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .instructor-card {

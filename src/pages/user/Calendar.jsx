@@ -635,57 +635,6 @@ function Calendar() {
           </div>
         </div>
 
-        {/* 月历弹窗 */}
-        {showMonthPicker && (
-          <div className="month-picker-overlay" onClick={() => setShowMonthPicker(false)}>
-            <div className="month-picker-modal" onClick={(e) => e.stopPropagation()}>
-              <div className="month-picker-header">
-                <button className="month-nav-btn" onClick={goToPrevMonth}>
-                  <ChevronLeft size={20} />
-                </button>
-                <span className="month-picker-title">
-                  {monthNames[pickerMonth]} {pickerYear}
-                </span>
-                <button className="month-nav-btn" onClick={goToNextMonth}>
-                  <ChevronRight size={20} />
-                </button>
-                <button className="month-close-btn" onClick={() => setShowMonthPicker(false)}>
-                  <X size={20} />
-                </button>
-              </div>
-
-              <div className="month-picker-weekdays">
-                {weekdayNames.map((day) => (
-                  <span key={day} className="weekday-label">{day}</span>
-                ))}
-              </div>
-
-              <div className="month-picker-days">
-                {monthDays.map((dayInfo, idx) => {
-                  const isToday = dayInfo.date &&
-                    dayInfo.date.toDateString() === new Date().toDateString()
-                  // 使用本地时间格式化，避免 UTC 时区问题
-                  const dayDateStr = dayInfo.date ? formatLocalDate(dayInfo.date) : ''
-                  const isInRange = dayInfo.date &&
-                    dayDateStr >= weekButtons[0].startDate &&
-                    dayDateStr <= weekButtons[7].endDate
-
-                  return (
-                    <button
-                      key={idx}
-                      className={`month-day ${!dayInfo.day ? 'empty' : ''} ${isToday ? 'today' : ''} ${!isInRange && dayInfo.day ? 'out-of-range' : ''}`}
-                      onClick={() => handleDateSelect(dayInfo)}
-                      disabled={!dayInfo.day || !isInRange}
-                    >
-                      {dayInfo.day}
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* 课程列表 */}
         <div className="meet-list">
           {loading ? (
@@ -734,6 +683,56 @@ function Calendar() {
           </div>
         </div>
       </div>
+
+      {/* 月历弹窗 - 放在 calendar-container 外部以避免 contain:layout 阻止 fixed 覆盖全屏 */}
+      {showMonthPicker && (
+        <div className="month-picker-overlay" onClick={() => setShowMonthPicker(false)}>
+          <div className="month-picker-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="month-picker-header">
+              <button className="month-nav-btn" onClick={goToPrevMonth}>
+                <ChevronLeft size={20} />
+              </button>
+              <span className="month-picker-title">
+                {monthNames[pickerMonth]} {pickerYear}
+              </span>
+              <button className="month-nav-btn" onClick={goToNextMonth}>
+                <ChevronRight size={20} />
+              </button>
+              <button className="month-close-btn" onClick={() => setShowMonthPicker(false)}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="month-picker-weekdays">
+              {weekdayNames.map((day) => (
+                <span key={day} className="weekday-label">{day}</span>
+              ))}
+            </div>
+
+            <div className="month-picker-days">
+              {monthDays.map((dayInfo, idx) => {
+                const isToday = dayInfo.date &&
+                  dayInfo.date.toDateString() === new Date().toDateString()
+                const dayDateStr = dayInfo.date ? formatLocalDate(dayInfo.date) : ''
+                const isInRange = dayInfo.date &&
+                  dayDateStr >= weekButtons[0].startDate &&
+                  dayDateStr <= weekButtons[7].endDate
+
+                return (
+                  <button
+                    key={idx}
+                    className={`month-day ${!dayInfo.day ? 'empty' : ''} ${isToday ? 'today' : ''} ${!isInRange && dayInfo.day ? 'out-of-range' : ''}`}
+                    onClick={() => handleDateSelect(dayInfo)}
+                    disabled={!dayInfo.day || !isInRange}
+                  >
+                    {dayInfo.day}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 预约预览弹窗 */}
       {showPreviewModal && selectedMeet && (

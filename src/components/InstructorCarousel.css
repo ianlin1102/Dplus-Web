@@ -105,6 +105,10 @@ body.light .carousel-item__avatar::before {
   white-space: nowrap;
 }
 
+body.light .carousel-item__name {
+  color: #1a1a1a;
+}
+
 /* 箭头按钮 */
 .carousel-arrow {
   flex-shrink: 0;
