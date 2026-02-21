@@ -16,6 +16,7 @@ import BookingConfirm from './pages/user/BookingConfirm'
 import UserTerms from './pages/terms/UserTerms'
 import TermsPrint from './pages/terms/TermsPrint'
 import SchedulePrint from './pages/schedule/SchedulePrint'
+import ScheduleCalendar from './pages/schedule/ScheduleCalendar'
 
 // Auth Pages
 import Login from './pages/Login'
@@ -88,6 +89,8 @@ function AppContent() {
       <Route path="/terms/print/:id" element={<TermsPrint />} />
 
       {/* Schedule - No layout, no auth, public shareable page */}
+      <Route path="/schedule/calendar/:yearMonth" element={<ScheduleCalendar />} />
+      <Route path="/schedule/calendar" element={<ScheduleCalendar />} />
       <Route path="/schedule/:yearMonth" element={<SchedulePrint />} />
       <Route path="/schedule" element={<SchedulePrint />} />
 

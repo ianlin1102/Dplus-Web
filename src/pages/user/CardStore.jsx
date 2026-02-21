@@ -143,6 +143,9 @@ function CardStore() {
   // 如果 API 返回数据，使用 API 数据；否则使用静态数据作为后备
   const displayCards = hasCards && apiCards.length > 0 ? apiCards : cards[language]
 
+  // 从 API 卡项中提取 Zelle 账号（取第一个有配置的），否则用默认值
+  const storeZelleAccount = (apiCards || []).find(c => c.CARD_PAYMENT_ZELLE)?.CARD_PAYMENT_ZELLE || 'Dplus@example.com'
+
   // 点击购买按钮
   const handleBuyClick = async (card) => {
     // 检查登录状态
@@ -342,7 +345,7 @@ function CardStore() {
               <p>{language === 'zh' ? '转账后上传截图凭证，我们会在24小时内为您充值' : 'Upload screenshot after transfer. We will credit your account within 24 hours.'}</p>
               <div className="zelle-account-info">
                 <span>{language === 'zh' ? '收款账号' : 'Account'}:</span>
-                <code>Dplus@example.com</code>
+                <code>{storeZelleAccount}</code>
               </div>
             </div>
           </div>

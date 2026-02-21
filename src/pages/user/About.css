@@ -9,7 +9,7 @@
 .grid-overlay {
   position: absolute;
   inset: 0;
-  opacity: 0.4;
+  opacity: 0.5;
   pointer-events: none;
 }
 

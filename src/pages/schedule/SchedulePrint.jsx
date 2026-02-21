@@ -5,7 +5,10 @@
  */
 
 import React, { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, Link } from 'react-router-dom'
+import { buildCalendarGrid, exportToExcel } from '../../utils/scheduleExport'
+import { useTheme } from '../../App'
+import CloudImage from '../../components/CloudImage'
 import './SchedulePrint.css'
 
 const CLOUD_FUNCTION_URL = 'https://cloud1-6gnd02he13c1ff2e-1380655578.ap-shanghai.app.tcloudbase.com/cloud'
@@ -23,6 +26,8 @@ const I18N = {
     footer: 'Schedule is subject to change. Please check the latest information before booking.',
     copyright: 'Dplus Dance Studio. All Rights Reserved.',
     instructor: 'Instructor',
+    exportExcel: 'Export Excel',
+    calendarView: 'Calendar View',
   },
   zh: {
     back: '返回',
@@ -34,6 +39,8 @@ const I18N = {
     footer: '课程安排可能会有变动，请预约前确认最新信息。',
     copyright: 'Dplus 舞蹈工作室 版权所有',
     instructor: '教师',
+    exportExcel: '导出 Excel',
+    calendarView: '日历视图',
   }
 }
 
@@ -97,11 +104,7 @@ export default function SchedulePrint() {
   const navigate = useNavigate()
 
   function goBack() {
-    if (window.history.length > 1) {
-      navigate(-1)
-    } else {
-      navigate('/')
-    }
+    navigate('/calendar')
   }
 
   const [yearMonth, setYearMonth] = useState(paramYM || getDefaultYearMonth())
@@ -109,8 +112,15 @@ export default function SchedulePrint() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [lang, setLang] = useState('en')
+  const { isDark, toggleTheme } = useTheme()
+  const theme = isDark ? 'dark' : 'light'
 
   const t = I18N[lang]
+
+  const handleExportExcel = async () => {
+    const cells = buildCalendarGrid(currentYear, currentMonth, days)
+    await exportToExcel(currentYear, currentMonth, cells, lang)
+  }
 
   const currentYear = parseInt(yearMonth.split('-')[0])
   const currentMonth = parseInt(yearMonth.split('-')[1])
@@ -174,13 +184,19 @@ export default function SchedulePrint() {
   }
 
   return (
-    <div className="sched-page">
+    <div className={`sched-page ${theme === 'light' ? 'sched-page--light' : ''}`}>
       <div className="sched-controls no-print">
         <div className="sched-top-bar">
           <button onClick={goBack} className="sched-back-btn">
             &larr; {t.back}
           </button>
           <div className="sched-top-bar-right">
+            <button
+              className="sched-theme-btn"
+              onClick={toggleTheme}
+            >
+              {theme === 'dark' ? '☀ Light' : '☾ Dark'}
+            </button>
             <button
               className="sched-lang-btn"
               onClick={() => setLang(prev => prev === 'en' ? 'zh' : 'en')}
@@ -192,6 +208,12 @@ export default function SchedulePrint() {
               <span className="sched-year-label">{currentYear}</span>
               <button className="sched-year-btn" onClick={() => switchYear(1)}>&rsaquo;</button>
             </div>
+            <Link to={`/schedule/calendar/${yearMonth}`} className="sched-print-btn sched-cal-link">
+              {t.calendarView}
+            </Link>
+            <button onClick={handleExportExcel} className="sched-print-btn sched-excel-btn" disabled={loading || days.length === 0}>
+              {t.exportExcel}
+            </button>
             <button onClick={() => window.print()} className="sched-print-btn">
               {t.printPdf}
             </button>
@@ -248,11 +270,16 @@ export default function SchedulePrint() {
                       <div className="sched-class-title">{cls.title}</div>
                       <div className="sched-class-instructor">
                         {cls.instructorPic ? (
-                          <img
+                          <CloudImage
                             src={cls.instructorPic}
-                            alt=""
+                            alt={cls.instructorName}
                             className="sched-instructor-pic"
-                            onError={e => { e.target.style.display = 'none' }}
+                            fallbackText={cls.instructorName}
+                            fallback={
+                              <div className="sched-instructor-avatar-mini">
+                                {cls.instructorName?.charAt(0) || 'D'}
+                              </div>
+                            }
                           />
                         ) : (
                           <div className="sched-instructor-avatar-mini">

@@ -469,6 +469,21 @@ body.light .account-value {
   color: #1a1a1a;
 }
 
+.zelle-instructions {
+  margin-top: 10px;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 6px;
+  line-height: 1.5;
+}
+
+body.light .zelle-instructions {
+  color: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.04);
+}
+
 body.light .purchase-note {
   color: rgba(0, 0, 0, 0.5);
   background: rgba(0, 0, 0, 0.03);

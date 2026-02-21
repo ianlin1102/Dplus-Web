@@ -128,6 +128,14 @@ body.light .ranking-toggle {
   margin-bottom: 0.5rem;
   z-index: 2;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 /* 第1名 - 粉紫色 */
@@ -250,6 +258,14 @@ body.light .ranking-toggle {
   font-size: 0.9rem;
   font-weight: bold;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.rank-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .rank-name {
@@ -265,6 +281,33 @@ body.light .ranking-toggle {
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--primary-color, #06b6d4);
+}
+
+/* === 我的排名行 (10+1) === */
+.my-rank-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.my-rank-row {
+  background: rgba(6, 182, 212, 0.08);
+  border: 1px solid rgba(6, 182, 212, 0.2);
+  border-radius: 8px;
+}
+
+.rank-num.unranked {
+  font-size: 0.7rem;
+  width: auto;
+  min-width: 32px;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.4));
+}
+
+/* (你) 标签 */
+.is-me-tag {
+  font-size: 0.75rem;
+  color: #06b6d4;
+  margin-left: 2px;
 }
 
 /* 空状态 */
@@ -336,6 +379,23 @@ body.light .empty-text {
   color: rgba(0, 0, 0, 0.4);
 }
 
+body.light .is-me-tag {
+  color: #0891b2;
+}
+
+body.light .my-rank-section {
+  border-top-color: rgba(0, 0, 0, 0.1);
+}
+
+body.light .my-rank-row {
+  background: rgba(6, 182, 212, 0.06);
+  border-color: rgba(6, 182, 212, 0.2);
+}
+
+body.light .rank-num.unranked {
+  color: rgba(0, 0, 0, 0.4);
+}
+
 /* 响应式 */
 @media (max-width: 480px) {
   .ranking-podium {
@@ -377,5 +437,9 @@ body.light .empty-text {
 
   .crown-icon {
     font-size: 1.2rem;
+  }
+
+  .stat-value {
+    font-size: 1.25rem;
   }
 }

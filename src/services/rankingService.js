@@ -11,6 +11,15 @@ export const getCheckInRanking = async (type = 'all', limit = 10) => {
 }
 
 /**
+ * 获取用户签到统计
+ * @param {string} userId - 用户ID
+ * @returns {Promise} API响应 { monthCount, totalCount }
+ */
+export const getUserCheckinStats = async (userId) => {
+  return await callCloudRouteHTTP('checkin/user_stats', { userId })
+}
+
+/**
  * 清除排行榜缓存
  * @returns {Promise} API响应
  */

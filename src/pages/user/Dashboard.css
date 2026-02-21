@@ -116,6 +116,54 @@ body.light .sidebar-nav-item:hover {
   background: rgba(6, 182, 212, 0.1);
 }
 
+.sidebar-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 24px 16px;
+}
+
+.sidebar-control-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sidebar-control-btn:hover {
+  color: #06b6d4;
+  border-color: rgba(6, 182, 212, 0.3);
+}
+
+body.light .sidebar-control-btn {
+  border-color: rgba(0, 0, 0, 0.1);
+  color: rgba(0, 0, 0, 0.45);
+}
+
+body.light .sidebar-control-btn:hover {
+  color: #0891b2;
+  border-color: rgba(8, 145, 178, 0.3);
+}
+
+.mobile-menu-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+body.light .mobile-menu-controls {
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
 .sidebar-footer {
   padding: 24px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -205,7 +253,7 @@ body.light .user-id {
 .grid-overlay {
   position: absolute;
   inset: 0;
-  opacity: 0.2;
+  opacity: 0.5;
   pointer-events: none;
 }
 
@@ -274,90 +322,88 @@ body.light .dashboard-subtitle {
    Level Card
    ============================================ */
 
-.level-card {
-  padding: 24px;
+/* ============================================
+   Role Card
+   ============================================ */
+.role-card {
+  padding: 20px 24px;
+  border-radius: 12px;
+  border: 1px solid var(--role-color, #00f2ff);
   background: rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(6, 182, 212, 0.3);
-  /* backdrop-filter: blur(10px); - GPU 优化：已移除 */
   position: relative;
   overflow: hidden;
-  contain: layout style;
 }
 
-body.light .level-card {
-  background: rgba(255, 255, 255, 0.7);
+.role-card--admin {
+  border-color: rgba(255, 107, 107, 0.4);
+  background: linear-gradient(135deg, rgba(214, 48, 49, 0.1), rgba(255, 107, 107, 0.05)), rgba(0, 0, 0, 0.5);
+}
+.role-card--staff {
+  border-color: rgba(240, 192, 64, 0.4);
+  background: linear-gradient(135deg, rgba(230, 126, 34, 0.1), rgba(240, 192, 64, 0.05)), rgba(0, 0, 0, 0.5);
+}
+.role-card--student {
+  border-color: rgba(0, 242, 255, 0.4);
+  background: linear-gradient(135deg, rgba(0, 200, 214, 0.1), rgba(0, 242, 255, 0.05)), rgba(0, 0, 0, 0.5);
 }
 
-.level-header {
+body.light .role-card--admin {
+  background: linear-gradient(135deg, rgba(214, 48, 49, 0.06), rgba(255, 107, 107, 0.03)), rgba(255, 255, 255, 0.8);
+}
+body.light .role-card--staff {
+  background: linear-gradient(135deg, rgba(230, 126, 34, 0.06), rgba(240, 192, 64, 0.03)), rgba(255, 255, 255, 0.8);
+}
+body.light .role-card--student {
+  background: linear-gradient(135deg, rgba(0, 200, 214, 0.06), rgba(0, 242, 255, 0.03)), rgba(255, 255, 255, 0.8);
+}
+
+.role-card-content {
+  position: relative;
   display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  margin-bottom: 16px;
+  align-items: center;
+  gap: 16px;
 }
 
-.level-label {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  color: #06b6d4;
-  display: block;
-  margin-bottom: 4px;
-}
-
-.level-name {
+.role-card-icon {
   font-size: 28px;
-  font-weight: 900;
-  font-style: italic;
-  margin: 0;
+  color: var(--role-color);
+  text-shadow: 0 0 12px var(--role-color);
+  line-height: 1;
 }
 
-.level-xp {
+body.light .role-card-icon {
+  text-shadow: none;
+}
+
+.role-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.role-card-name {
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+}
+
+body.light .role-card-name {
+  color: #1a1a1a;
+}
+
+.role-card-label {
   font-size: 12px;
-  font-family: monospace;
-  color: rgba(255, 255, 255, 0.5);
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--role-color);
 }
 
-body.light .level-xp {
-  color: rgba(0, 0, 0, 0.5);
+/* Settings page role badge */
+.settings-role-badge {
+  font-weight: 700;
+  letter-spacing: 0.05em;
 }
-
-.level-progress {
-  margin-top: 16px;
-}
-
-.progress-bar {
-  height: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  overflow: hidden;
-  position: relative;
-}
-
-body.light .progress-bar {
-  background: rgba(0, 0, 0, 0.1);
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(to right, #06b6d4, #3b82f6);
-  border-radius: 4px;
-  position: relative;
-  box-shadow: 0 0 15px #06b6d4;
-}
-
-.progress-fill::after {
-  content: '';
-  position: absolute;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  width: 4px;
-  background: white;
-  opacity: 0.6;
-  /* animation: pulse 1s ease-in-out infinite; - GPU 优化：已移除无限动画 */
-}
-
-/* @keyframes pulse - 已移除 */
 
 /* ============================================
    Stats Grid
@@ -410,15 +456,14 @@ body.light .stat-label {
 
 .activity-card {
   padding: 32px;
-  background: rgba(0, 0, 0, 0.4);
+  background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  /* backdrop-filter: blur(10px); - GPU 优化：已移除 */
   contain: layout style;
 }
 
 body.light .activity-card {
-  background: rgba(255, 255, 255, 0.5);
-  border-color: rgba(0, 0, 0, 0.1);
+  background: transparent;
+  border-color: rgba(0, 0, 0, 0.08);
 }
 
 .activity-title {
@@ -448,8 +493,10 @@ body.light .activity-title {
 }
 
 .activity-date {
-  width: 80px;
+  min-width: 110px;
+  margin-right: 16px;
   color: rgba(255, 255, 255, 0.5);
+  flex-shrink: 0;
 }
 
 body.light .activity-date {
@@ -464,6 +511,14 @@ body.light .activity-date {
 
 .activity-item:hover .activity-event {
   color: #06b6d4;
+}
+
+body.light .activity-event {
+  color: #1e293b;
+}
+
+body.light .activity-item:hover .activity-event {
+  color: #0891b2;
 }
 
 .activity-status {
@@ -519,16 +574,6 @@ body.light .stats-title {
 }
 
 body.light .stat-unit {
-  color: rgba(0, 0, 0, 0.4);
-}
-
-.level-hint {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.4);
-  margin: 16px 0 0 0;
-}
-
-body.light .level-hint {
   color: rgba(0, 0, 0, 0.4);
 }
 
@@ -918,12 +963,36 @@ body.light .placeholder-text {
   color: #ef4444;
 }
 
+body.light .status-cyan {
+  color: #0891b2;
+}
+
+body.light .status-pink {
+  color: #c026d3;
+}
+
+body.light .status-green {
+  color: #059669;
+}
+
+body.light .status-yellow {
+  color: #d97706;
+}
+
+body.light .status-red {
+  color: #dc2626;
+}
+
 .activity-price {
   font-size: 12px;
   font-weight: 600;
   color: #d946ef;
   margin-left: auto;
   padding-right: 12px;
+}
+
+body.light .activity-price {
+  color: #a21caf;
 }
 
 /* Color utilities */
@@ -964,18 +1033,6 @@ body.light .placeholder-text {
   }
 
   .dashboard-subtitle {
-    font-size: 11px;
-  }
-
-  .level-card {
-    padding: 16px;
-  }
-
-  .level-name {
-    font-size: 22px;
-  }
-
-  .level-xp {
     font-size: 11px;
   }
 
@@ -1812,25 +1869,14 @@ body.light .empty-bookings {
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  background: rgba(255, 255, 255, 0.05);
+  background: transparent;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: none;
   transition: all 0.2s;
 }
 
-.booking-card:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
-}
-
 body.light .booking-card {
-  background: white;
-  border-color: rgba(0, 0, 0, 0.1);
-}
-
-body.light .booking-card:hover {
-  border-color: rgba(0, 0, 0, 0.2);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  background: transparent;
 }
 
 .booking-card.cancelled {
@@ -1932,32 +1978,26 @@ body.light .booking-cancel-hint {
 }
 
 .booking-status.pending {
-  background: rgba(234, 179, 8, 0.2);
   color: #eab308;
 }
 
 .booking-status.confirmed {
-  background: rgba(34, 197, 94, 0.2);
   color: #22c55e;
 }
 
 .booking-status.checkedin {
-  background: rgba(6, 182, 212, 0.2);
   color: #06b6d4;
 }
 
 .booking-status.cancelled {
-  background: rgba(156, 163, 175, 0.2);
   color: #9ca3af;
 }
 
 .booking-status.noshow {
-  background: rgba(248, 113, 113, 0.2);
   color: #f87171;
 }
 
 .booking-status.expired {
-  background: rgba(156, 163, 175, 0.15);
   color: #6b7280;
 }
 

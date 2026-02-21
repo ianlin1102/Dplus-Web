@@ -35,6 +35,10 @@ const PurchaseModal = ({ isOpen, onClose, card, onConfirm, isPurchasing }) => {
                     card.CARD_BALANCE ? `$${card.CARD_BALANCE}${language === 'zh' ? '余额' : ' balance'}` :
                     (card.value || '')
 
+  // Zelle 账号：优先使用卡项配置，否则用默认值
+  const zelleAccount = card.CARD_PAYMENT_ZELLE || 'Dplus@example.com'
+  const zelleInstructions = card.CARD_PAYMENT_INSTRUCTIONS || ''
+
   const handleConfirm = () => {
     // 直接使用 zelle 支付方式
     onConfirm?.('zelle')
@@ -104,8 +108,11 @@ const PurchaseModal = ({ isOpen, onClose, card, onConfirm, isPurchasing }) => {
             </div>
             <div className="zelle-account">
               <span className="account-label">{texts.zelleAccount}:</span>
-              <span className="account-value">Dplus@example.com</span>
+              <span className="account-value">{zelleAccount}</span>
             </div>
+            {zelleInstructions && (
+              <div className="zelle-instructions">{zelleInstructions}</div>
+            )}
           </div>
         </div>
 

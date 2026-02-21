@@ -1,38 +1,50 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Routes, Route, useLocation } from 'react-router-dom'
-import { Home, Calendar, CreditCard, Settings, Activity, User, Menu, X, Edit2, Save, Loader2, Clock, XCircle, AlertCircle, CalendarOff, RefreshCw, Info, Coins, CheckCircle, LogOut, Link2, Unlink, Receipt, ShoppingCart, FileText, ChevronRight } from 'lucide-react'
+import { Home, Calendar, CreditCard, Settings, Activity, User, Menu, X, Edit2, Save, Loader2, Clock, XCircle, AlertCircle, CalendarOff, RefreshCw, Info, Coins, CheckCircle, LogOut, Link2, Unlink, ShoppingCart, FileText, ChevronRight, Sun, Moon, Globe } from 'lucide-react'
 import { useLanguage } from '../../i18n/LanguageContext'
+import { useTheme } from '../../App'
 import { useAuth } from '../../contexts/AuthContext'
 import { getMyJoinList, cancelMyJoin, canCancelBooking, formatCancelRule } from '../../services/bookingService'
 import { getMyCards, getPurchaseHistory } from '../../services/cardService'
 import { getMyDetail, editUserBase } from '../../services/api'
 import './Dashboard.css'
 
-// Mock user data from smartbeauty structure
-const userData = {
-  zh: {
-    name: '用户',
-    phone: '138****8888',
-    level: 'VIP会员',
-    points: 0,
-    cards: { totalTimes: 0, totalBalance: 0 },
-    activities: [],
+// 角色配置
+const ROLE_CONFIG = {
+  admin: {
+    zh: '管理员', en: 'Admin',
+    icon: '★',
+    color: '#ff6b6b',
+    gradientStart: '#d63031', gradientEnd: '#ff6b6b',
   },
-  en: {
-    name: 'User',
-    phone: '138****8888',
-    level: 'VIP Member',
-    points: 0,
-    cards: { totalTimes: 0, totalBalance: 0 },
-    activities: [],
+  staff: {
+    zh: '员工', en: 'Staff',
+    icon: '◆',
+    color: '#f0c040',
+    gradientStart: '#e67e22', gradientEnd: '#f0c040',
   },
+  student: {
+    zh: '学员', en: 'Student',
+    icon: '●',
+    color: '#00f2ff',
+    gradientStart: '#00c8d6', gradientEnd: '#00f2ff',
+  },
+}
+
+/** 根据 authUser 推断角色 */
+const getUserRole = (authUser) => {
+  if (authUser?.role === 'admin') {
+    return authUser.type === 1 ? 'admin' : 'staff'
+  }
+  return 'student'
 }
 
 // Dashboard Overview Component
 const DashboardOverview = () => {
   const { t, language } = useLanguage()
   const { user: authUser } = useAuth()
-  const mockUser = userData[language]
+  const userRole = getUserRole(authUser)
+  const roleConfig = ROLE_CONFIG[userRole]
   const [cardStats, setCardStats] = useState({ totalTimes: 0, totalBalance: 0 })
   const [recentBookings, setRecentBookings] = useState([])
   const [recentPurchases, setRecentPurchases] = useState([])
@@ -100,8 +112,24 @@ const DashboardOverview = () => {
       ? { zh: '已签到', en: 'Checked In', type: 'checkin' }
       : (statusMap[booking.JOIN_STATUS] || statusMap[1])
 
+    // Extract numeric date
+    let dateStr = booking.JOIN_MEET_DAY || ''
+    const cnMatch = dateStr.match(/(\d{4})年(\d{1,2})月(\d{1,2})日/)
+    const isoMatch = dateStr.match(/(\d{4})-(\d{1,2})-(\d{1,2})/)
+    const weekMatch = dateStr.match(/[（(](周.)[）)]/)
+    const m = cnMatch || isoMatch
+    if (m) {
+      if (language === 'zh') {
+        // 中文: 3/5 (周四)
+        dateStr = `${parseInt(m[2])}/${parseInt(m[3])}` + (weekMatch ? ` (${weekMatch[1]})` : '')
+      } else {
+        // EN: 2026/3/5
+        dateStr = `${m[1]}/${parseInt(m[2])}/${parseInt(m[3])}`
+      }
+    }
+
     return {
-      date: booking.JOIN_MEET_DAY,
+      date: dateStr,
       event: booking.JOIN_MEET_TITLE,
       status: language === 'zh' ? status.zh : status.en,
       type: status.type
@@ -113,28 +141,22 @@ const DashboardOverview = () => {
       <header className="dashboard-header">
         <div>
           <h1 className="dashboard-title">{t('dashboard.title')}</h1>
-          <p className="dashboard-subtitle">{t('dashboard.welcome')}, {authUser?.name || mockUser.name}</p>
+          <p className="dashboard-subtitle">{t('dashboard.welcome')}, {authUser?.name || (language === 'zh' ? '用户' : 'User')}</p>
         </div>
         <div className="header-date">
-          <span className="date-text">{new Date().toLocaleDateString(language === 'zh' ? 'zh-CN' : 'en-US')}</span>
+          <span className="date-text">{(() => { const d = new Date(); return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}` })()}</span>
         </div>
       </header>
 
-      {/* Member Level Card */}
-      <div className="level-card neon-border-cyan">
-        <div className="level-header">
-          <div>
-            <span className="level-label">{t('dashboard.memberLevel')}</span>
-            <h3 className="level-name">{mockUser.level}</h3>
-          </div>
-          <span className="level-xp">{mockUser.points} {t('dashboard.points')}</span>
-        </div>
-        <div className="level-progress">
-          <div className="progress-bar">
-            <div className="progress-fill" style={{ width: '60%' }}></div>
+      {/* 角色卡片 */}
+      <div className={`role-card role-card--${userRole}`} style={{ '--role-color': roleConfig.color, '--role-gradient-start': roleConfig.gradientStart, '--role-gradient-end': roleConfig.gradientEnd }}>
+        <div className="role-card-content">
+          <span className="role-card-icon">{roleConfig.icon}</span>
+          <div className="role-card-info">
+            <span className="role-card-name">{authUser?.name || (language === 'zh' ? '用户' : 'User')}</span>
+            <span className="role-card-label">{language === 'zh' ? roleConfig.zh : roleConfig.en}</span>
           </div>
         </div>
-        <p className="level-hint">{t('dashboard.upgradeHint')}</p>
       </div>
 
       {/* 卡项汇总 Stats Grid */}
@@ -154,11 +176,6 @@ const DashboardOverview = () => {
               {loading ? '-' : `¥${cardStats.totalBalance}`}
             </span>
             <span className="stat-unit">{language === 'zh' ? '元' : 'CNY'}</span>
-          </div>
-          <div className="stat-card neon-border-green">
-            <span className="stat-label">{t('dashboard.points')}</span>
-            <span className="stat-value text-green">{mockUser.points}</span>
-            <span className="stat-unit">{language === 'zh' ? '分' : 'pts'}</span>
           </div>
         </div>
       </div>
@@ -202,7 +219,6 @@ const DashboardOverview = () => {
       {/* Purchase History */}
       <div className="activity-card">
         <h3 className="activity-title">
-          <Receipt size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }} />
           {language === 'zh' ? '购买记录' : 'Purchase History'}
         </h3>
         <div className="activity-list">
@@ -762,7 +778,8 @@ const GoogleIcon = () => (
 const SettingsPage = () => {
   const { t, language } = useLanguage()
   const { user: authUser, googleEmail, hasGoogleAuth, hasPasswordAuth, canUnlinkGoogle, unlinkGoogle, linkGoogle, loadAuthMethods } = useAuth()
-  const mockUser = userData[language]
+  const userRole = getUserRole(authUser)
+  const roleConfig = ROLE_CONFIG[userRole]
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -1052,8 +1069,6 @@ const SettingsPage = () => {
     city: '所在城市',
     work: '工作单位',
     trade: '行业领域',
-    memberLevel: '会员等级',
-    points: '累计积分',
     linkedAccounts: '账户关联',
     linkGoogle: '关联 Google',
     unlinkGoogle: '取消关联',
@@ -1069,8 +1084,6 @@ const SettingsPage = () => {
     city: 'City',
     work: 'Company',
     trade: 'Industry',
-    memberLevel: 'Member Level',
-    points: 'Total Points',
     linkedAccounts: 'Linked Accounts',
     linkGoogle: 'Link Google',
     unlinkGoogle: 'Unlink',
@@ -1223,12 +1236,10 @@ const SettingsPage = () => {
           )}
         </div>
         <div className="settings-item">
-          <span className="settings-label">{texts.memberLevel}</span>
-          <span className="settings-value">{mockUser.level}</span>
-        </div>
-        <div className="settings-item">
-          <span className="settings-label">{texts.points}</span>
-          <span className="settings-value">{mockUser.points} {language === 'zh' ? '分' : 'pts'}</span>
+          <span className="settings-label">{language === 'zh' ? '角色' : 'Role'}</span>
+          <span className={`settings-role-badge role-badge--${userRole}`} style={{ color: roleConfig.color }}>
+            {roleConfig.icon} {language === 'zh' ? roleConfig.zh : roleConfig.en}
+          </span>
         </div>
       </div>
 
@@ -1315,8 +1326,11 @@ const NavItem = ({ icon: Icon, label, path, isActive, onClick }) => (
 
 function Dashboard() {
   const navigate = useNavigate()
-  const { t, language } = useLanguage()
+  const { t, language, toggleLanguage } = useLanguage()
+  const { isDark, toggleTheme } = useTheme()
   const { user, logout } = useAuth()
+  const userRole = getUserRole(user)
+  const roleConfig = ROLE_CONFIG[userRole]
   const [currentPath, setCurrentPath] = useState('/dashboard')
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
@@ -1401,6 +1415,15 @@ function Dashboard() {
             )
           })}
         </nav>
+        <div className="mobile-menu-controls">
+          <button className="sidebar-control-btn" onClick={toggleLanguage}>
+            <Globe size={18} />
+            <span>{language === 'zh' ? '中文' : 'EN'}</span>
+          </button>
+          <button className="sidebar-control-btn" onClick={toggleTheme}>
+            {isDark ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
+        </div>
         <div className="mobile-menu-footer">
           <button
             type="button"
@@ -1447,9 +1470,19 @@ function Dashboard() {
           ))}
         </nav>
 
+        <div className="sidebar-controls">
+          <button className="sidebar-control-btn" onClick={toggleLanguage} title={language === 'zh' ? 'Switch to English' : '切换到中文'}>
+            <Globe size={16} />
+            <span>{language === 'zh' ? '中文' : 'EN'}</span>
+          </button>
+          <button className="sidebar-control-btn" onClick={toggleTheme} title={isDark ? 'Light Mode' : 'Dark Mode'}>
+            {isDark ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
+        </div>
+
         <div className="sidebar-footer">
           <div className="sidebar-user-info">
-            <div className="user-badge neon-border-cyan">
+            <div className={`user-badge user-badge--${userRole}`} style={{ borderColor: roleConfig.color, color: roleConfig.color }}>
               <User size={14} />
             </div>
             <span className="user-id" title={user?.name}>{truncateName(user?.name, 8) || 'USER'}</span>

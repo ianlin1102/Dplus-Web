@@ -3,7 +3,7 @@
  * 滚动阅读 + 打勾确认 + 输入法律姓名
  */
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { ArrowLeft, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
 import { useLanguage } from '../../i18n/LanguageContext'
@@ -106,14 +106,20 @@ const UserTerms = () => {
     }
   }, [loading, scrolledToBottom, alreadyAgreed, sections])
 
-  // 监听滚动事件
-  const handleScroll = (e) => {
-    const element = e.target
-    const isAtBottom = element.scrollHeight - element.scrollTop <= element.clientHeight + 50
-    if (isAtBottom && !scrolledToBottom) {
-      setScrolledToBottom(true)
-    }
-  }
+  // 监听滚动事件（节流）
+  const scrollTicking = useRef(false)
+  const handleScroll = useCallback((e) => {
+    if (scrolledToBottom || scrollTicking.current) return
+    scrollTicking.current = true
+    requestAnimationFrame(() => {
+      const element = e.target
+      const isAtBottom = element.scrollHeight - element.scrollTop <= element.clientHeight + 50
+      if (isAtBottom) {
+        setScrolledToBottom(true)
+      }
+      scrollTicking.current = false
+    })
+  }, [scrolledToBottom])
 
   // 提交同意
   const handleSubmit = async () => {
@@ -180,31 +186,31 @@ const UserTerms = () => {
 
   return (
     <div className="user-terms-page">
-      {/* 头部 */}
-      <header className="terms-header">
-        <button className="back-btn" onClick={() => navigate(-1)}>
-          <ArrowLeft size={20} />
-        </button>
-        <h1>{language === 'zh' ? '用户服务条款' : 'User Service Terms'}</h1>
-        <div className="header-spacer" />
-      </header>
-
-      {/* 版本信息 */}
-      <div className="terms-version-info">
-        <span className="version-badge">V{version}</span>
-        {alreadyAgreed && (
-          <span className="agreed-badge">
-            {language === 'zh' ? `已同意 V${agreedVersion}` : `Agreed V${agreedVersion}`}
-          </span>
-        )}
-      </div>
-
       {/* 条款内容（滚动区域） */}
       <div
         className="terms-content"
         ref={scrollRef}
         onScroll={handleScroll}
       >
+        {/* 头部 - sticky 在滚动区域内 */}
+        <header className="terms-header">
+          <button className="back-btn" onClick={() => navigate(-1)}>
+            <ArrowLeft size={20} />
+          </button>
+          <h1>{language === 'zh' ? '用户服务条款' : 'User Service Terms'}</h1>
+          <div className="header-spacer" />
+        </header>
+
+        <div className="terms-content-inner">
+        {/* 版本信息 */}
+        <div className="terms-version-info">
+          <span className="version-badge">V{version}</span>
+          {alreadyAgreed && (
+            <span className="agreed-badge">
+              {language === 'zh' ? `已同意 V${agreedVersion}` : `Agreed V${agreedVersion}`}
+            </span>
+          )}
+        </div>
         {/* Header section */}
         {sections.length > 0 && sections[0].isHeader && (
           <div className="terms-document-header">
@@ -244,10 +250,18 @@ const UserTerms = () => {
             <span>↓ {language === 'zh' ? '请继续滚动阅读完整条款' : 'Please scroll to read full terms'} ↓</span>
           </div>
         )}
+        </div>
       </div>
 
       {/* 同意区域 */}
-      <div className={`agree-section ${scrolledToBottom ? 'visible' : ''}`}>
+      <div className="agree-section visible">
+        <div className="agree-section-inner">
+        {/* 未读完遮罩 */}
+        {!scrolledToBottom && !alreadyAgreed && (
+          <div className="agree-mask">
+            <span>{language === 'zh' ? '请先阅读完用户协议' : 'Please read the full agreement first'}</span>
+          </div>
+        )}
         {/* 已同意状态 */}
         {alreadyAgreed ? (
           <div className="already-agreed">
@@ -321,6 +335,7 @@ const UserTerms = () => {
             </button>
           </>
         )}
+        </div>
       </div>
     </div>
   )

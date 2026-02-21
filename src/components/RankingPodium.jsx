@@ -1,7 +1,33 @@
-import React, { useState, useEffect } from 'react'
-import { getCheckInRanking } from '../services/rankingService'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
+import { getCheckInRanking, getUserCheckinStats } from '../services/rankingService'
 import { useLanguage } from '../i18n/LanguageContext'
+import { convertCloudUrl } from '../utils/cloudUrlHelper'
 import './RankingPodium.css'
+
+const CACHE_DURATION = 30 * 60 * 1000 // 30分钟缓存
+
+/**
+ * 获取当前登录用户的 userId
+ */
+const getCurrentUserId = () => {
+  try {
+    const authInfo = localStorage.getItem('auth_info')
+    if (authInfo) {
+      const parsed = JSON.parse(authInfo)
+      if (parsed.user && parsed.user.id) {
+        return parsed.user.id
+      }
+    }
+    const authData = localStorage.getItem('auth_user')
+    if (authData) {
+      const user = JSON.parse(authData)
+      return user._id || user.USER_MINI_OPENID || ''
+    }
+  } catch (e) {
+    // ignore
+  }
+  return ''
+}
 
 const RankingPodium = ({ limit = 10 }) => {
   const { language } = useLanguage()
@@ -9,9 +35,23 @@ const RankingPodium = ({ limit = 10 }) => {
   const [rankList, setRankList] = useState([])
   const [loading, setLoading] = useState(true)
   const [maxCount, setMaxCount] = useState(1)
+  const [userStats, setUserStats] = useState(null)
+  const currentUserId = getCurrentUserId()
+
+  // 前端缓存 (per tab)
+  const cacheRef = useRef({ all: null, month: null })
 
   // 加载排行榜数据
   const loadRankData = async (rankType) => {
+    // 检查前端缓存
+    const cached = cacheRef.current[rankType]
+    if (cached && (Date.now() - cached.timestamp < CACHE_DURATION)) {
+      setRankList(cached.rankList)
+      setMaxCount(cached.maxCount)
+      setLoading(false)
+      return
+    }
+
     setLoading(true)
     try {
       const result = await getCheckInRanking(rankType, limit)
@@ -21,6 +61,13 @@ const RankingPodium = ({ limit = 10 }) => {
         const max = list.length > 0 ? Math.max(...list.map(i => i.checkinCount)) : 1
         setMaxCount(max)
         setRankList(list)
+
+        // 保存到前端缓存
+        cacheRef.current[rankType] = {
+          rankList: list,
+          maxCount: max,
+          timestamp: Date.now()
+        }
       } else {
         setRankList([])
       }
@@ -32,14 +79,56 @@ const RankingPodium = ({ limit = 10 }) => {
     }
   }
 
+  // 加载当前用户签到统计（只加载一次）
+  const loadUserStats = async () => {
+    const userId = getCurrentUserId()
+    if (!userId) return
+
+    try {
+      const result = await getUserCheckinStats(userId)
+      if (result.code === 200 && result.data) {
+        setUserStats(result.data)
+      }
+    } catch (error) {
+      console.error('加载用户签到统计失败:', error)
+    }
+  }
+
+  // 用户统计只加载一次
+  useEffect(() => {
+    loadUserStats()
+  }, [])
+
+  // 排行榜数据跟随 type 变化
   useEffect(() => {
     loadRankData(type)
   }, [type])
 
-  // 切换榜单类型
-  const handleToggle = () => {
-    setType(prev => prev === 'all' ? 'month' : 'all')
-  }
+  // 计算"我的排名"信息
+  const myRankInfo = useMemo(() => {
+    if (!currentUserId || !userStats) return null
+
+    let inTop10 = false
+    let rank = null
+    let userName = userStats.userName || ''
+    let userAvatar = userStats.userAvatar || ''
+
+    for (let i = 0; i < rankList.length; i++) {
+      if (rankList[i].userId === currentUserId) {
+        inTop10 = true
+        rank = rankList[i].rank || (i + 1)
+        userName = rankList[i].userName || userName
+        userAvatar = rankList[i].userAvatar || userAvatar
+        break
+      }
+    }
+
+    const checkinCount = type === 'all'
+      ? (userStats.totalCount || 0)
+      : (userStats.monthCount || 0)
+
+    return { inTop10, rank, checkinCount, userName, userAvatar }
+  }, [rankList, userStats, currentUserId, type])
 
   // 计算柱子高度（相对于最大值的比例）
   const getBarHeight = (count) => {
@@ -47,6 +136,18 @@ const RankingPodium = ({ limit = 10 }) => {
     const maxHeight = 140
     const ratio = count / maxCount
     return minHeight + (maxHeight - minHeight) * ratio
+  }
+
+  const DEFAULT_AVATAR = '/images/default-avatar.png'
+
+  // 渲染头像：有图片用图片，否则用默认头像
+  const renderAvatar = (item, className = '') => {
+    const avatarUrl = item.userAvatar ? convertCloudUrl(item.userAvatar) : ''
+    return (
+      <div className={`podium-avatar ${className}`}>
+        <img src={avatarUrl || DEFAULT_AVATAR} alt="" className="avatar-img" />
+      </div>
+    )
   }
 
   // 前3名
@@ -87,9 +188,7 @@ const RankingPodium = ({ limit = 10 }) => {
             {/* 第2名 - 左侧 */}
             {topThree[1] && (
               <div className="podium-item rank-2">
-                <div className="podium-avatar">
-                  {topThree[1].userName?.substring(0, 1) || '?'}
-                </div>
+                {renderAvatar(topThree[1])}
                 <div
                   className="podium-bar"
                   style={{ height: `${getBarHeight(topThree[1].checkinCount)}px` }}
@@ -97,8 +196,8 @@ const RankingPodium = ({ limit = 10 }) => {
                   <span className="bar-rank">2</span>
                 </div>
                 <div className="podium-info">
-                  <div className="podium-name">{topThree[1].userName}</div>
-                  <div className="podium-count">{topThree[1].checkinCount}次</div>
+                  <div className="podium-name">{topThree[1].userName}{currentUserId && topThree[1].userId === currentUserId && <span className="is-me-tag">{language === 'zh' ? '(我)' : '(Me)'}</span>}</div>
+                  <div className="podium-count">{topThree[1].checkinCount}{language === 'zh' ? '次' : 'x'}</div>
                 </div>
               </div>
             )}
@@ -107,9 +206,7 @@ const RankingPodium = ({ limit = 10 }) => {
             {topThree[0] && (
               <div className="podium-item rank-1">
                 <div className="crown-icon">👑</div>
-                <div className="podium-avatar">
-                  {topThree[0].userName?.substring(0, 1) || '?'}
-                </div>
+                {renderAvatar(topThree[0])}
                 <div
                   className="podium-bar"
                   style={{ height: `${getBarHeight(topThree[0].checkinCount)}px` }}
@@ -117,8 +214,8 @@ const RankingPodium = ({ limit = 10 }) => {
                   <span className="bar-rank">1</span>
                 </div>
                 <div className="podium-info">
-                  <div className="podium-name">{topThree[0].userName}</div>
-                  <div className="podium-count">{topThree[0].checkinCount}次</div>
+                  <div className="podium-name">{topThree[0].userName}{currentUserId && topThree[0].userId === currentUserId && <span className="is-me-tag">{language === 'zh' ? '(我)' : '(Me)'}</span>}</div>
+                  <div className="podium-count">{topThree[0].checkinCount}{language === 'zh' ? '次' : 'x'}</div>
                 </div>
               </div>
             )}
@@ -126,9 +223,7 @@ const RankingPodium = ({ limit = 10 }) => {
             {/* 第3名 - 右侧 */}
             {topThree[2] && (
               <div className="podium-item rank-3">
-                <div className="podium-avatar">
-                  {topThree[2].userName?.substring(0, 1) || '?'}
-                </div>
+                {renderAvatar(topThree[2])}
                 <div
                   className="podium-bar"
                   style={{ height: `${getBarHeight(topThree[2].checkinCount)}px` }}
@@ -136,8 +231,8 @@ const RankingPodium = ({ limit = 10 }) => {
                   <span className="bar-rank">3</span>
                 </div>
                 <div className="podium-info">
-                  <div className="podium-name">{topThree[2].userName}</div>
-                  <div className="podium-count">{topThree[2].checkinCount}次</div>
+                  <div className="podium-name">{topThree[2].userName}{currentUserId && topThree[2].userId === currentUserId && <span className="is-me-tag">{language === 'zh' ? '(我)' : '(Me)'}</span>}</div>
+                  <div className="podium-count">{topThree[2].checkinCount}{language === 'zh' ? '次' : 'x'}</div>
                 </div>
               </div>
             )}
@@ -152,12 +247,30 @@ const RankingPodium = ({ limit = 10 }) => {
             <div key={item.userId} className="rank-list-item">
               <span className="rank-num">#{item.rank}</span>
               <div className="rank-avatar">
-                {item.userName?.substring(0, 1) || '?'}
+                <img src={item.userAvatar ? convertCloudUrl(item.userAvatar) : DEFAULT_AVATAR} alt="" className="rank-avatar-img" />
               </div>
-              <span className="rank-name">{item.userName}</span>
-              <span className="rank-count">{item.checkinCount}次</span>
+              <span className="rank-name">{item.userName}{currentUserId && item.userId === currentUserId && <span className="is-me-tag">{language === 'zh' ? '(我)' : '(Me)'}</span>}</span>
+              <span className="rank-count">{item.checkinCount}{language === 'zh' ? '次' : 'x'}</span>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* 我的排名 (10+1) */}
+      {!loading && myRankInfo && (
+        <div className="my-rank-section">
+          <div className="rank-list-item my-rank-row">
+            {myRankInfo.inTop10 ? (
+              <span className="rank-num">#{myRankInfo.rank}</span>
+            ) : (
+              <span className="rank-num unranked">{language === 'zh' ? '未上榜' : 'N/A'}</span>
+            )}
+            <div className="rank-avatar">
+              <img src={myRankInfo.userAvatar ? convertCloudUrl(myRankInfo.userAvatar) : DEFAULT_AVATAR} alt="" className="rank-avatar-img" />
+            </div>
+            <span className="rank-name">{myRankInfo.userName}<span className="is-me-tag">{language === 'zh' ? '(我)' : '(Me)'}</span></span>
+            <span className="rank-count">{myRankInfo.checkinCount}{language === 'zh' ? '次' : 'x'}</span>
+          </div>
         </div>
       )}
 

@@ -1,8 +1,6 @@
 /* SchedulePrint.css - Cyberpunk / Neon Flux Style */
 
 .sched-page {
-  max-width: 1200px;
-  margin: 0 auto;
   padding: 40px 20px;
   min-height: 100vh;
   background-color: #050505;
@@ -14,7 +12,7 @@
 /* Grid Background */
 .sched-page::before {
   content: '';
-  position: absolute;
+  position: fixed;
   inset: 0;
   background-size: 40px 40px;
   background-image:
@@ -25,6 +23,8 @@
 }
 
 .sched-controls, .sched-content {
+  max-width: 1200px;
+  margin: 0 auto;
   position: relative;
   z-index: 1;
 }
@@ -179,6 +179,49 @@
 .sched-print-btn:hover {
   background: rgba(217, 70, 239, 0.1);
   box-shadow: 0 0 15px rgba(217, 70, 239, 0.4);
+}
+
+.sched-print-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.sched-excel-btn {
+  border-color: rgba(34, 197, 94, 0.5);
+  color: #22c55e;
+}
+.sched-excel-btn:hover:not(:disabled) {
+  background: rgba(34, 197, 94, 0.1);
+  box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
+}
+
+.sched-theme-btn {
+  background: transparent;
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  color: #f59e0b;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+.sched-theme-btn:hover {
+  background: rgba(245, 158, 11, 0.1);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.3);
+}
+
+.sched-cal-link {
+  border-color: rgba(6, 182, 212, 0.5);
+  color: #06b6d4;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+.sched-cal-link:hover {
+  background: rgba(6, 182, 212, 0.1);
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);
 }
 
 .sched-loading {
@@ -409,123 +452,182 @@
 
 /* ============================================
    Light Mode 亮色模式
+   Triggered by local toggle (.sched-page--light)
+   or global theme (body.light)
    ============================================ */
 
-body.light .sched-page {
+/* Override parent .app.dark when schedule is in light mode */
+.app.dark:has(.sched-page--light) {
+  background-color: #f8f9fa !important;
+  color: rgba(0, 0, 0, 0.87) !important;
+}
+
+body.light .sched-page,
+.sched-page--light {
   background-color: #f8f9fa;
   color: rgba(0, 0, 0, 0.87);
 }
 
-body.light .sched-page::before {
+body.light .sched-page::before,
+.sched-page--light::before {
   background-image:
     linear-gradient(to right, rgba(0, 0, 0, 0.04) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
 }
 
-body.light .sched-controls {
+body.light .sched-controls,
+.sched-page--light .sched-controls {
   background: rgba(0, 0, 0, 0.02);
   border-color: rgba(0, 0, 0, 0.1);
 }
 
-body.light .sched-back-btn {
+body.light .sched-back-btn,
+.sched-page--light .sched-back-btn {
   border-color: rgba(0, 0, 0, 0.15);
   color: rgba(0, 0, 0, 0.6);
 }
 
-body.light .sched-back-btn:hover {
+body.light .sched-back-btn:hover,
+.sched-page--light .sched-back-btn:hover {
   background: rgba(0, 0, 0, 0.05);
   color: #1a1a1a;
   border-color: rgba(0, 0, 0, 0.3);
 }
 
-body.light .sched-lang-btn {
+body.light .sched-lang-btn,
+body.light .sched-theme-btn,
+.sched-page--light .sched-lang-btn,
+.sched-page--light .sched-theme-btn {
   border-color: rgba(0, 0, 0, 0.15);
   color: rgba(0, 0, 0, 0.6);
 }
 
-body.light .sched-lang-btn:hover {
+body.light .sched-lang-btn:hover,
+body.light .sched-theme-btn:hover,
+.sched-page--light .sched-lang-btn:hover,
+.sched-page--light .sched-theme-btn:hover {
   background: rgba(0, 0, 0, 0.05);
   color: #1a1a1a;
   border-color: rgba(0, 0, 0, 0.3);
 }
 
-body.light .sched-year-label {
+body.light .sched-year-label,
+.sched-page--light .sched-year-label {
   color: #1a1a1a;
 }
 
-body.light .sched-month-tab {
+body.light .sched-year-btn,
+.sched-page--light .sched-year-btn {
+  border-color: rgba(0, 0, 0, 0.15);
+  color: rgba(0, 0, 0, 0.5);
+}
+
+body.light .sched-month-tab,
+.sched-page--light .sched-month-tab {
   background: rgba(0, 0, 0, 0.03);
   border-color: rgba(0, 0, 0, 0.1);
   color: rgba(0, 0, 0, 0.5);
 }
 
-body.light .sched-month-tab:hover {
+body.light .sched-month-tab:hover,
+.sched-page--light .sched-month-tab:hover {
   background: rgba(0, 0, 0, 0.06);
   color: #1a1a1a;
   border-color: rgba(0, 0, 0, 0.2);
 }
 
-body.light .sched-month-tab.active {
+body.light .sched-month-tab.active,
+.sched-page--light .sched-month-tab.active {
   background: rgba(6, 182, 212, 0.08);
   color: #0891b2;
   border-color: #0891b2;
   box-shadow: 0 0 12px rgba(6, 182, 212, 0.15);
 }
 
-body.light .sched-loading {
+body.light .sched-print-btn,
+.sched-page--light .sched-print-btn {
+  border-color: rgba(0, 0, 0, 0.15);
+  color: rgba(0, 0, 0, 0.6);
+}
+body.light .sched-print-btn:hover,
+.sched-page--light .sched-print-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: #1a1a1a;
+}
+
+body.light .sched-loading,
+.sched-page--light .sched-loading {
   color: rgba(0, 0, 0, 0.5);
 }
 
-body.light .sched-spinner {
+body.light .sched-spinner,
+.sched-page--light .sched-spinner {
   border-color: rgba(0, 0, 0, 0.1);
   border-top-color: #06b6d4;
 }
 
-body.light .sched-header {
+body.light .sched-header,
+.sched-page--light .sched-header {
   border-bottom-color: rgba(0, 0, 0, 0.1);
 }
 
-body.light .sched-title {
+body.light .sched-title,
+.sched-page--light .sched-title {
   color: rgba(0, 0, 0, 0.5);
 }
 
-body.light .sched-month {
+body.light .sched-month,
+.sched-page--light .sched-month {
   color: #1a1a1a;
 }
 
-body.light .sched-empty {
+body.light .sched-empty,
+.sched-page--light .sched-empty {
   color: rgba(0, 0, 0, 0.4);
 }
 
-body.light .sched-day-row {
+body.light .sched-day-row,
+.sched-page--light .sched-day-row {
   border-bottom-color: rgba(0, 0, 0, 0.06);
 }
 
-body.light .sched-class-card {
+body.light .sched-day-label,
+.sched-page--light .sched-day-label {
+  color: #0891b2;
+}
+
+body.light .sched-class-card,
+.sched-page--light .sched-class-card {
   background: rgba(0, 0, 0, 0.02);
   border-color: rgba(0, 0, 0, 0.1);
 }
 
-body.light .sched-class-card:hover {
+body.light .sched-class-card:hover,
+.sched-page--light .sched-class-card:hover {
   background: rgba(0, 0, 0, 0.04);
   border-color: rgba(6, 182, 212, 0.5);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
-body.light .sched-class-title {
+body.light .sched-class-title,
+.sched-page--light .sched-class-title {
   color: #1a1a1a;
 }
 
-body.light .sched-class-instructor {
+body.light .sched-class-instructor,
+.sched-page--light .sched-class-instructor {
   color: rgba(0, 0, 0, 0.6);
 }
 
 body.light .sched-instructor-pic,
-body.light .sched-instructor-avatar-mini {
+body.light .sched-instructor-avatar-mini,
+.sched-page--light .sched-instructor-pic,
+.sched-page--light .sched-instructor-avatar-mini {
   border-color: rgba(0, 0, 0, 0.15);
 }
 
-body.light .sched-footer {
+body.light .sched-footer,
+.sched-page--light .sched-footer {
   border-top-color: rgba(0, 0, 0, 0.1);
   color: rgba(0, 0, 0, 0.4);
 }
@@ -567,7 +669,8 @@ body.light .sched-footer {
     font-size: 12px;
   }
 
-  body.light .sched-day-label {
+  body.light .sched-day-label,
+  .sched-page--light .sched-day-label {
     color: #1a1a1a;
     border-left-color: #06b6d4;
   }
