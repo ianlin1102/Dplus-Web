@@ -103,14 +103,8 @@ export const getTempDownloadUrl = async (cloudUrl) => {
       }
     }
 
-    // 备用方案：直接使用 tcb.qcloud.la URL（可能403，但作为fallback）
-    const pathMatch = cloudUrl.match(/cloud:\/\/[^/]+\/(.+)/)
-    if (pathMatch && pathMatch[1]) {
-      const fallbackUrl = `https://636c-cloud1-6gnd02he13c1ff2e-1380655578.tcb.qcloud.la/${pathMatch[1]}`
-      return fallbackUrl
-    }
-
-    return cloudUrl
+    // tcb.qcloud.la 直接 URL 会 403，返回空让调用方显示占位符
+    return ''
   } catch (error) {
     console.error('获取临时 URL 出错:', error)
     return cloudUrl
@@ -199,18 +193,9 @@ export const convertCloudUrl = (cloudUrl) => {
     return '' // 返回空字符串，让调用方显示占位符
   }
 
-  // 备用方案：直接转换为 tcb.qcloud.la 域名（可能返回 403）
-  try {
-    const pathMatch = cloudUrl.match(/cloud:\/\/[^/]+\/(.+)/)
-    if (pathMatch && pathMatch[1]) {
-      const filePath = pathMatch[1]
-      return `https://636c-cloud1-6gnd02he13c1ff2e-1380655578.tcb.qcloud.la/${filePath}`
-    }
-    return cloudUrl
-  } catch (error) {
-    console.error('转换 cloud:// URL 失败:', error)
-    return cloudUrl
-  }
+  // cloud:// URL 无法同步转换为可用的 HTTPS URL（tcb.qcloud.la 会 403）
+  // 返回空字符串，让调用方显示默认头像/占位符
+  return ''
 }
 
 /**
