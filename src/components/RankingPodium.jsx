@@ -140,12 +140,14 @@ const RankingPodium = ({ limit = 10 }) => {
 
   const DEFAULT_AVATAR = '/images/default-avatar.png'
 
+  const handleImgError = (e) => { e.target.src = DEFAULT_AVATAR }
+
   // 渲染头像：有图片用图片，否则用默认头像
   const renderAvatar = (item, className = '') => {
     const avatarUrl = item.userAvatar ? convertCloudUrl(item.userAvatar) : ''
     return (
       <div className={`podium-avatar ${className}`}>
-        <img src={avatarUrl || DEFAULT_AVATAR} alt="" className="avatar-img" />
+        <img src={avatarUrl || DEFAULT_AVATAR} alt="" className="avatar-img" onError={handleImgError} />
       </div>
     )
   }
@@ -247,7 +249,7 @@ const RankingPodium = ({ limit = 10 }) => {
             <div key={item.userId} className="rank-list-item">
               <span className="rank-num">#{item.rank}</span>
               <div className="rank-avatar">
-                <img src={item.userAvatar ? convertCloudUrl(item.userAvatar) : DEFAULT_AVATAR} alt="" className="rank-avatar-img" />
+                <img src={item.userAvatar ? convertCloudUrl(item.userAvatar) : DEFAULT_AVATAR} alt="" className="rank-avatar-img" onError={handleImgError} />
               </div>
               <span className="rank-name">{item.userName}{currentUserId && item.userId === currentUserId && <span className="is-me-tag">{language === 'zh' ? '(我)' : '(Me)'}</span>}</span>
               <span className="rank-count">{item.checkinCount}{language === 'zh' ? '次' : 'x'}</span>
@@ -266,7 +268,7 @@ const RankingPodium = ({ limit = 10 }) => {
               <span className="rank-num unranked">{language === 'zh' ? '未上榜' : 'N/A'}</span>
             )}
             <div className="rank-avatar">
-              <img src={myRankInfo.userAvatar ? convertCloudUrl(myRankInfo.userAvatar) : DEFAULT_AVATAR} alt="" className="rank-avatar-img" />
+              <img src={myRankInfo.userAvatar ? convertCloudUrl(myRankInfo.userAvatar) : DEFAULT_AVATAR} alt="" className="rank-avatar-img" onError={handleImgError} />
             </div>
             <span className="rank-name">{myRankInfo.userName}<span className="is-me-tag">{language === 'zh' ? '(我)' : '(Me)'}</span></span>
             <span className="rank-count">{myRankInfo.checkinCount}{language === 'zh' ? '次' : 'x'}</span>
